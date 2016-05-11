@@ -1,0 +1,43 @@
+// In this section you declare the dependencies for your production and test code
+dependencies {
+    compile "com.amazonaws:aws-java-sdk-s3:$awsSDKVersion"
+    
+    compile project(':interlok-aws-common')
+
+    testCompile 'org.mockito:mockito-all:1.9.5'
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+task examplesJar(type: Jar, dependsOn: test) {
+    classifier = 'examples'
+    from new File(buildDir, '/examples')
+}
+
+artifacts {
+    archives javadocJar
+    archives examplesJar
+}
+
+publishing {
+  publications {
+      mavenJava(MavenPublication) {
+          from components.java
+          
+          artifact javadocJar { classifier "javadoc" }
+          artifact examplesJar { classifier "examples" }
+      }
+  }
+  repositories {
+    maven {
+      credentials {
+        username repoUsername
+        password repoPassword
+      }
+      url "https://development.adaptris.net/nexus/content/repositories/snapshots"
+    }
+  }
+}
