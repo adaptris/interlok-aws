@@ -1,6 +1,2 @@
 repoUsername = 
 repoPassword = 
-
-adpCoreVersion = 3.3-SNAPSHOT
-slf4jVersion = 1.7.12
-awsSDKVersion = 1.9.38
