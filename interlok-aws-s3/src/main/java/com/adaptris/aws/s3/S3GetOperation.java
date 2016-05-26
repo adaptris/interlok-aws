@@ -35,8 +35,10 @@ public class S3GetOperation implements S3Operation {
   @Override
   public void execute(AmazonS3Client s3, AdaptrisMessage msg) throws InterlokException {
     GetObjectRequest request = new GetObjectRequest(getBucketName().extract(msg), getKey().extract(msg));
+
     log.debug("Getting {} from bucket {}", request.getKey(), request.getBucketName());
     S3Object response = s3.getObject(request);
+    log.trace("Object is {} bytes", response.getObjectMetadata().getContentLength());
     getResponseBody().insert(new InputStreamWithEncoding(response.getObjectContent(), null), msg);
   }
 
