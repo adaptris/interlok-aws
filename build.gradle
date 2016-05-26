@@ -43,12 +43,12 @@ subprojects {
       compile "com.adaptris:adp-core-apt:$adpCoreVersion"
         
       compile "org.slf4j:slf4j-api:$slf4jVersion"
-      runtime "org.slf4j:slf4j-log4j12:$slf4jVersion"
-      runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion"
-  
+ 
       testCompile 'junit:junit:4.11'
       testCompile "com.adaptris:adp-stubs:$adpCoreVersion"
       testCompile 'log4j:log4j:1.2.17'
+      testCompile "org.slf4j:slf4j-log4j12:$slf4jVersion"
+      testCompile "org.slf4j:jcl-over-slf4j:$slf4jVersion"
       
       javadoc "com.adaptris:adp-core-apt:$adpCoreVersion"
   }

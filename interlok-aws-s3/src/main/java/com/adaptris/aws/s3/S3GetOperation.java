@@ -5,6 +5,7 @@ import javax.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.common.InputStreamWithEncoding;
 import com.adaptris.interlok.InterlokException;
@@ -17,8 +18,12 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * Get an object from S3 and store the contents of the object either in the message payload or metadata.
+ * 
+ * @author gdries
+ * @config amazon-s3-get
  */
 @XStreamAlias("amazon-s3-get")
+@DisplayOrder(order = {"key", "bucketName", "responseBody"})
 public class S3GetOperation implements S3Operation {
   
   private transient Logger log = LoggerFactory.getLogger(this.getClass().getName());

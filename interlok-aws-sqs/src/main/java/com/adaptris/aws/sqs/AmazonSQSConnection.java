@@ -44,10 +44,13 @@ public class AmazonSQSConnection extends AdaptrisConnectionImp {
   private String secretKey;
 
   @Valid
+  @NotNull
+  @AutoPopulated
   private AWSAuthentication authentication;
   
   @NotNull
   @AutoPopulated
+  @Valid
   private SQSClientFactory sqsClientFactory;
 
   private transient AmazonSQSAsync sqsClient;

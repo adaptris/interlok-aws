@@ -7,35 +7,47 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import org.apache.http.util.Args;
+
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceException;
-import com.adaptris.core.ServiceImp;
 import com.adaptris.core.lms.FileBackedMessage;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.core.util.ManagedThreadFactory;
 import com.adaptris.interlok.config.DataInputParameter;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.util.IOUtils;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+/**
+ * Download an object from S3 using {@link TransferManager}.
+ * 
+ * @author lchan
+ * @config amazon-transfer-manager-download-service
+ */
 @ComponentProfile(summary = "Amazon S3 Download Service using Transfer Manager")
 @XStreamAlias("amazon-transfer-manager-download-service")
-public class TransferManagerDownload extends ServiceImp {
+@DisplayOrder(order = {"authentication", "key", "bucketName", "tempDirectory"})
+public class TransferManagerDownload extends S3ServiceImpl {
 
   @NotNull
+  @Valid
   private DataInputParameter<String> bucketName;
   @NotNull
+  @Valid
   private DataInputParameter<String> key;
 
+  @AdvancedConfig
   private String tempDirectory;
-  private transient AmazonS3Client s3;
 
   private transient File tempDir;
   private transient ManagedThreadFactory threadFactory = new ManagedThreadFactory();
@@ -44,10 +56,9 @@ public class TransferManagerDownload extends ServiceImp {
 
   }
 
-
   @Override
   public void doService(AdaptrisMessage msg) throws ServiceException {
-    TransferManager tm = new TransferManager(s3);
+    TransferManager tm = new TransferManager(amazonClient());
     try {
       GetObjectRequest request = new GetObjectRequest(getBucketName().extract(msg), getKey().extract(msg));
       log.debug("Getting {} from bucket {}", request.getKey(), request.getBucketName());
@@ -82,7 +93,7 @@ public class TransferManagerDownload extends ServiceImp {
 
   @Override
   protected void initService() throws CoreException {
-    s3 = new AmazonS3Client();
+    super.initService();
     if (!isEmpty(getTempDirectory())) {
       tempDir = new File(getTempDirectory());
     }
@@ -93,7 +104,7 @@ public class TransferManagerDownload extends ServiceImp {
   }
 
   public void setKey(DataInputParameter<String> key) {
-    this.key = key;
+    this.key = Args.notNull(key, "key");;
   }
 
   public DataInputParameter<String> getBucketName() {
@@ -102,7 +113,7 @@ public class TransferManagerDownload extends ServiceImp {
 
 
   public void setBucketName(DataInputParameter<String> bucketName) {
-    this.bucketName = bucketName;
+    this.bucketName = Args.notNull(bucketName, "bucketName");
   }
 
 
@@ -115,10 +126,12 @@ public class TransferManagerDownload extends ServiceImp {
 
 
   /**
-   * @param tempDirectory the tempDirectory to set
+   * Set the temp directory to store files.
+   * 
+   * @param s the tempDirectory to set, if not specified defaults to {@code java.io.tmpdir}
    */
-  public void setTempDirectory(String tempDirectory) {
-    this.tempDirectory = tempDirectory;
+  public void setTempDirectory(String s) {
+    this.tempDirectory = s;
   }
 
   private class MyProgressListener implements Runnable {
@@ -130,9 +143,9 @@ public class TransferManagerDownload extends ServiceImp {
 
     public void run() {
       while (!download.isDone()) {
-        log.trace("Percent Complete : {}%", download.getProgress().getPercentTransferred());
+        log.trace("Downloaded : {}%", (download.getProgress().getPercentTransferred() / 1));
         try {
-          Thread.sleep(10000);
+          Thread.sleep(2000);
         } catch (InterruptedException e) {
         }
       }
