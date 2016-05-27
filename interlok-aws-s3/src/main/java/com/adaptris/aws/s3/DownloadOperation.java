@@ -7,22 +7,16 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import org.apache.http.util.Args;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.CoreException;
-import com.adaptris.core.ServiceException;
 import com.adaptris.core.lms.FileBackedMessage;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.core.util.ManagedThreadFactory;
-import com.adaptris.interlok.config.DataInputParameter;
+import com.adaptris.interlok.InterlokException;
+import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.TransferManager;
@@ -33,37 +27,31 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * Download an object from S3 using {@link TransferManager}.
  * 
  * @author lchan
- * @config amazon-transfer-manager-download-service
- * @deprecated use {@link DownloadOperation} instead as part of an {@link S3Service}
+ * @config amazon-s3-download
  */
 @AdapterComponent
-@ComponentProfile(summary = "Amazon S3 Download Service using Transfer Manager")
-@XStreamAlias("amazon-transfer-manager-download-service")
-@DisplayOrder(order = {"authentication", "key", "bucketName", "tempDirectory"})
-@Deprecated
-public class TransferManagerDownload extends S3ServiceImpl {
-
-  @NotNull
-  @Valid
-  private DataInputParameter<String> bucketName;
-  @NotNull
-  @Valid
-  private DataInputParameter<String> key;
+@ComponentProfile(summary = "Amazon S3 Download using Transfer Manager")
+@XStreamAlias("amazon-s3-download")
+@DisplayOrder(order = {"key", "bucketName", "tempDirectory"})
+public class DownloadOperation extends S3OperationImpl {
 
   @AdvancedConfig
   private String tempDirectory;
 
-  private transient File tempDir;
   private transient ManagedThreadFactory threadFactory = new ManagedThreadFactory();
 
-  public TransferManagerDownload() {
+  public DownloadOperation() {
 
   }
 
   @Override
-  public void doService(AdaptrisMessage msg) throws ServiceException {
-    TransferManager tm = new TransferManager(amazonClient());
+  public void execute(AmazonS3Client s3, AdaptrisMessage msg) throws InterlokException {
+    TransferManager tm = new TransferManager(s3);
+    File tempDir = null;
     try {
+      if (!isEmpty(getTempDirectory())) {
+        tempDir = new File(getTempDirectory());
+      }
       GetObjectRequest request = new GetObjectRequest(getBucketName().extract(msg), getKey().extract(msg));
       log.debug("Getting {} from bucket {}", request.getKey(), request.getBucketName());
       File destFile = File.createTempFile(this.getClass().getSimpleName(), "", tempDir);
@@ -78,8 +66,10 @@ public class TransferManagerDownload extends S3ServiceImpl {
     }
   }
 
+
   private void write(File f, AdaptrisMessage msg) throws IOException {
     if (msg instanceof FileBackedMessage) {
+      log.trace("Initialising Message from {}", f.getCanonicalPath());
       ((FileBackedMessage) msg).initialiseFrom(f);
     } else {
       try (FileInputStream in = new FileInputStream(f); OutputStream out = msg.getOutputStream()) {
@@ -87,39 +77,6 @@ public class TransferManagerDownload extends S3ServiceImpl {
       }
     }
   }
-
-
-  @Override
-  public void prepare() throws CoreException {}
-
-  @Override
-  protected void closeService() {}
-
-  @Override
-  protected void initService() throws CoreException {
-    super.initService();
-    if (!isEmpty(getTempDirectory())) {
-      tempDir = new File(getTempDirectory());
-    }
-  }
-
-  public DataInputParameter<String> getKey() {
-    return key;
-  }
-
-  public void setKey(DataInputParameter<String> key) {
-    this.key = Args.notNull(key, "key");;
-  }
-
-  public DataInputParameter<String> getBucketName() {
-    return bucketName;
-  }
-
-
-  public void setBucketName(DataInputParameter<String> bucketName) {
-    this.bucketName = Args.notNull(bucketName, "bucketName");
-  }
-
 
   /**
    * @return the tempDirectory
@@ -155,4 +112,5 @@ public class TransferManagerDownload extends S3ServiceImpl {
       }
     }
   }
+
 }

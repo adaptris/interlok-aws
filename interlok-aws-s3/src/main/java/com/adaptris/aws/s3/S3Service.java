@@ -3,6 +3,7 @@ package com.adaptris.aws.s3;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
@@ -17,6 +18,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @author gdries
  * @config amazon-s3-service
  */
+@AdapterComponent
 @ComponentProfile(summary = "Amazon S3 Service")
 @XStreamAlias("amazon-s3-service")
 @DisplayOrder(order = {"authentication", "operation"})
