@@ -38,7 +38,7 @@ publishing {
         username repoUsername
         password repoPassword
       }
-      url "https://development.adaptris.net/nexus/content/repositories/snapshots"
+      url mavenPublishUrl
     }
   }
 }
