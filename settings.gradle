@@ -1,0 +1,3 @@
+include 'interlok-aws-common'
+include 'interlok-aws-sqs'
+include 'interlok-aws-s3'
