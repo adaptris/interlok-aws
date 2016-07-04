@@ -10,6 +10,7 @@ import org.mockito.MockitoAnnotations;
 
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.core.CoreException;
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
@@ -44,14 +45,16 @@ public class AmazonSQSConnectionTest extends TestCase {
   }
 
   public void testInit() throws Exception {
-    when(mockSqsClientFactory.createClient((AWSCredentials) anyObject())).thenReturn(mockSqsClient);
+    when(mockSqsClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject()))
+        .thenReturn(mockSqsClient);
     
     amazonSQSConnection.init();
     verify(mockSqsClient, times(1)).setRegion((Region) anyObject());
   }
   
   public void testStartUp() throws Exception {
-    when(mockSqsClientFactory.createClient((AWSCredentials) anyObject())).thenReturn(mockSqsClient);
+    when(mockSqsClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject()))
+        .thenReturn(mockSqsClient);
     
     amazonSQSConnection.init();
     amazonSQSConnection.start();
@@ -59,7 +62,8 @@ public class AmazonSQSConnectionTest extends TestCase {
   }
   
   public void testInitInvalidRegion() throws Exception {
-    when(mockSqsClientFactory.createClient((AWSCredentials) anyObject())).thenReturn(mockSqsClient);
+    when(mockSqsClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject()))
+        .thenReturn(mockSqsClient);
     
     amazonSQSConnection.setRegion("MyInvalidRegion");
     
@@ -90,14 +94,16 @@ public class AmazonSQSConnectionTest extends TestCase {
   }
   
   public void testGetSyncClientAfterInit() throws Exception {
-    when(mockSqsClientFactory.createClient((AWSCredentials) anyObject())).thenReturn(mockSqsClient);
+    when(mockSqsClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject()))
+        .thenReturn(mockSqsClient);
     
     amazonSQSConnection.init();
     assertEquals(mockSqsClient, amazonSQSConnection.getSyncClient());
   }
   
   public void testGetASyncClientAfterInit() throws Exception {
-    when(mockSqsClientFactory.createClient((AWSCredentials) anyObject())).thenReturn(mockSqsClient);
+    when(mockSqsClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject()))
+        .thenReturn(mockSqsClient);
     
     amazonSQSConnection.init();
     assertEquals(mockSqsClient, amazonSQSConnection.getASyncClient());

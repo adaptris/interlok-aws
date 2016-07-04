@@ -20,6 +20,8 @@ import com.adaptris.core.QuartzCronPoller;
 import com.adaptris.core.StandaloneConsumer;
 import com.adaptris.core.stubs.MockMessageListener;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.util.KeyValuePair;
+import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
@@ -239,6 +241,10 @@ public class AwsConsumerTest extends ConsumerCase {
     kauth.setSecretKey("secretKey");
     conn.setAuthentication(kauth);
     conn.setRegion("My AWS Region");
+    KeyValuePairSet clientSettings = new KeyValuePairSet();
+    clientSettings.add(new KeyValuePair("ProxyHost", "127.0.0.1"));
+    clientSettings.add(new KeyValuePair("ProxyPort", "3128"));
+    conn.setClientConfiguration(clientSettings);
     StandaloneConsumer result = new StandaloneConsumer(conn, sqsConsumer);
     return result;
   }

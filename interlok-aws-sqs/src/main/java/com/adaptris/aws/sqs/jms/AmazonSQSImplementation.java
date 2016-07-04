@@ -55,6 +55,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
 
   @AdvancedConfig
   private Integer prefetchCount;
+
   
   public AmazonSQSImplementation() {
     setAuthentication(new DefaultAWSAuthentication());
@@ -87,12 +88,10 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
       auth.setSecretKey(getSecretKey());
       setAuthentication(auth);
     }
-    
     AWSCredentials creds = getAuthentication().getAWSCredentials();
     if(creds != null) {
       builder.withAWSCredentialsProvider(new StaticCredentialsProvider(creds));
     }
-    
     return builder;
   }
 
