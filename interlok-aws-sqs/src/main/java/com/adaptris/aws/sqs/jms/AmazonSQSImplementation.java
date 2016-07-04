@@ -107,7 +107,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   /**
    * The Amazon Web Services region to use
    * 
-   * @param str
+   * @param str the region
    */
   public void setRegion(String str) {
     this.region = Args.notBlank(str, "region");
@@ -121,7 +121,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   /**
    * Your Amazon Web Services access key. This can be a root key or the key for an IAM user (recommended).
    * 
-   * @param key
+   * @param key the Access key.
    */
   @Deprecated
   public void setAccessKey(String key) {

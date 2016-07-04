@@ -25,12 +25,12 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * </p>
  * <p>
  * This vendor implementation class directly exposes almost all the getter and setters that are available in the
- * {@link SQSConnectionFactory.Builder#getClientConfiguration()}
+ * {@link Builder#getClientConfiguration()}
  * for maximum flexibility in configuration.
  * </p>
  * <p>
  * The key from the <code>connection-factory-properties</code> element should match the name of the underlying ClientConfiguration
- * property.
+ * property. So if you wanted to control the user-agent you would configure
  * </p>
  * <pre>
  * {@code 
@@ -42,7 +42,6 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  *   </client-configuration-properties>
  * }
  * </pre>
- * will invoke {@link ClientConfiguration#withUserAgent(String)}, setting the UserAgent property.
  * 
  * @config advanced-amazon-sqs-implementation
  * @license STANDARD

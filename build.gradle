@@ -10,6 +10,14 @@ ext {
   mavenPublishUrl = 'https://development.adaptris.net/nexus/content/repositories/snapshots'
 }
 
+if (JavaVersion.current().isJava8Compatible()) {
+  allprojects {
+    tasks.withType(Javadoc) {
+      options.addStringOption('Xdoclint:none', '-quiet')
+    }
+  }
+}
+
  
 subprojects {
   // Apply the java plugin to add support for Java

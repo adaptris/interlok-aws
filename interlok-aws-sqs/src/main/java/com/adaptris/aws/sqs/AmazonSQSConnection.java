@@ -33,7 +33,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * </p>
  * <p>
  * The key from the <code>client-configuration</code> element should match the name of the underlying ClientConfiguration
- * property.
+ * property; so if you wanted to control the user-agent you would do :
+ * </p>
  * <pre>
  * {@code 
  *   <client-configuration>
@@ -44,8 +45,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  *   </client-configuration>
  * }
  * </pre>
- * will invoke {@link ClientConfiguration#withUserAgent(String)}, setting the UserAgent property.
- * </p>
+ * 
  * 
  * @config amazon-sqs-connection
  * @license STANDARD

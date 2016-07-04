@@ -25,7 +25,8 @@ import com.amazonaws.services.s3.AmazonS3Client;
  * </p>
  * <p>
  * The key from the <code>client-configuration</code> element should match the name of the underlying ClientConfiguration
- * property.
+ * property; so if you wanted to control the user-agent you would do :
+ * </p>
  * <pre>
  * {@code 
  *   <client-configuration>
@@ -36,8 +37,6 @@ import com.amazonaws.services.s3.AmazonS3Client;
  *   </client-configuration>
  * }
  * </pre>
- * will invoke {@link ClientConfiguration#withUserAgent(String)}, setting the UserAgent property.
- * </p>
  * 
  * @author lchan
  *
@@ -91,6 +90,8 @@ public abstract class S3ServiceImpl extends ServiceImp {
 
   /**
    * The authentication method to use
+   * 
+   * @param authentication the authentication to use.
    */
   public void setAuthentication(AWSAuthentication authentication) {
     this.authentication = Args.notNull(authentication, "authentication");

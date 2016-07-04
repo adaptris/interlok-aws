@@ -11,7 +11,7 @@ public interface SQSClientFactory {
    * 
    * @param creds The credentials to use. If null the default credentials mechanism for the Amazon AWS SDK will be used.
    * @param conf the ClientConfiguration to use.
-   * @return
+   * @return a {@link AmazonSQSAsync} instance.
    */
   public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf);
   
