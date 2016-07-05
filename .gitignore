@@ -26,4 +26,3 @@ target
 bin
 .gradle
 gradle.properties
-gradle
