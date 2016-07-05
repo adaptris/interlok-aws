@@ -1,3 +1,7 @@
+ext {
+  componentName='Interlok AWS/SQS'
+}
+
 // In this section you declare the dependencies for your production and test code
 dependencies {
     compile "com.amazonaws:aws-java-sdk-sqs:$awsSDKVersion"

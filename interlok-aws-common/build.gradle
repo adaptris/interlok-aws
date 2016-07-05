@@ -1,3 +1,7 @@
+ext {
+  componentName='Interlok AWS/Common'
+}
+
 dependencies {
   compile "com.amazonaws:aws-java-sdk-core:$awsSDKVersion"
 }
