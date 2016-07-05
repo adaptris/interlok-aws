@@ -46,10 +46,14 @@ subprojects {
     all*.exclude group: 'commons-logging'
   }
 
+  configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+  }
+
   // In this section you declare the dependencies for your production and test code
   dependencies {
-      compile "com.adaptris:adp-core:$adpCoreVersion"
-      compile "com.adaptris:adp-core-apt:$adpCoreVersion"
+      compile ("com.adaptris:adp-core:$adpCoreVersion") { changing= true}
+      compile ("com.adaptris:adp-core-apt:$adpCoreVersion") { changing= true}
       compile "org.slf4j:slf4j-api:$slf4jVersion"
 
       testCompile 'junit:junit:4.11'
