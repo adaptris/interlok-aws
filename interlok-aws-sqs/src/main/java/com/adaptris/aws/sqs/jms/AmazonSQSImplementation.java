@@ -13,7 +13,7 @@ import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.jms.VendorImplementation;
+import com.adaptris.core.jms.VendorImplementationBase;
 import com.adaptris.core.jms.VendorImplementationImp;
 import com.adaptris.core.util.Args;
 import com.adaptris.security.exc.AdaptrisSecurityException;
@@ -96,7 +96,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   }
 
   @Override
-  public boolean connectionEquals(VendorImplementation comparable) {
+  public boolean connectionEquals(VendorImplementationBase arg0) {
     return false;
   }
 
@@ -186,4 +186,5 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   public void setAuthentication(AWSAuthentication authentication) {
     this.authentication = authentication;
   }
+
 }
