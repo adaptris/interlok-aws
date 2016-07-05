@@ -20,6 +20,7 @@ subprojects {
   apply plugin: 'java'
   apply plugin: 'maven'
   apply plugin: 'maven-publish'
+  apply plugin: "jacoco"
 
   sourceCompatibility = 1.7
   group   = 'com.adaptris'
@@ -74,6 +75,10 @@ subprojects {
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
     }
+  }
+
+  jacoco {
+    toolVersion="0.7.4.201502262128"
   }
 
   sourceSets {
