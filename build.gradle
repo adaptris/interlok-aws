@@ -1,9 +1,10 @@
 ext {
-  adpCoreVersion = '3.4-SNAPSHOT'
+  adpCoreVersion = project.hasProperty('adpCoreVersion') ? project.getProperty('adpCoreVersion') : '3.4-SNAPSHOT'
+  releaseVersion = project.hasProperty('releaseVersion') ? project.getProperty('releaseVersion') : '3.4-SNAPSHOT'
+  mavenPublishUrl = project.hasProperty('mavenPublishUrl') ? project.getProperty('mavenPublishUrl') : 'https://development.adaptris.net/nexus/content/repositories/snapshots'
+
   slf4jVersion = '1.7.12'
   awsSDKVersion = '1.9.38'
-  releaseVersion = '3.4-SNAPSHOT'
-  mavenPublishUrl = 'https://development.adaptris.net/nexus/content/repositories/snapshots'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
