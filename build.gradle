@@ -70,8 +70,8 @@ subprojects {
   javadoc {
     configure(options) {
       links = [
-        "http://development.adaptris.com/javadocs/v3-snapshot/Interlok-API/",
-        "http://development.adaptris.net/javadocs/v3-snapshot/Interlok-Common/",
+        "https://development.adaptris.net/javadocs/v3-snapshot/Interlok-API/",
+        "https://development.adaptris.net/javadocs/v3-snapshot/Interlok-Common/",
       ]
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
