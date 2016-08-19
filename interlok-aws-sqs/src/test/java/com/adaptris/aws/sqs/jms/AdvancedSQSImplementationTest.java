@@ -4,9 +4,7 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import com.adaptris.aws.sqs.jms.AdvancedSQSImplementation;
-import com.adaptris.aws.sqs.jms.RetryPolicyBuilder;
-import com.adaptris.aws.sqs.jms.AdvancedSQSImplementation.ClientConfigurationProperties;
+import com.adaptris.aws.ClientConfigurationBuilder.ClientConfigurationProperties;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
 

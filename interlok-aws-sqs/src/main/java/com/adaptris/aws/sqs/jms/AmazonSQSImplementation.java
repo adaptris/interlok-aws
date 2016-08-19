@@ -13,7 +13,7 @@ import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.jms.VendorImplementation;
+import com.adaptris.core.jms.VendorImplementationBase;
 import com.adaptris.core.jms.VendorImplementationImp;
 import com.adaptris.core.util.Args;
 import com.adaptris.security.exc.AdaptrisSecurityException;
@@ -55,6 +55,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
 
   @AdvancedConfig
   private Integer prefetchCount;
+
   
   public AmazonSQSImplementation() {
     setAuthentication(new DefaultAWSAuthentication());
@@ -87,17 +88,15 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
       auth.setSecretKey(getSecretKey());
       setAuthentication(auth);
     }
-    
     AWSCredentials creds = getAuthentication().getAWSCredentials();
     if(creds != null) {
       builder.withAWSCredentialsProvider(new StaticCredentialsProvider(creds));
     }
-    
     return builder;
   }
 
   @Override
-  public boolean connectionEquals(VendorImplementation comparable) {
+  public boolean connectionEquals(VendorImplementationBase arg0) {
     return false;
   }
 
@@ -108,7 +107,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   /**
    * The Amazon Web Services region to use
    * 
-   * @param str
+   * @param str the region
    */
   public void setRegion(String str) {
     this.region = Args.notBlank(str, "region");
@@ -122,7 +121,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   /**
    * Your Amazon Web Services access key. This can be a root key or the key for an IAM user (recommended).
    * 
-   * @param key
+   * @param key the Access key.
    */
   @Deprecated
   public void setAccessKey(String key) {
@@ -187,4 +186,5 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   public void setAuthentication(AWSAuthentication authentication) {
     this.authentication = authentication;
   }
+
 }

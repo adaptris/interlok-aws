@@ -11,10 +11,14 @@ import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.aws.AWSKeysAuthentication;
+import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AdaptrisConnectionImp;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.util.Args;
+import com.adaptris.util.KeyValuePairSet;
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.Region;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
@@ -22,6 +26,26 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon SQS.
+ * 
+ * <p>
+ * This class directly exposes almost all the getter and setters that are available in {@link ClientConfiguration} via the
+ * {@link #getClientConfiguration()} property for maximum flexibility in configuration.
+ * </p>
+ * <p>
+ * The key from the <code>client-configuration</code> element should match the name of the underlying ClientConfiguration
+ * property; so if you wanted to control the user-agent you would do :
+ * </p>
+ * <pre>
+ * {@code 
+ *   <client-configuration>
+ *     <key-value-pair>
+ *        <key>UserAgent</key>
+ *        <value>My User Agent</value>
+ *     </key-value-pair>
+ *   </client-configuration>
+ * }
+ * </pre>
+ * 
  * 
  * @config amazon-sqs-connection
  * @license STANDARD
@@ -53,11 +77,18 @@ public class AmazonSQSConnection extends AdaptrisConnectionImp {
   @Valid
   private SQSClientFactory sqsClientFactory;
 
+  @NotNull
+  @AutoPopulated
+  @Valid
+  private KeyValuePairSet clientConfiguration;
+
   private transient AmazonSQSAsync sqsClient;
+
 
   public AmazonSQSConnection() {
     setAuthentication(new DefaultAWSAuthentication());
     setSqsClientFactory(new UnbufferedSQSClientFactory());
+    setClientConfiguration(new KeyValuePairSet());
   }
 
 
@@ -84,7 +115,8 @@ public class AmazonSQSConnection extends AdaptrisConnectionImp {
   @Override
   protected synchronized void initConnection() throws CoreException {
     try {
-      sqsClient = getSqsClientFactory().createClient(authentication.getAWSCredentials());
+      ClientConfiguration cc = ClientConfigurationBuilder.build(getClientConfiguration());
+      sqsClient = getSqsClientFactory().createClient(authentication.getAWSCredentials(), cc);
     } catch (Exception e) {
       throw new CoreException(e);
     }
@@ -207,5 +239,21 @@ public class AmazonSQSConnection extends AdaptrisConnectionImp {
    */
   public void setAuthentication(AWSAuthentication authentication) {
     this.authentication = authentication;
+  }
+
+
+  /**
+   * @return the configurationBuilder
+   */
+  public KeyValuePairSet getClientConfiguration() {
+    return clientConfiguration;
+  }
+
+
+  /**
+   * @param b the configurationBuilder to set
+   */
+  public void setClientConfiguration(KeyValuePairSet b) {
+    this.clientConfiguration = Args.notNull(b, "configurationBuilder");
   }
 }

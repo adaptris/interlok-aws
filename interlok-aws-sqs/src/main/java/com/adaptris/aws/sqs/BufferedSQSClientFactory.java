@@ -1,9 +1,9 @@
 package com.adaptris.aws.sqs;
 
 import com.adaptris.annotation.AutoPopulated;
+import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.amazonaws.services.sqs.buffered.QueueBufferConfig;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -15,7 +15,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @since 3.0.3
  */
 @XStreamAlias("buffered-sqs-client-factory")
-public class BufferedSQSClientFactory implements SQSClientFactory {
+public class BufferedSQSClientFactory extends UnbufferedSQSClientFactory {
 
   @AutoPopulated
   private int maxBatchSize;
@@ -58,7 +58,7 @@ public class BufferedSQSClientFactory implements SQSClientFactory {
   }
   
   @Override
-  public AmazonSQSAsync createClient(AWSCredentials creds) {
+  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf) {
     QueueBufferConfig config = new QueueBufferConfig()
       .withLongPoll(isLongPoll())
       .withLongPollWaitTimeoutSeconds(getLongPollWaitTimeoutSeconds())
@@ -69,12 +69,8 @@ public class BufferedSQSClientFactory implements SQSClientFactory {
       .withMaxInflightOutboundBatches(getMaxInflightOutboundBatches())
       .withMaxInflightReceiveBatches(getMaxInflightReceiveBatches())
       .withVisibilityTimeoutSeconds(getVisibilityTimeoutSeconds());
-    
-    if(creds == null) {
-      return new AmazonSQSBufferedAsyncClient(new AmazonSQSAsyncClient(), config);
-    } else {
-      return new AmazonSQSBufferedAsyncClient(new AmazonSQSAsyncClient(creds), config);
-    }
+    AmazonSQSAsync realClient = super.createClient(creds, conf);
+    return new AmazonSQSBufferedAsyncClient(realClient, config);
   }
   
   /**

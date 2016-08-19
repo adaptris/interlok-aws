@@ -4,7 +4,8 @@ import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
 
-import com.adaptris.aws.sqs.UnbufferedSQSClientFactory;
+import com.adaptris.aws.ClientConfigurationBuilder;
+import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.auth.BasicAWSCredentials;
 
 public class UnbufferedClientFactoryTest {
@@ -13,6 +14,6 @@ public class UnbufferedClientFactoryTest {
   public void testCreateClient() throws Exception {
     UnbufferedSQSClientFactory fac = new UnbufferedSQSClientFactory();
     BasicAWSCredentials creds = new BasicAWSCredentials("accessKey", "secretKey");
-    assertNotNull(fac.createClient(creds));
+    assertNotNull(fac.createClient(creds, ClientConfigurationBuilder.build(new KeyValuePairSet())));
   }
 }
