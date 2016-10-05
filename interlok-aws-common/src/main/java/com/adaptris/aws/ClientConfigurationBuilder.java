@@ -1,5 +1,7 @@
 package com.adaptris.aws;
 
+import static org.apache.commons.lang.StringUtils.isBlank;
+
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
@@ -113,7 +115,12 @@ public class ClientConfigurationBuilder {
     ProxyHost() {
       @Override
       ClientConfiguration configure(ClientConfiguration cc, String str) {
-        return cc.withProxyHost(str);
+        // Special case for handling proxies; we know it defaults to "null"; so if
+        // someone configures proxyHost="" then we don't need to do anything.
+        if (!isBlank(str)) {
+          return cc.withProxyHost(str);
+        }
+        return cc;
       }
     },
     /**
@@ -133,7 +140,12 @@ public class ClientConfigurationBuilder {
     ProxyPort() {
       @Override
       ClientConfiguration configure(ClientConfiguration cc, String str) {
-        return cc.withProxyPort(Integer.parseInt(str));
+        // Special case for handling proxies; we know it defaults to -1; so if
+        // someone configures proxyPort="" then we don't need to do anything.
+        if (!isBlank(str)) {
+          return cc.withProxyPort(Integer.parseInt(str));
+        }
+        return cc;
       }
     },
     /**
