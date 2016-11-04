@@ -2,6 +2,9 @@ ext {
   adpCoreVersion = project.hasProperty('adpCoreVersion') ? project.getProperty('adpCoreVersion') : '3.5-SNAPSHOT'
   releaseVersion = project.hasProperty('releaseVersion') ? project.getProperty('releaseVersion') : '3.5-SNAPSHOT'
   mavenPublishUrl = project.hasProperty('mavenPublishUrl') ? project.getProperty('mavenPublishUrl') : 'https://development.adaptris.net/nexus/content/repositories/snapshots'
+  repoUsername = project.hasProperty('repoUsername') ? project.getProperty('repoUsername') : 'unknown'
+  repoPassword = project.hasProperty('repoPassword') ? project.getProperty('repoPassword') : 'unknown'
+  defaultNexusRepo = project.hasProperty('defaultNexusRepo') ? project.getProperty('defaultNexusRepo') : 'https://repo1.maven.org/maven2/'
 
   slf4jVersion = '1.7.12'
   awsSDKVersion = '1.9.38'
@@ -30,6 +33,7 @@ subprojects {
 
   // In this section you declare where to find the dependencies of your project
   repositories {
+    maven {	url "$defaultNexusRepo" }
     maven { url "https://development.adaptris.net/nexus/content/groups/public" }
     maven {
       credentials {
