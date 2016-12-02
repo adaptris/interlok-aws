@@ -56,9 +56,7 @@ public class DownloadOperation extends S3OperationImpl {
       log.debug("Getting {} from bucket {}", request.getKey(), request.getBucketName());
       File destFile = File.createTempFile(this.getClass().getSimpleName(), "", tempDir);
       Download download = tm.download(request, destFile);
-      Thread t = threadFactory.newThread(new MyProgressListener(download));
-      t.setName(Thread.currentThread().getName());
-      t.start();
+      threadFactory.newThread(new MyProgressListener(Thread.currentThread().getName(), download)).start();
       download.waitForCompletion();
       write(destFile, msg);
     } catch (Exception e) {
@@ -97,17 +95,21 @@ public class DownloadOperation extends S3OperationImpl {
 
   private class MyProgressListener implements Runnable {
     private Download download;
+    private String name;
 
-    MyProgressListener(Download download) {
+    MyProgressListener(String name, Download download) {
       this.download = download;
+      this.name = name;
     }
 
     public void run() {
+      Thread.currentThread().setName(name);
       while (!download.isDone()) {
         log.trace("Downloaded : {}%", (download.getProgress().getPercentTransferred() / 1));
         try {
           Thread.sleep(2000);
         } catch (InterruptedException e) {
+          break;
         }
       }
     }
