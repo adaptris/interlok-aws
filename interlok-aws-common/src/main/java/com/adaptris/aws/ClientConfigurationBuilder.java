@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
+import com.adaptris.util.SimpleBeanUtil;
 import com.amazonaws.ClientConfiguration;
 
 public class ClientConfigurationBuilder {
@@ -260,7 +261,9 @@ public class ClientConfigurationBuilder {
         }
       }
       if (!matched) {
-        log.trace("Ignoring unsupported Property " + kvp.getKey());
+        if (!SimpleBeanUtil.callSetter(cfg, "with" + kvp.getKey(), kvp.getValue())) {
+          log.trace("Ignoring unsupported Property {}", kvp.getKey());
+        }
       }
     }
     return cfg;

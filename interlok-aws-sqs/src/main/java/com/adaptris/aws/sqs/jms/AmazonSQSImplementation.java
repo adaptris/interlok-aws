@@ -78,11 +78,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
         .withRegionName(getRegion())
         .withNumberOfMessagesToPrefetch(prefetchCount());
     
-    if(getAuthentication() == null && StringUtils.isNotEmpty(getAccessKey())) {
-      throw new AdaptrisSecurityException("'authentication' and 'accessKey' are both configured. 'accessKey' and 'secretKey' are deprecated, please use 'authentication' only");
-    }
-    
-    if(StringUtils.isNotEmpty(getAccessKey()) && StringUtils.isNotEmpty(getSecretKey())) {
+    if (getAuthentication() == null && StringUtils.isNotEmpty(getAccessKey()) && StringUtils.isNotEmpty(getSecretKey())) {
       AWSKeysAuthentication auth = new AWSKeysAuthentication();
       auth.setAccessKey(getAccessKey());
       auth.setSecretKey(getSecretKey());
@@ -121,6 +117,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   /**
    * Your Amazon Web Services access key. This can be a root key or the key for an IAM user (recommended).
    * 
+   * @deprecated Use {@link #setAuthentication(AWSAuthentication)} instead.
    * @param key the Access key.
    */
   @Deprecated
@@ -135,6 +132,8 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
 
   /**
    * Your Amazon Web Services secret key. This can be a root key or the key for an IAM user (recommended).
+   * 
+   * @deprecated Use {@link #setAuthentication(AWSAuthentication)} instead.
    * 
    * @param key the secret key which could encoded by {@linkplain Password#encode(String, String)}
    */
