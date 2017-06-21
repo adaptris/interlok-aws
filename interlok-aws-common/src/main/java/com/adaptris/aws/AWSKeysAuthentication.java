@@ -23,7 +23,17 @@ public class AWSKeysAuthentication implements AWSAuthentication {
   @NotNull
   @InputFieldHint(style="PASSWORD")
   private String secretKey;
-  
+
+  public AWSKeysAuthentication() {
+
+  }
+
+  public AWSKeysAuthentication(String accesskey, String secretKey) {
+    this();
+    setAccessKey(accesskey);
+    setSecretKey(secretKey);
+  }
+
   @Override
   public AWSCredentials getAWSCredentials() throws AdaptrisSecurityException {
     return new BasicAWSCredentials(getAccessKey(), Password.decode(getSecretKey()));

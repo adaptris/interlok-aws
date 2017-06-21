@@ -1,7 +1,5 @@
 package com.adaptris.aws.sqs;
 
-import com.adaptris.core.CoreException;
-import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 
 /**
@@ -14,10 +12,8 @@ final class AwsHelper {
   /**
    * Format the Amazon region string by removing the unnecessary prefix if it exists.
    * 
-   * @param region
-   * @return region correctly formatted
    */
-  public static Region formatRegion(String region) throws CoreException {
+  public static String formatRegion(String region) {
     String actual = "";
     String[] regionSplit = region.split("[.]");
     if (regionSplit.length == 1){
@@ -28,10 +24,9 @@ final class AwsHelper {
     
     for (Regions r : Regions.values()) {
       if (r.getName().equalsIgnoreCase(actual)){
-        return Region.getRegion(r);
+        return r.getName();
       }
     }
-    
-    throw new CoreException(String.format("Region %s not found", region));
+    return region;
   }
 }

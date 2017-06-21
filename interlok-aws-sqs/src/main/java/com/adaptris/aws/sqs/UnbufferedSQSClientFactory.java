@@ -1,11 +1,12 @@
 package com.adaptris.aws.sqs;
 
-import java.util.concurrent.Executors;
+import static com.adaptris.aws.sqs.AwsHelper.formatRegion;
 
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.AmazonSQSAsyncClient;
+import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
@@ -18,13 +19,17 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("unbuffered-sqs-client-factory")
 public class UnbufferedSQSClientFactory implements SQSClientFactory {
 
+  public UnbufferedSQSClientFactory() {
+  }
+
   @Override
-  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf) {
-    if(creds == null) {
-      return new AmazonSQSAsyncClient(conf);
-    } else {
-      return new AmazonSQSAsyncClient(creds, conf, Executors.newFixedThreadPool(conf.getMaxConnections()));
+  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf, String region) {
+    AmazonSQSAsyncClientBuilder builder = AmazonSQSAsyncClientBuilder.standard().withClientConfiguration(conf)
+        .withRegion(formatRegion(region));
+    if (creds != null) {
+      builder.withCredentials(new AWSStaticCredentialsProvider(creds));
     }
+    return builder.build();
   }
   
 }

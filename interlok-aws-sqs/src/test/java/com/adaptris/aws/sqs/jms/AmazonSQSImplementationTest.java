@@ -9,15 +9,15 @@ import javax.jms.JMSException;
 
 import org.junit.Test;
 
-import com.adaptris.aws.sqs.jms.AmazonSQSImplementation;
+import com.adaptris.aws.AWSKeysAuthentication;
 
 public class AmazonSQSImplementationTest {
 
   @Test
   public void testCreateFactory() throws Exception {
     AmazonSQSImplementation jmsImpl = new AmazonSQSImplementation();
-    jmsImpl.setAccessKey("MyAccessKey");
-    jmsImpl.setSecretKey("MyKey");
+    jmsImpl.setAuthentication(new AWSKeysAuthentication("MyAccessKey", "MyKey"));
+
     jmsImpl.setRegion("eu-west-1");
     assertNotNull(jmsImpl.createConnectionFactory());
   }
@@ -25,8 +25,7 @@ public class AmazonSQSImplementationTest {
   @Test
   public void testBadPassword() throws Exception {
     AmazonSQSImplementation jmsImpl = new AmazonSQSImplementation();
-    jmsImpl.setAccessKey("MyAccessKey");
-    jmsImpl.setSecretKey("PW:BACC");
+    jmsImpl.setAuthentication(new AWSKeysAuthentication("MyAccessKey", "PW:BACCy"));
     jmsImpl.setRegion("eu-west-1");
     try {
       jmsImpl.createConnectionFactory();

@@ -1,8 +1,7 @@
 package com.adaptris.aws.sqs;
 
 import static org.mockito.Matchers.anyObject;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.when;
 
 import org.mockito.Mock;
@@ -12,7 +11,6 @@ import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.core.CoreException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 
@@ -22,16 +20,17 @@ public class AmazonSQSConnectionTest extends TestCase {
   
   private AmazonSQSConnection amazonSQSConnection;
   
-  @Mock private AmazonSQSAsync mockSqsClient;
-  
-  @Mock private SQSClientFactory mockSqsClientFactory;
-  
+  @Mock
+  private AmazonSQSAsync mockSqsClient;
+  @Mock
+  private UnbufferedSQSClientFactory mockClientFactory;
+
   public void setUp() throws Exception {
     amazonSQSConnection = new AmazonSQSConnection();
     
     MockitoAnnotations.initMocks(this);
     
-    amazonSQSConnection.setSqsClientFactory(mockSqsClientFactory);
+    amazonSQSConnection.setSqsClientFactory(mockClientFactory);
     AWSKeysAuthentication auth = new AWSKeysAuthentication();
     auth.setAccessKey("accessKey");
     auth.setSecretKey("secretKey");
@@ -45,36 +44,19 @@ public class AmazonSQSConnectionTest extends TestCase {
   }
 
   public void testInit() throws Exception {
-    when(mockSqsClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject()))
+    when(mockClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject(), anyString()))
         .thenReturn(mockSqsClient);
-    
     amazonSQSConnection.init();
-    verify(mockSqsClient, times(1)).setRegion((Region) anyObject());
   }
-  
+
+
   public void testStartUp() throws Exception {
-    when(mockSqsClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject()))
+    when(mockClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject(), anyString()))
         .thenReturn(mockSqsClient);
-    
     amazonSQSConnection.init();
     amazonSQSConnection.start();
-    verify(mockSqsClient, times(1)).setRegion((Region) anyObject());
   }
-  
-  public void testInitInvalidRegion() throws Exception {
-    when(mockSqsClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject()))
-        .thenReturn(mockSqsClient);
-    
-    amazonSQSConnection.setRegion("MyInvalidRegion");
-    
-    try {
-      amazonSQSConnection.init();
-      fail("Should fail with invalid region");
-    } catch (CoreException ex) {
-      //expected
-    }
-  }
-    
+
   public void testGetNullSyncClient() throws Exception {
     try {
       amazonSQSConnection.getSyncClient();
@@ -94,7 +76,7 @@ public class AmazonSQSConnectionTest extends TestCase {
   }
   
   public void testGetSyncClientAfterInit() throws Exception {
-    when(mockSqsClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject()))
+    when(mockClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject(), anyString()))
         .thenReturn(mockSqsClient);
     
     amazonSQSConnection.init();
@@ -102,7 +84,7 @@ public class AmazonSQSConnectionTest extends TestCase {
   }
   
   public void testGetASyncClientAfterInit() throws Exception {
-    when(mockSqsClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject()))
+    when(mockClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject(), anyString()))
         .thenReturn(mockSqsClient);
     
     amazonSQSConnection.init();
