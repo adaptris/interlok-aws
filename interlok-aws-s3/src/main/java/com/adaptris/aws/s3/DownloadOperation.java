@@ -46,7 +46,7 @@ public class DownloadOperation extends S3OperationImpl {
 
   @Override
   public void execute(AmazonS3Client s3, AdaptrisMessage msg) throws InterlokException {
-    TransferManager tm = new TransferManager(s3);
+    TransferManager tm = transferManager(s3);
     File tempDir = null;
     try {
       if (!isEmpty(getTempDirectory())) {

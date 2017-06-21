@@ -21,7 +21,7 @@ import com.adaptris.security.password.Password;
 import com.amazon.sqs.javamessaging.SQSConnectionFactory;
 import com.amazon.sqs.javamessaging.SQSConnectionFactory.Builder;
 import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.internal.StaticCredentialsProvider;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
@@ -90,7 +90,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
     }
     AWSCredentials creds = getAuthentication().getAWSCredentials();
     if(creds != null) {
-      builder.withAWSCredentialsProvider(new StaticCredentialsProvider(creds));
+      builder.withAWSCredentialsProvider(new AWSStaticCredentialsProvider(creds));
     }
     return builder;
   }

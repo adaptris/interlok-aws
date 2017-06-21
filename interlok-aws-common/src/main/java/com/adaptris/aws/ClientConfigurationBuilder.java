@@ -236,6 +236,7 @@ public class ClientConfigurationBuilder {
      */
     UserAgent() {
       @Override
+      @SuppressWarnings("deprecation")
       ClientConfiguration configure(ClientConfiguration cc, String str) {
         return cc.withUserAgent(str);
       }

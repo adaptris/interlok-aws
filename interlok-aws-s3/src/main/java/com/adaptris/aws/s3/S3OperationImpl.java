@@ -8,6 +8,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.adaptris.interlok.config.DataInputParameter;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 
 /**
  * Abstract base class for S3 Operations.
@@ -47,4 +50,7 @@ public abstract class S3OperationImpl implements S3Operation {
   }
 
 
+  protected TransferManager transferManager(AmazonS3Client s3) {
+    return TransferManagerBuilder.standard().withS3Client(s3).build();
+  }
 }
