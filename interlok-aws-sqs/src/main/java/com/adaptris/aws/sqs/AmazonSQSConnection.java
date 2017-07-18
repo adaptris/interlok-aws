@@ -19,7 +19,6 @@ import com.adaptris.core.CoreException;
 import com.adaptris.core.util.Args;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.regions.Region;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -116,13 +115,10 @@ public class AmazonSQSConnection extends AdaptrisConnectionImp {
   protected synchronized void initConnection() throws CoreException {
     try {
       ClientConfiguration cc = ClientConfigurationBuilder.build(getClientConfiguration());
-      sqsClient = getSqsClientFactory().createClient(authentication.getAWSCredentials(), cc);
+      sqsClient = getSqsClientFactory().createClient(authentication.getAWSCredentials(), cc, region);
     } catch (Exception e) {
       throw new CoreException(e);
     }
-    
-    Region rgn = AwsHelper.formatRegion(region);
-    sqsClient.setRegion(rgn);
   }
 
   @Override

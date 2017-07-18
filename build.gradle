@@ -7,7 +7,7 @@ ext {
   defaultNexusRepo = project.hasProperty('defaultNexusRepo') ? project.getProperty('defaultNexusRepo') : 'https://repo1.maven.org/maven2/'
 
   slf4jVersion = '1.7.12'
-  awsSDKVersion = '1.9.38'
+  awsSDKVersion = '1.11.149'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {

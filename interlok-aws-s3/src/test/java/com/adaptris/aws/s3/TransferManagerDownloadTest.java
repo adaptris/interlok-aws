@@ -3,6 +3,7 @@ package com.adaptris.aws.s3;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.common.ConstantDataInputParameter;
 
+@SuppressWarnings("deprecation")
 public class TransferManagerDownloadTest extends ServiceCase {
 
   public TransferManagerDownloadTest(String name) {

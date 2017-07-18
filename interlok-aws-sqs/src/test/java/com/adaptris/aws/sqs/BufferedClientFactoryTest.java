@@ -7,6 +7,7 @@ import org.junit.Test;
 import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.regions.Regions;
 
 public class BufferedClientFactoryTest {
 
@@ -14,6 +15,7 @@ public class BufferedClientFactoryTest {
   public void testCreateClient() throws Exception {
     BufferedSQSClientFactory fac = new BufferedSQSClientFactory();
     BasicAWSCredentials creds = new BasicAWSCredentials("accessKey", "secretKey");
-    assertNotNull(fac.createClient(creds, ClientConfigurationBuilder.build(new KeyValuePairSet())));
+    assertNotNull(
+        fac.createClient(creds, ClientConfigurationBuilder.build(new KeyValuePairSet()), Regions.AP_NORTHEAST_1.getName()));
   }
 }

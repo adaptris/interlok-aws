@@ -58,7 +58,7 @@ public class BufferedSQSClientFactory extends UnbufferedSQSClientFactory {
   }
   
   @Override
-  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf) {
+  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf, String region) {
     QueueBufferConfig config = new QueueBufferConfig()
       .withLongPoll(isLongPoll())
       .withLongPollWaitTimeoutSeconds(getLongPollWaitTimeoutSeconds())
@@ -69,7 +69,7 @@ public class BufferedSQSClientFactory extends UnbufferedSQSClientFactory {
       .withMaxInflightOutboundBatches(getMaxInflightOutboundBatches())
       .withMaxInflightReceiveBatches(getMaxInflightReceiveBatches())
       .withVisibilityTimeoutSeconds(getVisibilityTimeoutSeconds());
-    AmazonSQSAsync realClient = super.createClient(creds, conf);
+    AmazonSQSAsync realClient = super.createClient(creds, conf, region);
     return new AmazonSQSBufferedAsyncClient(realClient, config);
   }
   

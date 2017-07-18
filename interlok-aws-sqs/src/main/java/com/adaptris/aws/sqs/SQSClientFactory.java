@@ -13,6 +13,6 @@ public interface SQSClientFactory {
    * @param conf the ClientConfiguration to use.
    * @return a {@link AmazonSQSAsync} instance.
    */
-  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf);
+  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf, String region);
   
 }

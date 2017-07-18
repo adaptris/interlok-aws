@@ -14,8 +14,9 @@ import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.internal.StaticCredentialsProvider;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 /**
  * Abstract implemention of {@link S3Service}
@@ -70,11 +71,11 @@ public abstract class S3ServiceImpl extends ServiceImp {
     try {
       AWSCredentials creds = getAuthentication().getAWSCredentials();
       ClientConfiguration cc = ClientConfigurationBuilder.build(getClientConfiguration());
+      AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard().withClientConfiguration(cc);
       if (creds != null) {
-        s3 = new AmazonS3Client(new StaticCredentialsProvider(creds), cc);
-      } else {
-        s3 = new AmazonS3Client(cc);
+        builder.withCredentials(new AWSStaticCredentialsProvider(creds));
       }
+      s3 = (AmazonS3Client) builder.build();
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }
