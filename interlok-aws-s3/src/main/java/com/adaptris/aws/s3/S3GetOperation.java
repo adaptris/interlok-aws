@@ -19,11 +19,12 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @config amazon-s3-get
  */
 @XStreamAlias("amazon-s3-get")
-@DisplayOrder(order = {"key", "bucketName", "responseBody"})
+@DisplayOrder(order = {"key", "bucketName", "responseBody", "userMetadataFilter"})
 public class S3GetOperation extends S3OperationImpl {
 
   @NotNull
   private DataOutputParameter<InputStreamWithEncoding> responseBody;
+
 
   @Override
   public void execute(AmazonS3Client s3, AdaptrisMessage msg) throws InterlokException {
@@ -33,6 +34,7 @@ public class S3GetOperation extends S3OperationImpl {
     S3Object response = s3.getObject(request);
     log.trace("Object is {} bytes", response.getObjectMetadata().getContentLength());
     getResponseBody().insert(new InputStreamWithEncoding(response.getObjectContent(), null), msg);
+    msg.setMetadata(filterUserMetadata(response.getObjectMetadata().getUserMetadata()));
   }
 
   public DataOutputParameter<InputStreamWithEncoding> getResponseBody() {
@@ -42,5 +44,4 @@ public class S3GetOperation extends S3OperationImpl {
   public void setResponseBody(DataOutputParameter<InputStreamWithEncoding> responseBody) {
     this.responseBody = responseBody;
   }
-
 }
