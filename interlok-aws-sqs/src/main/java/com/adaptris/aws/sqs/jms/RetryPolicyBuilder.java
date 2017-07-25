@@ -6,6 +6,8 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.aws.PluggableRetryPolicyFactory;
+import com.adaptris.aws.RetryPolicyFactory;
 import com.amazonaws.retry.RetryPolicy;
 import com.amazonaws.retry.RetryPolicy.BackoffStrategy;
 import com.amazonaws.retry.RetryPolicy.RetryCondition;
@@ -15,10 +17,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * {@link RetryPolicy} builder for Amazon SQS.
  * 
  * @config sqs-retry-policy-builder
- * @license STANDARD
  * @since 3.2.1
+ * @deprecated since 3.6.4 use a {@link RetryPolicyFactory} and {@link PluggableRetryPolicyFactory} instead.
  */
 @XStreamAlias("sqs-retry-policy-builder")
+@Deprecated
 public class RetryPolicyBuilder {
 
   private String retryConditionClass;

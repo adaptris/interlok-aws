@@ -6,6 +6,7 @@ import javax.validation.constraints.NotNull;
 import org.apache.commons.lang.StringUtils;
 
 import com.adaptris.annotation.AdapterComponent;
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldHint;
@@ -13,6 +14,8 @@ import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.DefaultAWSAuthentication;
+import com.adaptris.aws.DefaultRetryPolicyFactory;
+import com.adaptris.aws.RetryPolicyFactory;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AdaptrisConnectionImp;
 import com.adaptris.core.CoreException;
@@ -81,6 +84,10 @@ public class AmazonSQSConnection extends AdaptrisConnectionImp {
   @Valid
   private KeyValuePairSet clientConfiguration;
 
+  @Valid
+  @AdvancedConfig
+  private RetryPolicyFactory retryPolicy;
+
   private transient AmazonSQSAsync sqsClient;
 
 
@@ -114,7 +121,7 @@ public class AmazonSQSConnection extends AdaptrisConnectionImp {
   @Override
   protected synchronized void initConnection() throws CoreException {
     try {
-      ClientConfiguration cc = ClientConfigurationBuilder.build(getClientConfiguration());
+      ClientConfiguration cc = ClientConfigurationBuilder.build(getClientConfiguration(), retryPolicy());
       sqsClient = getSqsClientFactory().createClient(authentication.getAWSCredentials(), cc, region);
     } catch (Exception e) {
       throw new CoreException(e);
@@ -251,5 +258,22 @@ public class AmazonSQSConnection extends AdaptrisConnectionImp {
    */
   public void setClientConfiguration(KeyValuePairSet b) {
     this.clientConfiguration = Args.notNull(b, "configurationBuilder");
+  }
+
+  public RetryPolicyFactory getRetryPolicy() {
+    return retryPolicy;
+  }
+
+  /**
+   * Set the retry policy if required.
+   * 
+   * @param rp the retry policy, defaults to {@code DefaultRetryPolicyBuilder} if not specified.
+   */
+  public void setRetryPolicy(RetryPolicyFactory rp) {
+    this.retryPolicy = rp;
+  }
+
+  RetryPolicyFactory retryPolicy() {
+    return getRetryPolicy() != null ? getRetryPolicy() : new DefaultRetryPolicyFactory();
   }
 }

@@ -51,7 +51,7 @@ public abstract class S3OperationImpl implements S3Operation {
   }
 
   public void setKey(DataInputParameter<String> key) {
-    this.key = Args.notNull(key, "key");;
+    this.key = Args.notNull(key, "key");
   }
 
   public DataInputParameter<String> getBucketName() {
@@ -76,7 +76,7 @@ public abstract class S3OperationImpl implements S3Operation {
     this.userMetadataFilter = mf;
   }
 
-  private MetadataFilter userMetadataFilter() {
+  MetadataFilter userMetadataFilter() {
     return getUserMetadataFilter() != null ? getUserMetadataFilter() : new RemoveAllMetadataFilter();
   }
 
@@ -100,7 +100,6 @@ public abstract class S3OperationImpl implements S3Operation {
   public void setBucketName(DataInputParameter<String> bucketName) {
     this.bucketName = Args.notNull(bucketName, "bucketName");
   }
-
 
   protected TransferManager transferManager(AmazonS3Client s3) {
     return TransferManagerBuilder.standard().withS3Client(s3).build();
