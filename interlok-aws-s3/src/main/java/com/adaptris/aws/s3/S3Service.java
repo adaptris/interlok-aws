@@ -6,10 +6,12 @@ import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.util.Args;
+import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.interlok.InterlokException;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -19,9 +21,9 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @config amazon-s3-service
  */
 @AdapterComponent
-@ComponentProfile(summary = "Amazon S3 Service")
+@ComponentProfile(summary = "Amazon S3 Service", recommended={AmazonS3Connection.class})
 @XStreamAlias("amazon-s3-service")
-@DisplayOrder(order = {"authentication", "operation"})
+@DisplayOrder(order = {"connection", "operation"})
 public class S3Service extends S3ServiceImpl {
 
   @NotNull
@@ -30,20 +32,20 @@ public class S3Service extends S3ServiceImpl {
 
   public S3Service() {}
 
+  public S3Service(AdaptrisConnection c, S3Operation op) {
+    this();
+    setConnection(c);
+    setOperation(op);
+  }
+
   @Override
   public void doService(AdaptrisMessage msg) throws ServiceException {
     try {
       getOperation().execute(amazonClient(), msg);
     } catch (InterlokException e) {
-      throw new ServiceException(e);
+      throw ExceptionHelper.wrapServiceException(e);
     }
   }
-
-  @Override
-  public void prepare() throws CoreException {}
-
-  @Override
-  protected void closeService() {}
 
   @Override
   protected void initService() throws CoreException {

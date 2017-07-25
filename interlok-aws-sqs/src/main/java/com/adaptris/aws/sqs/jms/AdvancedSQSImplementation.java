@@ -10,11 +10,15 @@ import org.apache.http.util.Args;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.aws.ClientConfigurationBuilder;
+import com.adaptris.aws.DefaultRetryPolicyFactory;
+import com.adaptris.aws.RetryPolicyFactory;
+import com.adaptris.core.CoreException;
 import com.adaptris.security.exc.PasswordException;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazon.sqs.javamessaging.SQSConnectionFactory;
 import com.amazon.sqs.javamessaging.SQSConnectionFactory.Builder;
 import com.amazonaws.ClientConfiguration;
+import com.amazonaws.retry.RetryPolicy;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
@@ -57,11 +61,21 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
 
   @AdvancedConfig
   @Valid
+  @Deprecated
   private RetryPolicyBuilder retryPolicyBuilder;
 
+  private RetryPolicyFactory retryPolicy;
 
   public AdvancedSQSImplementation() {
     setClientConfigurationProperties(new KeyValuePairSet());
+  }
+
+  @Override
+  public void prepare() throws CoreException {
+    super.prepare();
+    if (getRetryPolicyBuilder() != null && getRetryPolicy() == null) {
+      log.warn("retry-policy-builder is deprecated; use retry-policy instead");
+    }
   }
 
   @Override
@@ -80,10 +94,8 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
 
   Builder configure(Builder builder) throws Exception {
     ClientConfiguration cc =
-        ClientConfigurationBuilder.configure(builder.getClientConfiguration(), getClientConfigurationProperties());
-    if (getRetryPolicyBuilder() != null) {
-      cc = cc.withRetryPolicy(getRetryPolicyBuilder().build());
-    }
+        ClientConfigurationBuilder.configure(builder.getClientConfiguration(), getClientConfigurationProperties())
+            .withRetryPolicy(retryPolicy());
     builder.setClientConfiguration(cc);
     return builder;
   }
@@ -96,6 +108,11 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
     this.clientConfigurationProperties = Args.notNull(kvps, "clientConfigurationProperties");
   }
 
+  /**
+   * 
+   * @deprecated since 3.6.4 use a {@link RetryPolicyFactory} instead.
+   */
+  @Deprecated
   public RetryPolicyBuilder getRetryPolicyBuilder() {
     return retryPolicyBuilder;
   }
@@ -103,11 +120,28 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
   /**
    * Set the builder for the {@link com.amazonaws.retry.RetryPolicy}.
    * 
+   * @deprecated since 3.6.4 use a {@link RetryPolicyFactory} instead.
    * @param b the builder.
    */
+  @Deprecated
   public void setRetryPolicyBuilder(RetryPolicyBuilder b) {
     this.retryPolicyBuilder = b;
   }
 
+  public RetryPolicyFactory getRetryPolicy() {
+    return retryPolicy;
+  }
+
+  public void setRetryPolicy(RetryPolicyFactory retryPolicy) {
+    this.retryPolicy = retryPolicy;
+  }
+
+  @SuppressWarnings("deprecation")
+  RetryPolicy retryPolicy() throws Exception {
+    if (getRetryPolicyBuilder() != null) {
+      return getRetryPolicyBuilder().build();
+    }
+    return getRetryPolicy() != null ? getRetryPolicy().build() : new DefaultRetryPolicyFactory().build();
+  }
 
 }

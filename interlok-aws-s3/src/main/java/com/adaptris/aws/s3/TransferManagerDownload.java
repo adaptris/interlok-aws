@@ -32,9 +32,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 /**
  * Download an object from S3 using {@link TransferManager}.
  * 
- * @author lchan
  * @config amazon-transfer-manager-download-service
- * @deprecated use {@link DownloadOperation} instead as part of an {@link S3Service}
+ * @deprecated since 3.3.0 use {@link DownloadOperation} instead as part of an {@link S3Service}
  */
 @AdapterComponent
 @ComponentProfile(summary = "Amazon S3 Download Service using Transfer Manager")

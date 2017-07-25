@@ -16,7 +16,7 @@ import com.amazonaws.services.s3.transfer.Upload;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
- * Download an object from S3 using {@link TransferManager}.
+ * Upload an object to S3 using {@link TransferManager}.
  * 
  * @author lchan
  * @config amazon-s3-upload
@@ -24,7 +24,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Amazon S3 Upload using Transfer Manager")
 @XStreamAlias("amazon-s3-upload")
-@DisplayOrder(order = {"key", "bucketName",})
+@DisplayOrder(order = {"key", "bucketName", "userMetadataFilter"})
 public class UploadOperation extends S3OperationImpl {
 
   private transient ManagedThreadFactory threadFactory = new ManagedThreadFactory();
@@ -40,6 +40,7 @@ public class UploadOperation extends S3OperationImpl {
     String key = getKey().extract(msg);
     ObjectMetadata s3meta = new ObjectMetadata();
     s3meta.setContentLength(msg.getSize());
+    s3meta.setUserMetadata(filterMetadata(msg));
     try (InputStream in = msg.getInputStream()) {
       log.debug("Uploading to {} in bucket {}", key, bucketName);
       Upload upload = tm.upload(bucketName, key, in, s3meta);
@@ -71,5 +72,4 @@ public class UploadOperation extends S3OperationImpl {
       }
     }
   }
-
 }
