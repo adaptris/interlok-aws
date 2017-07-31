@@ -4,6 +4,7 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -16,6 +17,7 @@ import com.thoughtworks.xstream.converters.extended.ToAttributedValueConverter;
 public class S3ContentType extends S3ObjectMetadata {
 
   @NotNull
+  @InputFieldHint(expression = true)
   private String contentType;
 
   @Override
@@ -38,8 +40,6 @@ public class S3ContentType extends S3ObjectMetadata {
    * one hasn't been set yet. Users are responsible for ensuring a suitable content type is set when 
    * uploading streams. If no content type is provided and cannot be determined by the filename, the default 
    * content type "application/octet-stream" will be used.
-   * <br/>
-   * Supports %message{} type substitutions.
    * 
    * @param contentType
    */

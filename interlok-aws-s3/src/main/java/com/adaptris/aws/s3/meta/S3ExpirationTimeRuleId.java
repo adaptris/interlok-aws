@@ -4,6 +4,7 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -16,6 +17,7 @@ import com.thoughtworks.xstream.converters.extended.ToAttributedValueConverter;
 public class S3ExpirationTimeRuleId extends S3ObjectMetadata {
 
   @NotNull
+  @InputFieldHint(expression = true)
   private String expirationRuleId;
   
   @Override
@@ -31,8 +33,7 @@ public class S3ExpirationTimeRuleId extends S3ObjectMetadata {
   }
 
   /**
-   * Sets the BucketLifecycleConfiguration rule ID for this object's expiration. Supports %message{}
-   * style variables.
+   * Sets the BucketLifecycleConfiguration rule ID for this object's expiration.
    */
   public void setExpirationTimeRuleId(String expirationRuleId) {
     this.expirationRuleId = expirationRuleId;

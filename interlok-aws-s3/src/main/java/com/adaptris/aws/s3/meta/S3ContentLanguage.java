@@ -4,6 +4,7 @@ import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -16,6 +17,7 @@ import com.thoughtworks.xstream.converters.extended.ToAttributedValueConverter;
 public class S3ContentLanguage extends S3ObjectMetadata {
 
   @NotNull
+  @InputFieldHint(expression = true)
   private String contentLanguage;
   
   @Override
@@ -33,8 +35,6 @@ public class S3ContentLanguage extends S3ObjectMetadata {
   /**
    * Sets the Content-Language HTTP header which describes the natural 
    * language(s) of the intended audience for the enclosed entity.
-   * <br/>
-   * Supports %message{} style substitutions
    * 
    * @param contentLanguage
    */
