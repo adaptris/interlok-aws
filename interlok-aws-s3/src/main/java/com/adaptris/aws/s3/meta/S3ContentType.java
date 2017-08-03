@@ -9,11 +9,9 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamConverter;
-import com.thoughtworks.xstream.converters.extended.ToAttributedValueConverter;
 
 @XStreamAlias("s3-content-type")
-@XStreamConverter(value = ToAttributedValueConverter.class, strings = { "contentType" })
+// @XStreamConverter(value = ToAttributedValueConverter.class, strings = { "contentType" })
 public class S3ContentType extends S3ObjectMetadata {
 
   @NotNull

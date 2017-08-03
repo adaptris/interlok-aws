@@ -9,11 +9,9 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamConverter;
-import com.thoughtworks.xstream.converters.extended.ToAttributedValueConverter;
 
 @XStreamAlias("s3-expiration-rule-id")
-@XStreamConverter(value = ToAttributedValueConverter.class, strings = { "expirationRuleId" })
+// @XStreamConverter(value = ToAttributedValueConverter.class, strings = { "expirationRuleId" })
 public class S3ExpirationTimeRuleId extends S3ObjectMetadata {
 
   @NotNull
