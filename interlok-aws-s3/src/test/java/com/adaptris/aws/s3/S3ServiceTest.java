@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.adaptris.aws.DefaultAWSAuthentication;
+import com.adaptris.aws.s3.meta.S3ContentLanguage;
+import com.adaptris.aws.s3.meta.S3ServerSideEncryption;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.common.PayloadStreamOutputParameter;
@@ -44,6 +46,10 @@ public class S3ServiceTest extends ServiceCase {
         op.setKey(new ConstantDataInputParameter("s3-key"));
         op.setBucketName(new ConstantDataInputParameter("s3-bucket"));
         op.setUserMetadataFilter(new RemoveAllMetadataFilter());
+        S3ContentLanguage type = new S3ContentLanguage();
+        type.setContentLanguage("english");
+        op.getObjectMetadata().add(new S3ServerSideEncryption());
+        op.getObjectMetadata().add(type);
         return op;
       }
     };
