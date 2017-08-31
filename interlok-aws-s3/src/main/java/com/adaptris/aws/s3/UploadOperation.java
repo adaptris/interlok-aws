@@ -1,10 +1,18 @@
 package com.adaptris.aws.s3;
 
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.validation.Valid;
+
+import org.apache.commons.lang.StringUtils;
 
 import com.adaptris.annotation.AdapterComponent;
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.aws.s3.meta.S3ObjectMetadata;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.core.util.ManagedThreadFactory;
@@ -16,7 +24,7 @@ import com.amazonaws.services.s3.transfer.Upload;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
- * Download an object from S3 using {@link TransferManager}.
+ * Upload an object to S3 using {@link TransferManager}.
  * 
  * @author lchan
  * @config amazon-s3-upload
@@ -24,15 +32,15 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Amazon S3 Upload using Transfer Manager")
 @XStreamAlias("amazon-s3-upload")
-@DisplayOrder(order = {"key", "bucketName",})
+@DisplayOrder(order = {"key", "bucketName", "userMetadataFilter", "objectMetadata"})
 public class UploadOperation extends S3OperationImpl {
 
   private transient ManagedThreadFactory threadFactory = new ManagedThreadFactory();
 
-  public UploadOperation() {
-
-  }
-
+  @AdvancedConfig
+  @Valid
+  private List<S3ObjectMetadata> objectMetadata = new ArrayList<>();
+  
   @Override
   public void execute(AmazonS3Client s3, AdaptrisMessage msg) throws InterlokException {
     TransferManager tm = transferManager(s3);
@@ -40,6 +48,13 @@ public class UploadOperation extends S3OperationImpl {
     String key = getKey().extract(msg);
     ObjectMetadata s3meta = new ObjectMetadata();
     s3meta.setContentLength(msg.getSize());
+    if(StringUtils.isNotEmpty(msg.getContentEncoding())) {
+      s3meta.setContentEncoding(msg.getContentEncoding());
+    }
+    s3meta.setUserMetadata(filterMetadata(msg));
+    for(S3ObjectMetadata m: getObjectMetadata()) {
+      m.apply(msg, s3meta);
+    }
     try (InputStream in = msg.getInputStream()) {
       log.debug("Uploading to {} in bucket {}", key, bucketName);
       Upload upload = tm.upload(bucketName, key, in, s3meta);
@@ -48,6 +63,14 @@ public class UploadOperation extends S3OperationImpl {
     } catch (Exception e) {
       throw ExceptionHelper.wrapServiceException(e);
     }
+  }
+  
+  public List<S3ObjectMetadata> getObjectMetadata() {
+    return objectMetadata;
+  }
+
+  public void setObjectMetadata(List<S3ObjectMetadata> objectMetadata) {
+    this.objectMetadata = objectMetadata;
   }
 
   private class MyProgressListener implements Runnable {
@@ -71,5 +94,4 @@ public class UploadOperation extends S3OperationImpl {
       }
     }
   }
-
 }

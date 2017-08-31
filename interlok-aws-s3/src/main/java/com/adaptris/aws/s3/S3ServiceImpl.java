@@ -1,22 +1,16 @@
 package com.adaptris.aws.s3;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
-import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.aws.AWSAuthentication;
-import com.adaptris.aws.ClientConfigurationBuilder;
-import com.adaptris.aws.DefaultAWSAuthentication;
+import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceImp;
-import com.adaptris.core.util.Args;
-import com.adaptris.core.util.ExceptionHelper;
+import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 
 /**
  * Abstract implemention of {@link S3Service}
@@ -44,47 +38,65 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
  */
 public abstract class S3ServiceImpl extends ServiceImp {
 
-  private transient AmazonS3Client s3;
   @Valid
-  @NotNull
-  @AutoPopulated
+  @Deprecated
+  @AdvancedConfig
   private AWSAuthentication authentication;
 
   @Valid
-  @NotNull
-  @AutoPopulated
+  @Deprecated
+  @AdvancedConfig
   private KeyValuePairSet clientConfiguration;
 
+  @Valid
+  private AdaptrisConnection connection;
+
   public S3ServiceImpl() {
-    setAuthentication(new DefaultAWSAuthentication());
-    setClientConfiguration(new KeyValuePairSet());
   }
 
   @Override
-  public void prepare() throws CoreException {}
-
-  @Override
-  protected void closeService() {}
+  public void prepare() throws CoreException {
+    if (getAuthentication() != null) {
+      log.warn("authentication is deprecated); use amazon-s3-connection instead");
+    }
+    if (getClientConfiguration() != null) {
+      log.warn("client-configuration is deprecated); use amazon-s3-connection instead");
+    }
+    if (getConnection() == null) {
+      setConnection(new AmazonS3Connection(getAuthentication(), getClientConfiguration()));
+    }
+    LifecycleHelper.prepare(getConnection());
+  }
 
   @Override
   protected void initService() throws CoreException {
-    try {
-      AWSCredentials creds = getAuthentication().getAWSCredentials();
-      ClientConfiguration cc = ClientConfigurationBuilder.build(getClientConfiguration());
-      AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard().withClientConfiguration(cc);
-      if (creds != null) {
-        builder.withCredentials(new AWSStaticCredentialsProvider(creds));
-      }
-      s3 = (AmazonS3Client) builder.build();
-    } catch (Exception e) {
-      throw ExceptionHelper.wrapCoreException(e);
-    }
+    LifecycleHelper.init(getConnection());
+  }
+
+  @Override
+  public void start() throws CoreException {
+    super.start();
+    LifecycleHelper.start(getConnection());
+  }
+
+  @Override
+  public void stop() {
+    super.stop();
+    LifecycleHelper.stop(getConnection());
+  }
+
+  @Override
+  protected void closeService() {
+    LifecycleHelper.close(getConnection());
   }
 
   protected AmazonS3Client amazonClient() {
-    return s3;
+    return getConnection().retrieveConnection(AmazonS3Connection.class).amazonClient();
   }
 
+  /**
+   * @deprecated since 3.6.4 use a {@link AmazonS3Connection} instead.
+   */
   public AWSAuthentication getAuthentication() {
     return authentication;
   }
@@ -92,15 +104,17 @@ public abstract class S3ServiceImpl extends ServiceImp {
   /**
    * The authentication method to use
    * 
-   * @param authentication the authentication to use.
+   * @param a the authentication to use.
+   * @deprecated since 3.6.4 use a {@link AmazonS3Connection} instead.
    */
-  public void setAuthentication(AWSAuthentication authentication) {
-    this.authentication = Args.notNull(authentication, "authentication");
+  public void setAuthentication(AWSAuthentication a) {
+    this.authentication = a;
   }
 
 
   /**
    * @return the configurationBuilder
+   * @deprecated since 3.6.4 use a {@link AmazonS3Connection} instead.
    */
   public KeyValuePairSet getClientConfiguration() {
     return clientConfiguration;
@@ -109,8 +123,22 @@ public abstract class S3ServiceImpl extends ServiceImp {
 
   /**
    * @param b the configurationBuilder to set
+   * @deprecated since 3.6.4 use a {@link AmazonS3Connection} instead.
    */
   public void setClientConfiguration(KeyValuePairSet b) {
-    this.clientConfiguration = Args.notNull(b, "configurationBuilder");
+    this.clientConfiguration = b;
+  }
+
+  public AdaptrisConnection getConnection() {
+    return connection;
+  }
+
+  /**
+   * Set the connection to use to connect to S3.
+   * 
+   * @param connection the connection.
+   */
+  public void setConnection(AdaptrisConnection connection) {
+    this.connection = connection;
   }
 }

@@ -245,9 +245,14 @@ public class ClientConfigurationBuilder {
     abstract ClientConfiguration configure(ClientConfiguration cc, String str) throws Exception;
   };
 
-  public static ClientConfiguration build(KeyValuePairSet kvps) throws Exception {
-    return configure(new ClientConfiguration(), kvps);
+  public static ClientConfiguration build(KeyValuePairSet clientConfig) throws Exception {
+    return build(clientConfig, new DefaultRetryPolicyFactory());
   }
+
+  public static ClientConfiguration build(KeyValuePairSet kvps, RetryPolicyFactory b) throws Exception {
+    return configure(new ClientConfiguration(), kvps).withRetryPolicy(b.build());
+  }
+
 
   public static ClientConfiguration configure(ClientConfiguration clientConfig, KeyValuePairSet settings) throws Exception {
     ClientConfiguration cfg = clientConfig;

@@ -32,7 +32,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Amazon S3 Download using Transfer Manager")
 @XStreamAlias("amazon-s3-download")
-@DisplayOrder(order = {"key", "bucketName", "tempDirectory"})
+@DisplayOrder(order = {"key", "bucketName", "tempDirectory", "userMetadataFilter"})
 public class DownloadOperation extends S3OperationImpl {
 
   @AdvancedConfig
@@ -58,6 +58,7 @@ public class DownloadOperation extends S3OperationImpl {
       Download download = tm.download(request, destFile);
       threadFactory.newThread(new MyProgressListener(Thread.currentThread().getName(), download)).start();
       download.waitForCompletion();
+      msg.setMetadata(filterUserMetadata(download.getObjectMetadata().getUserMetadata()));
       write(destFile, msg);
     } catch (Exception e) {
       throw ExceptionHelper.wrapServiceException(e);
