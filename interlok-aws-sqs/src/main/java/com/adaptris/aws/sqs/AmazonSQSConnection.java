@@ -185,6 +185,7 @@ public class AmazonSQSConnection extends AdaptrisConnectionImp {
    * The access key for the AWS account
    * 
    * @return accessKey
+   * @deprecated since 3.0.6 use a {@link AWSAuthentication} instead.
    */
   @Deprecated
   public String getAccessKey() {
@@ -195,6 +196,7 @@ public class AmazonSQSConnection extends AdaptrisConnectionImp {
    * The access key for the AWS account
    * 
    * @param accessKey
+   * @deprecated since 3.0.6 use a {@link AWSAuthentication} instead.
    */
   @Deprecated
   public void setAccessKey(String accessKey) {
@@ -205,6 +207,7 @@ public class AmazonSQSConnection extends AdaptrisConnectionImp {
    * The secret key for the AWS account. Can be encoded.
    * 
    * @return secretKey
+   * @deprecated since 3.0.6 use a {@link AWSAuthentication} instead.
    */
   @Deprecated
   public String getSecretKey() {
@@ -215,6 +218,7 @@ public class AmazonSQSConnection extends AdaptrisConnectionImp {
    * The secret key for the AWS account. Can be encoded.
    * 
    * @param secretKey
+   * @deprecated since 3.0.6 use a {@link AWSAuthentication} instead.
    */
   @Deprecated
   public void setSecretKey(String secretKey) {
