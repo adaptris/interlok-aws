@@ -1,6 +1,9 @@
 package com.adaptris.aws.s3;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -189,7 +192,7 @@ public class S3OperationTest {
     assertEquals("expiration time rule id", meta.getExpirationTimeRuleId());
   }
 
-  private static class MyS3Operation extends S3OperationImpl {
+  private static class MyS3Operation extends TransferOperation {
 
     @Override
     public void execute(AmazonS3Client s3, AdaptrisMessage msg) throws InterlokException {
