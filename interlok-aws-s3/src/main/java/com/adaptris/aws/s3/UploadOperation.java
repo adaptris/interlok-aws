@@ -32,8 +32,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Amazon S3 Upload using Transfer Manager")
 @XStreamAlias("amazon-s3-upload")
-@DisplayOrder(order = {"key", "bucketName", "userMetadataFilter", "objectMetadata"})
-public class UploadOperation extends S3OperationImpl {
+@DisplayOrder(order = {"bucketName", "key", "userMetadataFilter", "objectMetadata"})
+public class UploadOperation extends TransferOperation {
 
   private transient ManagedThreadFactory threadFactory = new ManagedThreadFactory();
 

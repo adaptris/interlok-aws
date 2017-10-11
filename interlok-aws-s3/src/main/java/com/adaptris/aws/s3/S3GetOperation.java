@@ -19,8 +19,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @config amazon-s3-get
  */
 @XStreamAlias("amazon-s3-get")
-@DisplayOrder(order = {"key", "bucketName", "responseBody", "userMetadataFilter"})
-public class S3GetOperation extends S3OperationImpl {
+@DisplayOrder(order = {"bucketName", "key", "responseBody", "userMetadataFilter"})
+public class S3GetOperation extends TransferOperation {
 
   @NotNull
   private DataOutputParameter<InputStreamWithEncoding> responseBody;

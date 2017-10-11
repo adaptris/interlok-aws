@@ -19,6 +19,7 @@ import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.regions.DefaultAwsRegionProviderChain;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -52,10 +53,12 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Connection for supporting connectivity to Amazon S3", tag = "connections,amazon,s3",
     recommended = {S3Service.class})
-@DisplayOrder(order = {"authentication", "clientConfiguration", "retryPolicy"})
+@DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy"})
 public class AmazonS3Connection extends AdaptrisConnectionImp {
 
   private transient AmazonS3Client s3;
+  private String region;
+  
   @Valid
   private AWSAuthentication authentication;
 
@@ -88,7 +91,7 @@ public class AmazonS3Connection extends AdaptrisConnectionImp {
       if (creds != null) {
         builder.withCredentials(new AWSStaticCredentialsProvider(creds));
       }
-      s3 = (AmazonS3Client) builder.build();
+      s3 = (AmazonS3Client) builder.withRegion(getRegion()).build();
     }
     catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
@@ -162,5 +165,23 @@ public class AmazonS3Connection extends AdaptrisConnectionImp {
 
   RetryPolicyFactory retryPolicy() {
     return getRetryPolicy() != null ? getRetryPolicy() : new DefaultRetryPolicyFactory();
+  }
+
+  public String getRegion() {
+    return region;
+  }
+
+  /**
+   * Set the region for the client.
+   * 
+   * <p>
+   * If the region is not specified, then {@link DefaultAwsRegionProviderChain} is used to determine the region. You can always
+   * specify a region using the standard system property {@code aws.region} or via environment variables.
+   * </p>
+   * 
+   * @param s the region.
+   */
+  public void setRegion(String s) {
+    this.region = s;
   }
 }
