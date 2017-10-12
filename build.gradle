@@ -5,8 +5,10 @@ ext {
   repoUsername = project.hasProperty('repoUsername') ? project.getProperty('repoUsername') : 'unknown'
   repoPassword = project.hasProperty('repoPassword') ? project.getProperty('repoPassword') : 'unknown'
   defaultNexusRepo = project.hasProperty('defaultNexusRepo') ? project.getProperty('defaultNexusRepo') : 'https://repo1.maven.org/maven2/'
+  interlokJavadocs= project.hasProperty('interlokJavadocs') ? project.getProperty('interlokJavadocs') : 'https://development.adaptris.net/javadocs/latest/Interlok-API/'
+  interlokCommonJavadocs= project.hasProperty('interlokJavadocs') ? project.getProperty('interlokJavadocs') : 'https://development.adaptris.net/javadocs/latest/Interlok-Common/'
 
-  slf4jVersion = '1.7.12'
+  slf4jVersion = '1.7.25'
   awsSDKVersion = '1.11.149'
 }
 
@@ -74,8 +76,8 @@ subprojects {
   javadoc {
     configure(options) {
       links = [
-        "https://development.adaptris.net/javadocs/v3-snapshot/Interlok-API/",
-        "https://development.adaptris.net/javadocs/v3-snapshot/Interlok-Common/",
+        interlokJavadocs,
+        interlokCommonJavadocs,
       ]
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
