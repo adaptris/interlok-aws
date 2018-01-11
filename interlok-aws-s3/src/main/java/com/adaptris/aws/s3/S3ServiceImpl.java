@@ -5,6 +5,7 @@ import javax.validation.Valid;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.core.AdaptrisConnection;
+import com.adaptris.core.ConnectedService;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceImp;
 import com.adaptris.core.util.LifecycleHelper;
@@ -36,7 +37,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
  * @author lchan
  *
  */
-public abstract class S3ServiceImpl extends ServiceImp {
+public abstract class S3ServiceImpl extends ServiceImp implements ConnectedService {
 
   @Valid
   @Deprecated
