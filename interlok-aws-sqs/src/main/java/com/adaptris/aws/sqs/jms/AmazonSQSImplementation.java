@@ -46,7 +46,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   @Deprecated
   private String accessKey;
 
-  @InputFieldHint(style = "PASSWORD")
+  @InputFieldHint(style = "PASSWORD", external = true)
   @Deprecated
   private String secretKey;
 
