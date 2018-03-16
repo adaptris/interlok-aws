@@ -4,6 +4,7 @@ import javax.validation.constraints.NotNull;
 
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldHint;
+import com.adaptris.interlok.resolver.ExternalResolver;
 import com.adaptris.security.exc.AdaptrisSecurityException;
 import com.adaptris.security.password.Password;
 import com.amazonaws.auth.AWSCredentials;
@@ -21,7 +22,7 @@ public class AWSKeysAuthentication implements AWSAuthentication {
   private String accessKey;
   
   @NotNull
-  @InputFieldHint(style="PASSWORD")
+  @InputFieldHint(style = "PASSWORD", external = true)
   private String secretKey;
 
   public AWSKeysAuthentication() {
@@ -36,7 +37,7 @@ public class AWSKeysAuthentication implements AWSAuthentication {
 
   @Override
   public AWSCredentials getAWSCredentials() throws AdaptrisSecurityException {
-    return new BasicAWSCredentials(getAccessKey(), Password.decode(getSecretKey()));
+    return new BasicAWSCredentials(getAccessKey(), Password.decode(ExternalResolver.resolve(getSecretKey())));
   }
   
   /**

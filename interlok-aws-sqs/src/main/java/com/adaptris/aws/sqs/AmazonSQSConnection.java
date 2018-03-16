@@ -65,7 +65,7 @@ public class AmazonSQSConnection extends AdaptrisConnectionImp {
   @Deprecated
   private String accessKey;
   
-  @InputFieldHint(style="PASSWORD")
+  @InputFieldHint(style = "PASSWORD", external = true)
   @Deprecated
   private String secretKey;
 
