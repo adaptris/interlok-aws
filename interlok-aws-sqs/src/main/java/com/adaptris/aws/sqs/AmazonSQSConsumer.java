@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 
+import com.adaptris.annotation.AdvancedConfig;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -37,6 +39,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
   private Integer prefetchCount;
+  @AdvancedConfig
+  private String ownerAWSAccountId;
 
   private transient Log log = LogFactory.getLog(this.getClass().getName());
   private transient AmazonSQS sqs;
@@ -52,7 +56,11 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
   @Override
   public void start() throws CoreException {
     sqs = retrieveConnection(AmazonSQSConnection.class).getSyncClient();
-    queueUrl = sqs.getQueueUrl(new GetQueueUrlRequest(getDestination().getDestination())).getQueueUrl();
+    GetQueueUrlRequest queueUrlRequest = new GetQueueUrlRequest(getDestination().getDestination());
+    if (!StringUtils.isEmpty(getOwnerAWSAccountId())) {
+      queueUrlRequest.withQueueOwnerAWSAccountId(getOwnerAWSAccountId());
+    }
+    queueUrl = sqs.getQueueUrl(queueUrlRequest).getQueueUrl();
 
     super.start();
   }
@@ -134,5 +142,18 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
    */
   public void setPrefetchCount(Integer prefetchCount) {
     this.prefetchCount = prefetchCount;
+  }
+
+  public String getOwnerAWSAccountId() {
+    return ownerAWSAccountId;
+  }
+
+  /**
+   * The AWS account ID of the account that created the queue. When omitted
+   * the default setting on the queue will be used.
+    * @param ownerAWSAccountId
+   */
+  public void setOwnerAWSAccountId(String ownerAWSAccountId) {
+    this.ownerAWSAccountId = ownerAWSAccountId;
   }
 }
