@@ -74,6 +74,18 @@ public class AwsConsumerTest extends ConsumerCase {
   public void testConsumerInitialisation() throws Exception {
     startConsumer();
   }
+
+  public void testWithoutQueueOwnerAWSAccountId() throws Exception {
+    startConsumer();
+    verify(sqsClientMock, times(1)).getQueueUrl(new GetQueueUrlRequest("queue"));
+  }
+
+  public void testWithQueueOwnerAWSAccountId() throws Exception {
+    startConsumerWithAccountID();
+    GetQueueUrlRequest getQueueUrlRequest = new GetQueueUrlRequest("queue");
+    getQueueUrlRequest.withQueueOwnerAWSAccountId("accountId");
+    verify(sqsClientMock, times(1)).getQueueUrl(getQueueUrlRequest);
+  }
   
   public void testSingleConsume() throws Exception {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
@@ -226,6 +238,23 @@ public class AwsConsumerTest extends ConsumerCase {
     standaloneConsumer = new StandaloneConsumer(sqsConsumer);
     standaloneConsumer.registerAdaptrisMessageListener(messageListener);
     
+    LifecycleHelper.init(sqsConsumer);
+    LifecycleHelper.start(sqsConsumer);
+  }
+
+  private void startConsumerWithAccountID() throws Exception {
+    messageListener = new MockMessageListener(10);
+
+    sqsConsumer = new AmazonSQSConsumer();
+    sqsConsumer.registerConnection(connectionMock);
+    sqsConsumer.setDestination(new ConfiguredConsumeDestination("queue"));
+    sqsConsumer.setPoller(new QuartzCronPoller("*/1 * * * * ?"));
+    sqsConsumer.setReacquireLockBetweenMessages(true);
+    sqsConsumer.setOwnerAWSAccountId("accountId");
+
+    standaloneConsumer = new StandaloneConsumer(sqsConsumer);
+    standaloneConsumer.registerAdaptrisMessageListener(messageListener);
+
     LifecycleHelper.init(sqsConsumer);
     LifecycleHelper.start(sqsConsumer);
   }
