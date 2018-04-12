@@ -63,6 +63,9 @@ public class DownloadOperation extends TransferOperation {
     } catch (Exception e) {
       throw ExceptionHelper.wrapServiceException(e);
     }
+    finally {
+      tm.shutdownNow(false);
+    }
   }
 
 

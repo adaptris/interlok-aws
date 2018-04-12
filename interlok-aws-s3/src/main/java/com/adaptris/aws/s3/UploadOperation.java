@@ -63,6 +63,9 @@ public class UploadOperation extends TransferOperation {
     } catch (Exception e) {
       throw ExceptionHelper.wrapServiceException(e);
     }
+    finally {
+      tm.shutdownNow(false);
+    }
   }
   
   public List<S3ObjectMetadata> getObjectMetadata() {
