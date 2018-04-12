@@ -5,6 +5,7 @@ import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.aws.DefaultRetryPolicyFactory;
 import com.adaptris.aws.PluggableRetryPolicyFactory;
 import com.adaptris.core.BaseCase;
+import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.util.KeyValuePairSet;
 
 public class AmazonS3ConnectionTest extends BaseCase {
@@ -47,5 +48,19 @@ public class AmazonS3ConnectionTest extends BaseCase {
     c.setRetryPolicy(new PluggableRetryPolicyFactory());
     assertNotNull(c.getRetryPolicy());
     assertEquals(PluggableRetryPolicyFactory.class, c.retryPolicy().getClass());
+  }
+
+  public void testLifecycle() throws Exception {
+    AmazonS3Connection c = new AmazonS3Connection();
+    try {
+      c.setRegion("eu-central-1");
+      LifecycleHelper.initAndStart(c);
+      assertNotNull(c.amazonClient());
+      assertNotNull(c.transferManager());
+    } finally {
+      LifecycleHelper.stopAndClose(c);
+    }
+    assertNull(c.amazonClient());
+    assertNull(c.transferManager());
   }
 }

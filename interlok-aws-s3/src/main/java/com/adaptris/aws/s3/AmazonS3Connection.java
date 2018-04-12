@@ -22,6 +22,8 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.regions.DefaultAwsRegionProviderChain;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
@@ -54,9 +56,11 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @ComponentProfile(summary = "Connection for supporting connectivity to Amazon S3", tag = "connections,amazon,s3",
     recommended = {S3Service.class})
 @DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy"})
-public class AmazonS3Connection extends AdaptrisConnectionImp {
+public class AmazonS3Connection extends AdaptrisConnectionImp implements ClientWrapper {
 
   private transient AmazonS3Client s3;
+  private transient TransferManager transferManager;
+
   private String region;
   
   @Valid
@@ -92,6 +96,7 @@ public class AmazonS3Connection extends AdaptrisConnectionImp {
         builder.withCredentials(new AWSStaticCredentialsProvider(creds));
       }
       s3 = (AmazonS3Client) builder.withRegion(getRegion()).build();
+      transferManager = TransferManagerBuilder.standard().withS3Client(s3).build();
     }
     catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
@@ -108,11 +113,24 @@ public class AmazonS3Connection extends AdaptrisConnectionImp {
 
   @Override
   protected void closeConnection() {
-    s3 = null;
+    if (transferManager != null) {
+      transferManager.shutdownNow(false);
+      transferManager = null;
+    }
+    if (s3 != null) {
+      s3.shutdown();
+      s3 = null;
+    }
   }
 
+  @Override
   public AmazonS3Client amazonClient() {
     return s3;
+  }
+
+  @Override
+  public TransferManager transferManager() {
+    return transferManager;
   }
 
   public AWSAuthentication getAuthentication() {

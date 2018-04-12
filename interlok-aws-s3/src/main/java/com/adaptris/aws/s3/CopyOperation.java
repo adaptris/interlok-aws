@@ -41,8 +41,9 @@ public class CopyOperation extends S3OperationImpl {
   }
 
   @Override
-  public void execute(AmazonS3Client s3, AdaptrisMessage msg) throws InterlokException {
+  public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws InterlokException {
     try {
+      AmazonS3Client s3 = wrapper.amazonClient();
       String srcBucket = getBucketName().extract(msg);
       String srcKey = getKey().extract(msg);
       String destBucket = destinationBucket(msg);

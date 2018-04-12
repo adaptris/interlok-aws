@@ -17,7 +17,6 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.core.util.ManagedThreadFactory;
 import com.adaptris.interlok.InterlokException;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
@@ -42,8 +41,8 @@ public class UploadOperation extends TransferOperation {
   private List<S3ObjectMetadata> objectMetadata = new ArrayList<>();
   
   @Override
-  public void execute(AmazonS3Client s3, AdaptrisMessage msg) throws InterlokException {
-    TransferManager tm = transferManager(s3);
+  public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws InterlokException {
+    TransferManager tm = wrapper.transferManager();
     String bucketName = getBucketName().extract(msg);
     String key = getKey().extract(msg);
     ObjectMetadata s3meta = new ObjectMetadata();
@@ -62,9 +61,6 @@ public class UploadOperation extends TransferOperation {
       upload.waitForCompletion();
     } catch (Exception e) {
       throw ExceptionHelper.wrapServiceException(e);
-    }
-    finally {
-      tm.shutdownNow(false);
     }
   }
   

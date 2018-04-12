@@ -12,9 +12,6 @@ import com.adaptris.core.MetadataCollection;
 import com.adaptris.core.MetadataElement;
 import com.adaptris.core.metadata.MetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 
 /**
  * Abstract base class for S3 Upload/Download Operations.
@@ -67,9 +64,5 @@ public abstract class TransferOperation extends S3OperationImpl {
       result.put(e.getKey(), e.getValue());
     }
     return result;
-  }
-
-  protected TransferManager transferManager(AmazonS3Client s3) {
-    return TransferManagerBuilder.standard().withS3Client(s3).build();
   }
 }

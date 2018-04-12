@@ -41,7 +41,7 @@ public class S3Service extends S3ServiceImpl {
   @Override
   public void doService(AdaptrisMessage msg) throws ServiceException {
     try {
-      getOperation().execute(amazonClient(), msg);
+      getOperation().execute(getConnection().retrieveConnection(AmazonS3Connection.class), msg);
     } catch (InterlokException e) {
       throw ExceptionHelper.wrapServiceException(e);
     }
