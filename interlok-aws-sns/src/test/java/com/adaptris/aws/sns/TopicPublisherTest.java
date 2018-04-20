@@ -1,6 +1,8 @@
-package com.adaptris.aws.s3;
+package com.adaptris.aws.sns;
 
 import com.adaptris.aws.AWSKeysAuthentication;
+import com.adaptris.aws.sns.AmazonSNSConnection;
+import com.adaptris.aws.sns.PublishToTopic;
 import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.ProducerCase;
 import com.adaptris.core.StandaloneProducer;

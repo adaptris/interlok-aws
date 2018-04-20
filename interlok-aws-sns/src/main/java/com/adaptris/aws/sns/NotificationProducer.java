@@ -1,4 +1,4 @@
-package com.adaptris.aws.s3;
+package com.adaptris.aws.sns;
 
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ProduceOnlyProducerImp;

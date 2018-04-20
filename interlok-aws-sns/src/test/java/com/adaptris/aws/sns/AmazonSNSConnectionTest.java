@@ -1,9 +1,10 @@
-package com.adaptris.aws.s3;
+package com.adaptris.aws.sns;
 
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.aws.DefaultRetryPolicyFactory;
 import com.adaptris.aws.PluggableRetryPolicyFactory;
+import com.adaptris.aws.sns.AmazonSNSConnection;
 import com.adaptris.core.BaseCase;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.util.KeyValuePairSet;
