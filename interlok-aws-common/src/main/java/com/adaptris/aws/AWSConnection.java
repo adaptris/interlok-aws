@@ -14,12 +14,12 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
   private AWSAuthentication authentication;
 
   @Valid
+  @AdvancedConfig
   private KeyValuePairSet clientConfiguration;
 
   @Valid
   @AdvancedConfig
   private RetryPolicyFactory retryPolicy;
-
 
   public AWSAuthentication getAuthentication() {
     return authentication;
