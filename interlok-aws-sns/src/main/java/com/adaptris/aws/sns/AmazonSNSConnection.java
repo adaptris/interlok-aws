@@ -40,7 +40,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * </pre>
  * 
  * 
- * @config amazon-s3-connection
+ * @config amazon-sns-connection
  */
 @XStreamAlias("amazon-sns-connection")
 @AdapterComponent
