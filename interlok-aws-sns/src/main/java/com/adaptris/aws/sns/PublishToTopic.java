@@ -111,6 +111,6 @@ public class PublishToTopic extends NotificationProducer {
   }
 
   DataInputParameter<String> subject() {
-    return getSource() != null ? getSource() : EMPTY;
+    return getSubject() != null ? getSubject() : EMPTY;
   }
 }
