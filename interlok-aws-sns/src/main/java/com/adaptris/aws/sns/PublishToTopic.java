@@ -2,6 +2,8 @@ package com.adaptris.aws.sns;
 
 import javax.validation.Valid;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
@@ -71,8 +73,11 @@ public class PublishToTopic extends NotificationProducer {
   @Override
   public void produce(AdaptrisMessage msg, ProduceDestination destination) throws ProduceException {
     try {
-      PublishRequest request = new PublishRequest(getDestination().getDestination(msg), source().extract(msg),
-          subject().extract(msg));
+      PublishRequest request = new PublishRequest(getDestination().getDestination(msg), source().extract(msg));
+      String subject = subject().extract(msg);
+      if (!StringUtils.isBlank(subject)) {
+        request.setSubject(subject);
+      }
       PublishResult result = client().publish(request);
       msg.addMetadata(SNS_MSG_ID_KEY, result.getMessageId());
     } catch (Exception e) {
