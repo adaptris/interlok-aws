@@ -1,11 +1,10 @@
 ext {
-  componentName='Interlok AWS/SQS'
+  componentName='Interlok AWS/SNS'
 }
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
-    compile "com.amazonaws:aws-java-sdk-sqs:$awsSDKVersion"
-    compile 'com.amazonaws:amazon-sqs-java-messaging-lib:1.0.0'
+    compile "com.amazonaws:aws-java-sdk-sns:$awsSDKVersion"
 
     compile project(':interlok-aws-common')
 
@@ -35,9 +34,9 @@ publishing {
           artifact javadocJar { classifier "javadoc" }
           artifact examplesJar { classifier "examples" }
           pom.withXml {
-            asNode().appendNode("description", "Integration with AWS SQS")
+            asNode().appendNode("description", "Publishing to AWS SNS topics")
             def properties = asNode().appendNode("properties")
-            properties.appendNode("target", "3.3.0+")
+            properties.appendNode("target", "3.7.2+")
           }
       }
   }

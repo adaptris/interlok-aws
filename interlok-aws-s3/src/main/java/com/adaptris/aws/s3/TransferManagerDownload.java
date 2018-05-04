@@ -53,7 +53,7 @@ public class TransferManagerDownload extends S3ServiceImpl {
   private String tempDirectory;
 
   private transient File tempDir;
-  private transient ManagedThreadFactory threadFactory = new ManagedThreadFactory();
+  private transient ManagedThreadFactory threadFactory = new ManagedThreadFactory(this.getClass().getSimpleName());
 
   public TransferManagerDownload() {
 
@@ -74,6 +74,8 @@ public class TransferManagerDownload extends S3ServiceImpl {
       write(destFile, msg);
     } catch (Exception e) {
       throw ExceptionHelper.wrapServiceException(e);
+    } finally {
+      tm.shutdownNow(false);
     }
   }
 

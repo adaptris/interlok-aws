@@ -25,8 +25,9 @@ public class DeleteOperation extends S3OperationImpl {
   }
 
   @Override
-  public void execute(AmazonS3Client s3, AdaptrisMessage msg) throws InterlokException {
+  public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws InterlokException {
     try {
+      AmazonS3Client s3 = wrapper.amazonClient();
       String bucket = getBucketName().extract(msg);
       String key = getKey().extract(msg);
       log.trace("Deleting [{}:{}]", bucket, key);

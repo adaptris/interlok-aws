@@ -16,7 +16,6 @@ import com.adaptris.core.lms.FileBackedMessage;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.core.util.ManagedThreadFactory;
 import com.adaptris.interlok.InterlokException;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.TransferManager;
@@ -45,8 +44,8 @@ public class DownloadOperation extends TransferOperation {
   }
 
   @Override
-  public void execute(AmazonS3Client s3, AdaptrisMessage msg) throws InterlokException {
-    TransferManager tm = transferManager(s3);
+  public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws InterlokException {
+    TransferManager tm = wrapper.transferManager();
     File tempDir = null;
     try {
       if (!isEmpty(getTempDirectory())) {
@@ -62,9 +61,6 @@ public class DownloadOperation extends TransferOperation {
       write(destFile, msg);
     } catch (Exception e) {
       throw ExceptionHelper.wrapServiceException(e);
-    }
-    finally {
-      tm.shutdownNow(false);
     }
   }
 

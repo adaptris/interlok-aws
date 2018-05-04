@@ -1,4 +1,4 @@
-package com.adaptris.aws.s3;
+package com.adaptris.aws.sns;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
@@ -13,14 +13,12 @@ import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
- * {@linkplain AdaptrisConnection} implementation for Amazon S3.
+ * {@linkplain AdaptrisConnection} implementation for Amazon SNS.
  * 
  * <p>
  * This class directly exposes almost all the getter and setters that are available in {@link ClientConfiguration} via the
@@ -42,22 +40,21 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * </pre>
  * 
  * 
- * @config amazon-s3-connection
+ * @config amazon-sns-connection
  */
-@XStreamAlias("amazon-s3-connection")
+@XStreamAlias("amazon-sns-connection")
 @AdapterComponent
-@ComponentProfile(summary = "Connection for supporting connectivity to Amazon S3", tag = "connections,amazon,s3",
-    recommended = {S3Service.class})
+@ComponentProfile(summary = "Connection for supporting connectivity to Amazon SNS", tag = "connections,amazon,sns",
+    recommended = { NotificationProducer.class })
 @DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy"})
-public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
+public class AmazonSNSConnection extends AWSConnection {
 
-  private transient AmazonS3Client s3;
-  private transient TransferManager transferManager;
+  private transient AmazonSNSClient snsClient;
 
-  public AmazonS3Connection() {
+  public AmazonSNSConnection() {
   }
 
-  public AmazonS3Connection(AWSAuthentication auth, KeyValuePairSet cfg) {
+  public AmazonSNSConnection(AWSAuthentication auth, KeyValuePairSet cfg) {
     this();
     setAuthentication(auth);
     setClientConfiguration(cfg);
@@ -72,12 +69,11 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
     try {
       AWSCredentials creds = authentication().getAWSCredentials();
       ClientConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
-      AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard().withClientConfiguration(cc);
+      AmazonSNSClientBuilder builder = AmazonSNSClientBuilder.standard().withClientConfiguration(cc);
       if (creds != null) {
         builder.withCredentials(new AWSStaticCredentialsProvider(creds));
       }
-      s3 = (AmazonS3Client) builder.withRegion(getRegion()).build();
-      transferManager = TransferManagerBuilder.standard().withS3Client(s3).build();
+      snsClient = (AmazonSNSClient) builder.withRegion(getRegion()).build();
     }
     catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
@@ -94,25 +90,13 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
 
   @Override
   protected void closeConnection() {
-    if (transferManager != null) {
-      transferManager.shutdownNow(false);
-      transferManager = null;
-    }
-    if (s3 != null) {
-      s3.shutdown();
-      s3 = null;
+    if (snsClient != null) {
+      snsClient.shutdown();
+      snsClient = null;
     }
   }
 
-  @Override
-  public AmazonS3Client amazonClient() {
-    return s3;
+  public AmazonSNSClient amazonClient() {
+    return snsClient;
   }
-
-  @Override
-  public TransferManager transferManager() {
-    return transferManager;
-  }
-
-
 }

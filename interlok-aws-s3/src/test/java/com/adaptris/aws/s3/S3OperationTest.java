@@ -34,7 +34,6 @@ import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
 import com.adaptris.interlok.InterlokException;
 import com.adaptris.util.TimeInterval;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 
 public class S3OperationTest {
@@ -195,7 +194,7 @@ public class S3OperationTest {
   private static class MyS3Operation extends TransferOperation {
 
     @Override
-    public void execute(AmazonS3Client s3, AdaptrisMessage msg) throws InterlokException {
+    public void execute(ClientWrapper s3, AdaptrisMessage msg) throws InterlokException {
       return;
     }
 
