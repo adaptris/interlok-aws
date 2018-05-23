@@ -40,7 +40,7 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
   private Integer prefetchCount;
   @AdvancedConfig
-  private String ownerAWSAccountId;
+  private String ownerAwsAccountId;
 
   private transient Log log = LogFactory.getLog(this.getClass().getName());
   private transient AmazonSQS sqs;
@@ -57,8 +57,8 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
   public void start() throws CoreException {
     sqs = retrieveConnection(AmazonSQSConnection.class).getSyncClient();
     GetQueueUrlRequest queueUrlRequest = new GetQueueUrlRequest(getDestination().getDestination());
-    if (!StringUtils.isEmpty(getOwnerAWSAccountId())) {
-      queueUrlRequest.withQueueOwnerAWSAccountId(getOwnerAWSAccountId());
+    if (!StringUtils.isEmpty(getOwnerAwsAccountId())) {
+      queueUrlRequest.withQueueOwnerAWSAccountId(getOwnerAwsAccountId());
     }
     queueUrl = sqs.getQueueUrl(queueUrlRequest).getQueueUrl();
 
@@ -144,16 +144,16 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
     this.prefetchCount = prefetchCount;
   }
 
-  public String getOwnerAWSAccountId() {
-    return ownerAWSAccountId;
+  public String getOwnerAwsAccountId() {
+    return ownerAwsAccountId;
   }
 
   /**
    * The AWS account ID of the account that created the queue. When omitted
    * the default setting on the queue will be used.
-    * @param ownerAWSAccountId
+    * @param ownerAwsAccountId
    */
-  public void setOwnerAWSAccountId(String ownerAWSAccountId) {
-    this.ownerAWSAccountId = ownerAWSAccountId;
+  public void setOwnerAwsAccountId(String ownerAwsAccountId) {
+    this.ownerAwsAccountId = ownerAwsAccountId;
   }
 }

@@ -250,7 +250,7 @@ public class AwsConsumerTest extends ConsumerCase {
     sqsConsumer.setDestination(new ConfiguredConsumeDestination("queue"));
     sqsConsumer.setPoller(new QuartzCronPoller("*/1 * * * * ?"));
     sqsConsumer.setReacquireLockBetweenMessages(true);
-    sqsConsumer.setOwnerAWSAccountId("accountId");
+    sqsConsumer.setOwnerAwsAccountId("accountId");
 
     standaloneConsumer = new StandaloneConsumer(sqsConsumer);
     standaloneConsumer.registerAdaptrisMessageListener(messageListener);
@@ -274,6 +274,7 @@ public class AwsConsumerTest extends ConsumerCase {
     clientSettings.add(new KeyValuePair("ProxyHost", "127.0.0.1"));
     clientSettings.add(new KeyValuePair("ProxyPort", "3128"));
     conn.setClientConfiguration(clientSettings);
+    sqsConsumer.setOwnerAwsAccountId("owner-account-id");
     StandaloneConsumer result = new StandaloneConsumer(conn, sqsConsumer);
     return result;
   }
