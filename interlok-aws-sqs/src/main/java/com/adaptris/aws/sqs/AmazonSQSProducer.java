@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.adaptris.annotation.AdapterComponent;
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageProducer;
@@ -22,6 +23,7 @@ import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * {@link AdaptrisMessageProducer} implementation that sends messages to an Amazon Web Services (AWS) SQS queue.
@@ -45,6 +47,9 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
   
   @XStreamImplicit(itemFieldName = "send-attribute")
   private List<String> sendAttributes;
+
+  @AdvancedConfig
+  private String ownerAwsAccountId;
   
   public AmazonSQSProducer() {
     sendAttributes = new ArrayList<>();
@@ -130,7 +135,11 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
   }
   
   private String retrieveQueueURLFromSQS(String queueName) throws AmazonServiceException, AmazonClientException, CoreException {
-    return getSQS().getQueueUrl(new GetQueueUrlRequest(queueName)).getQueueUrl();
+    GetQueueUrlRequest getQueueUrlRequest = new GetQueueUrlRequest(queueName);
+    if (!StringUtils.isEmpty(getOwnerAwsAccountId())) {
+      getQueueUrlRequest.withQueueOwnerAWSAccountId(getOwnerAwsAccountId());
+    }
+    return getSQS().getQueueUrl(getQueueUrlRequest).getQueueUrl();
   }
 
   @Override
@@ -171,6 +180,20 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
    */
   public void setSendAttributes(List<String> sendAttributes) {
     this.sendAttributes = sendAttributes;
+  }
+
+  public String getOwnerAwsAccountId() {
+    return ownerAwsAccountId;
+  }
+
+  /**
+   * The AWS account ID of the account that created the queue. When omitted
+   * the default setting on the queue will be used.
+   * @since 3.7.3
+   * @param ownerAwsAccountId
+   */
+  public void setOwnerAwsAccountId(String ownerAwsAccountId) {
+    this.ownerAwsAccountId = ownerAwsAccountId;
   }
 
 }
