@@ -24,12 +24,7 @@ import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.DeleteMessageRequest;
-import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
-import com.amazonaws.services.sqs.model.GetQueueUrlResult;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import com.amazonaws.services.sqs.model.ReceiveMessageResult;
+import com.amazonaws.services.sqs.model.*;
 
 public class AwsConsumerTest extends ConsumerCase {
 
@@ -184,6 +179,37 @@ public class AwsConsumerTest extends ConsumerCase {
     Thread.sleep(500);
     
     verify(sqsClientMock, times(numMsgs)).deleteMessage(any(DeleteMessageRequest.class));
+  }
+
+  public void testMessagesRemaining() throws Exception {
+    when(sqsClientMock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(
+        new GetQueueAttributesResult().addAttributesEntry(QueueAttributeName.ApproximateNumberOfMessages.toString(), "10")
+    );
+    startConsumer();
+    int messages = sqsConsumer.messagesRemaining();
+
+    assertEquals(10, messages);
+    verify(sqsClientMock, times(1)).getQueueAttributes(any(GetQueueAttributesRequest.class));
+  }
+
+  public void testMessagesRemainingWithoutConsumerStart() throws Exception {
+    when(sqsClientMock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(
+        new GetQueueAttributesResult().addAttributesEntry(QueueAttributeName.ApproximateNumberOfMessages.toString(), "10")
+    );
+    messageListener = new MockMessageListener(10);
+
+    sqsConsumer = new AmazonSQSConsumer();
+    sqsConsumer.registerConnection(connectionMock);
+    sqsConsumer.setDestination(new ConfiguredConsumeDestination("queue"));
+    sqsConsumer.setPoller(new QuartzCronPoller("*/1 * * * * ?"));
+    sqsConsumer.setReacquireLockBetweenMessages(true);
+
+    standaloneConsumer = new StandaloneConsumer(sqsConsumer);
+    standaloneConsumer.registerAdaptrisMessageListener(messageListener);
+    int messages = sqsConsumer.messagesRemaining();
+
+    assertEquals(10, messages);
+    verify(sqsClientMock, times(1)).getQueueAttributes(any(GetQueueAttributesRequest.class));
   }
   
   private ReceiveMessageResult createReceiveMessageResult(int numMsgs) {

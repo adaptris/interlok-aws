@@ -5,23 +5,26 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import com.adaptris.annotation.AdvancedConfig;
+import com.adaptris.core.*;
+import com.adaptris.core.fs.FsConsumerImpl;
+import com.adaptris.core.fs.FsConsumerMonitor;
+import com.adaptris.core.runtime.ParentRuntimeInfoComponent;
+import com.adaptris.core.runtime.RuntimeInfoComponent;
+import com.adaptris.core.runtime.RuntimeInfoComponentFactory;
+import com.adaptris.core.runtime.WorkflowManager;
+import com.amazonaws.services.sqs.model.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
-import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.AdaptrisPollingConsumer;
-import com.adaptris.core.CoreException;
 import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.DeleteMessageRequest;
-import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.MessageAttributeValue;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+
+import javax.management.MalformedObjectNameException;
+
+import static org.apache.commons.lang.StringUtils.isEmpty;
 
 /**
  * <p>
@@ -49,19 +52,18 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
   private transient List<String> receiveAttributes = Collections.singletonList("All");
   private transient List<String> receiveMessageAttributes = Collections.singletonList("All");
 
+  static {
+    RuntimeInfoComponentFactory.registerComponentFactory(new AmazonSQSConsumer.JmxFactory());
+  }
+
   public AmazonSQSConsumer() {
     setReacquireLockBetweenMessages(true);
   }
 
   @Override
   public void start() throws CoreException {
-    sqs = retrieveConnection(AmazonSQSConnection.class).getSyncClient();
-    GetQueueUrlRequest queueUrlRequest = new GetQueueUrlRequest(getDestination().getDestination());
-    if (!StringUtils.isEmpty(getOwnerAwsAccountId())) {
-      queueUrlRequest.withQueueOwnerAWSAccountId(getOwnerAwsAccountId());
-    }
-    queueUrl = sqs.getQueueUrl(queueUrlRequest).getQueueUrl();
-
+    getSynClient();
+    getQueueUrl();
     super.start();
   }
 
@@ -131,6 +133,30 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
   protected void prepareConsumer() throws CoreException {
   }
 
+  int messagesRemaining() throws CoreException {
+    GetQueueAttributesResult result = getSynClient().getQueueAttributes(
+        new GetQueueAttributesRequest(getQueueUrl()).withAttributeNames(QueueAttributeName.ApproximateNumberOfMessages));
+    return Integer.valueOf(result.getAttributes().get(QueueAttributeName.ApproximateNumberOfMessages.toString()));
+  }
+
+  private AmazonSQS getSynClient() throws CoreException {
+    if(sqs == null) {
+      sqs = retrieveConnection(AmazonSQSConnection.class).getSyncClient();
+    }
+    return sqs;
+  }
+
+  private String getQueueUrl() throws CoreException {
+    if(queueUrl == null) {
+      GetQueueUrlRequest queueUrlRequest = new GetQueueUrlRequest(getDestination().getDestination());
+      if (!StringUtils.isEmpty(getOwnerAwsAccountId())) {
+        queueUrlRequest.withQueueOwnerAWSAccountId(getOwnerAwsAccountId());
+      }
+      queueUrl = getSynClient().getQueueUrl(queueUrlRequest).getQueueUrl();
+    }
+    return queueUrl;
+  }
+
   public Integer getPrefetchCount() {
     return prefetchCount;
   }
@@ -155,5 +181,23 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
    */
   public void setOwnerAwsAccountId(String ownerAwsAccountId) {
     this.ownerAwsAccountId = ownerAwsAccountId;
+  }
+
+  private static class JmxFactory extends RuntimeInfoComponentFactory {
+
+    @Override
+    protected boolean isSupported(AdaptrisComponent e) {
+      if (e != null && e instanceof AmazonSQSConsumer) {
+        return !isEmpty(((AmazonSQSConsumer) e).getUniqueId());
+      }
+      return false;
+    }
+
+    @Override
+    protected RuntimeInfoComponent createComponent(ParentRuntimeInfoComponent parent, AdaptrisComponent e)
+        throws MalformedObjectNameException {
+      return new AmazonSQSConsumerMonitor((WorkflowManager) parent, (AmazonSQSConsumer) e);
+    }
+
   }
 }
