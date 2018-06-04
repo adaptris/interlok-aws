@@ -9,6 +9,7 @@ import com.adaptris.aws.s3.meta.S3ServerSideEncryption;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.common.PayloadStreamOutputParameter;
+import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
@@ -50,6 +51,16 @@ public class S3ServiceTest extends ServiceCase {
         type.setContentLanguage("english");
         op.getObjectMetadata().add(new S3ServerSideEncryption());
         op.getObjectMetadata().add(type);
+        return op;
+      }
+    },
+    Tag {
+      @Override
+      S3Operation build() {
+        TagOperation op = new TagOperation();
+        op.setKey(new ConstantDataInputParameter("s3-key"));
+        op.setBucketName(new ConstantDataInputParameter("s3-bucket"));
+        op.setTagMetadataFilter(new NoOpMetadataFilter());
         return op;
       }
     };
