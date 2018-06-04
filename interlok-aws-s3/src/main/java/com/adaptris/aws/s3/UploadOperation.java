@@ -6,13 +6,6 @@ import java.util.List;
 
 import javax.validation.Valid;
 
-import com.adaptris.core.MetadataCollection;
-import com.adaptris.core.MetadataElement;
-import com.adaptris.core.metadata.MetadataFilter;
-import com.adaptris.core.metadata.RemoveAllMetadataFilter;
-import com.amazonaws.services.s3.model.ObjectTagging;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.Tag;
 import org.apache.commons.lang.StringUtils;
 
 import com.adaptris.annotation.AdapterComponent;
@@ -38,7 +31,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Amazon S3 Upload using Transfer Manager")
 @XStreamAlias("amazon-s3-upload")
-@DisplayOrder(order = {"bucketName", "key", "tagMetadataFilter", "userMetadataFilter", "objectMetadata"})
+@DisplayOrder(order = {"bucketName", "key", "userMetadataFilter", "objectMetadata"})
 public class UploadOperation extends TransferOperation {
 
   private transient ManagedThreadFactory threadFactory = new ManagedThreadFactory();
@@ -46,9 +39,6 @@ public class UploadOperation extends TransferOperation {
   @AdvancedConfig
   @Valid
   private List<S3ObjectMetadata> objectMetadata = new ArrayList<>();
-  @Valid
-  @AdvancedConfig
-  private MetadataFilter tagMetadataFilter;
   
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws InterlokException {
@@ -60,15 +50,13 @@ public class UploadOperation extends TransferOperation {
     if(StringUtils.isNotEmpty(msg.getContentEncoding())) {
       s3meta.setContentEncoding(msg.getContentEncoding());
     }
-    s3meta.setUserMetadata(filterUserMetadata(msg));
+    s3meta.setUserMetadata(filterMetadata(msg));
     for(S3ObjectMetadata m: getObjectMetadata()) {
       m.apply(msg, s3meta);
     }
     try (InputStream in = msg.getInputStream()) {
       log.debug("Uploading to {} in bucket {}", key, bucketName);
-      PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, in, s3meta);
-      putObjectRequest.setTagging(new ObjectTagging(filterTagMetadata(msg)));
-      Upload upload = tm.upload(putObjectRequest);
+      Upload upload = tm.upload(bucketName, key, in, s3meta);
       threadFactory.newThread(new MyProgressListener(Thread.currentThread().getName(), upload)).start();
       upload.waitForCompletion();
     } catch (Exception e) {
@@ -82,32 +70,6 @@ public class UploadOperation extends TransferOperation {
 
   public void setObjectMetadata(List<S3ObjectMetadata> objectMetadata) {
     this.objectMetadata = objectMetadata;
-  }
-
-  public MetadataFilter getTagMetadataFilter() {
-    return tagMetadataFilter;
-  }
-
-  /**
-   * Filter metadata and set them as tags for the s3 object.
-   *
-   * @param mf the metadata filter; if not specified defaults to {@link RemoveAllMetadataFilter}.
-   */
-  public void setTagMetadataFilter(MetadataFilter mf) {
-    this.tagMetadataFilter = mf;
-  }
-
-  private MetadataFilter tagMetadataFilter() {
-    return getTagMetadataFilter() != null ? getTagMetadataFilter() : new RemoveAllMetadataFilter();
-  }
-
-  private List<Tag> filterTagMetadata(AdaptrisMessage msg) {
-    MetadataCollection metadata = tagMetadataFilter().filter(msg);
-    List<Tag> result = new ArrayList<>(metadata.size());
-    for (MetadataElement e : metadata) {
-      result.add(new Tag(e.getKey(), e.getValue()));
-    }
-    return result;
   }
 
   private class MyProgressListener implements Runnable {

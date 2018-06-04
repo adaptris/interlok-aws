@@ -1,6 +1,8 @@
 package com.adaptris.aws.s3;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 import javax.validation.Valid;
 
@@ -10,7 +12,6 @@ import com.adaptris.core.MetadataCollection;
 import com.adaptris.core.MetadataElement;
 import com.adaptris.core.metadata.MetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
-import com.amazonaws.services.s3.model.Tag;
 
 /**
  * Abstract base class for S3 Upload/Download Operations.
@@ -56,7 +57,7 @@ public abstract class TransferOperation extends S3OperationImpl {
     return userMetadataFilter().filter(msgMetadata).toSet();
   }
 
-  protected Map<String, String> filterUserMetadata(AdaptrisMessage msg) {
+  protected Map<String, String> filterMetadata(AdaptrisMessage msg) {
     MetadataCollection metadata = userMetadataFilter().filter(msg);
     Map<String, String> result = new HashMap<>(metadata.size());
     for (MetadataElement e : metadata) {
