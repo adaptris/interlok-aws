@@ -127,11 +127,11 @@ public class PublishToTopic extends NotificationProducer {
     this.subject = subject;
   }
 
-  DataInputParameter<String> source() {
+  private DataInputParameter<String> source() {
     return getSource() != null ? getSource() : DEFAULT_SOURCE;
   }
 
-  DataInputParameter<String> subject() {
+  private DataInputParameter<String> subject() {
     return getSubject() != null ? getSubject() : EMPTY;
   }
 }

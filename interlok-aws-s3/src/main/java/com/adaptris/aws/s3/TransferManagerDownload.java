@@ -107,10 +107,14 @@ public class TransferManagerDownload extends S3ServiceImpl {
 
 
   @Override
-  public void prepare() throws CoreException {}
+  public void prepare() throws CoreException {
+    // Nothing to do
+  }
 
   @Override
-  protected void closeService() {}
+  protected void closeService() {
+    // Nothing to do
+  }
 
   @Override
   protected void initService() throws CoreException {

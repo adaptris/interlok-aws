@@ -85,7 +85,7 @@ public class CopyOperation extends S3OperationImpl {
     this.destinationBucketName = bucket;
   }
 
-  String destinationBucket(InterlokMessage msg) throws InterlokException {
+  private String destinationBucket(InterlokMessage msg) throws InterlokException {
     if (getDestinationBucketName() == null) {
       return getBucketName().extract(msg);
     }

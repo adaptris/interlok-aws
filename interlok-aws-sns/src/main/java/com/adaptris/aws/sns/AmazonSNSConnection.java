@@ -78,6 +78,7 @@ public class AmazonSNSConnection extends AWSConnection {
 
   @Override
   protected void prepareConnection() throws CoreException {
+    // Nothing to do
   }
 
   @Override
@@ -98,6 +99,7 @@ public class AmazonSNSConnection extends AWSConnection {
 
   @Override
   protected void startConnection() throws CoreException {
+    // Nothing to do
   }
 
   @Override

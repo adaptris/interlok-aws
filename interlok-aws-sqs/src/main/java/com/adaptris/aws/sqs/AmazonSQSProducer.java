@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -39,7 +41,6 @@ import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * {@link AdaptrisMessageProducer} implementation that sends messages to an Amazon Web Services (AWS) SQS queue.
@@ -88,14 +89,17 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
 
   @Override
   public void start() throws CoreException {
+    // Nothing to do
   }
 
   @Override
   public void stop() {
+    // Nothing to do
   }
 
   @Override
   public void close() {
+    // Nothing to do
   }
 
   @Override

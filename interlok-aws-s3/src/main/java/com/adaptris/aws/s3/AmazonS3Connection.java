@@ -102,10 +102,12 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
 
   @Override
   protected void startConnection() throws CoreException {
+    // Nothing to do
   }
 
   @Override
   protected void stopConnection() {
+    // Nothing to do
   }
 
   @Override

@@ -21,6 +21,8 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.BooleanUtils;
+
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.aws.PluggableRetryPolicyFactory;
 import com.adaptris.aws.RetryPolicyFactory;
@@ -91,7 +93,7 @@ public class RetryPolicyBuilder {
     this.maxErrorRetry = max;
   }
 
-  int maxErrorRetry() {
+  private int maxErrorRetry() {
     return getMaxErrorRetry() != null ? getMaxErrorRetry().intValue() : 0;
   }
 
@@ -108,8 +110,8 @@ public class RetryPolicyBuilder {
     this.useClientConfigurationMaxErrorRetry = b;
   }
 
-  boolean useClientConfigurationMaxErrorRetry() {
-    return getUseClientConfigurationMaxErrorRetry() != null ? getUseClientConfigurationMaxErrorRetry().booleanValue() : true;
+  private boolean useClientConfigurationMaxErrorRetry() {
+    return BooleanUtils.toBooleanDefaultIfNull(getUseClientConfigurationMaxErrorRetry(), true);
   }
 
 }
