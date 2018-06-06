@@ -1,2 +1,2 @@
-# interlok-aws
+# interlok-aws [![GitHub tag](https://img.shields.io/github/tag/adaptris/interlok-aws.svg)](https://github.com/adaptris/interlok-aws/tags) [![Build Status](https://travis-ci.org/adaptris/interlok-aws.svg?branch=develop)](https://travis-ci.org/adaptris/interlok-aws) [![codecov](https://codecov.io/gh/adaptris/interlok-aws/branch/develop/graph/badge.svg)](https://codecov.io/gh/adaptris/interlok-aws)
 The suggested name was `musical-octo-waffle`

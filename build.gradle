@@ -85,8 +85,17 @@ subprojects {
   }
 
   jacoco {
-    toolVersion="0.7.9"
+    toolVersion="0.8.0"
   }
+
+  jacocoTestReport {
+      reports {
+          xml.enabled true
+          html.enabled true
+      }
+  }
+
+  check.dependsOn jacocoTestReport
 
   sourceSets {
     main {
