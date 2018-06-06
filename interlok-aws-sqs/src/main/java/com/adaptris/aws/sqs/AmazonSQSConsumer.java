@@ -16,29 +16,24 @@
 
 package com.adaptris.aws.sqs;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map.Entry;
-
+import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
+import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.core.*;
-import com.adaptris.core.fs.FsConsumerImpl;
-import com.adaptris.core.fs.FsConsumerMonitor;
 import com.adaptris.core.runtime.ParentRuntimeInfoComponent;
 import com.adaptris.core.runtime.RuntimeInfoComponent;
 import com.adaptris.core.runtime.RuntimeInfoComponentFactory;
 import com.adaptris.core.runtime.WorkflowManager;
+import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.*;
-import org.apache.commons.lang.StringUtils;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.adaptris.annotation.AdapterComponent;
-import com.adaptris.annotation.ComponentProfile;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-
 import javax.management.MalformedObjectNameException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map.Entry;
 
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
@@ -165,7 +160,7 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
   private String getQueueUrl() throws CoreException {
     if(queueUrl == null) {
       GetQueueUrlRequest queueUrlRequest = new GetQueueUrlRequest(getDestination().getDestination());
-      if (!StringUtils.isEmpty(getOwnerAwsAccountId())) {
+      if (!isEmpty(getOwnerAwsAccountId())) {
         queueUrlRequest.withQueueOwnerAWSAccountId(getOwnerAwsAccountId());
       }
       queueUrl = getSynClient().getQueueUrl(queueUrlRequest).getQueueUrl();
