@@ -26,17 +26,13 @@ import com.adaptris.core.metadata.MetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.interlok.InterlokException;
-import com.adaptris.interlok.config.DataInputParameter;
-import com.adaptris.interlok.types.InterlokMessage;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectTagging;
 import com.amazonaws.services.s3.model.SetObjectTaggingRequest;
 import com.amazonaws.services.s3.model.Tag;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import org.apache.http.util.Args;
 
 import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
