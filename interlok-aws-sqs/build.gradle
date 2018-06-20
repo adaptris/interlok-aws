@@ -41,6 +41,8 @@ publishing {
             asNode().appendNode("description", "Integration with AWS SQS")
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.3.0+")
+            properties.appendNode("tags", "aws,sqs")
+            properties.appendNode("license", "false")
           }
       }
   }

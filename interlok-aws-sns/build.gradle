@@ -37,6 +37,8 @@ publishing {
             asNode().appendNode("description", "Publishing to AWS SNS topics")
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.7.2+")
+            properties.appendNode("tags", "aws,sns")
+            properties.appendNode("license", "false")
           }
       }
   }

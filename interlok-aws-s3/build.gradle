@@ -37,6 +37,8 @@ publishing {
             asNode().appendNode("description", "Integration with AWS S3")
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.3.0+")
+            properties.appendNode("tags", "aws,s3")
+            properties.appendNode("license", "false")
           }
       }
   }
