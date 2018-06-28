@@ -1,9 +1,27 @@
+/*
+    Copyright 2018 Adaptris
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+*/
+
 package com.adaptris.aws.sqs.jms;
 
 import static org.apache.commons.lang.StringUtils.isEmpty;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+
+import org.apache.commons.lang3.BooleanUtils;
 
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.aws.PluggableRetryPolicyFactory;
@@ -75,7 +93,7 @@ public class RetryPolicyBuilder {
     this.maxErrorRetry = max;
   }
 
-  int maxErrorRetry() {
+  private int maxErrorRetry() {
     return getMaxErrorRetry() != null ? getMaxErrorRetry().intValue() : 0;
   }
 
@@ -92,8 +110,8 @@ public class RetryPolicyBuilder {
     this.useClientConfigurationMaxErrorRetry = b;
   }
 
-  boolean useClientConfigurationMaxErrorRetry() {
-    return getUseClientConfigurationMaxErrorRetry() != null ? getUseClientConfigurationMaxErrorRetry().booleanValue() : true;
+  private boolean useClientConfigurationMaxErrorRetry() {
+    return BooleanUtils.toBooleanDefaultIfNull(getUseClientConfigurationMaxErrorRetry(), true);
   }
 
 }

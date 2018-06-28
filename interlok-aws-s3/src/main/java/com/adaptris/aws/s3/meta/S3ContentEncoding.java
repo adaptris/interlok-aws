@@ -16,41 +16,45 @@
 
 package com.adaptris.aws.s3.meta;
 
-import javax.validation.constraints.NotNull;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.commons.lang.StringUtils;
 
-@XStreamAlias("s3-expiration-rule-id")
-// @XStreamConverter(value = ToAttributedValueConverter.class, strings = { "expirationRuleId" })
-public class S3ExpirationTimeRuleId extends S3ObjectMetadata {
+import javax.validation.constraints.NotNull;
+
+@XStreamAlias("s3-content-encoding")
+// @XStreamConverter(value = ToAttributedValueConverter.class, strings = { "contentEncoding" })
+public class S3ContentEncoding extends S3ObjectMetadata {
 
   @NotNull
   @InputFieldHint(expression = true)
-  private String expirationRuleId;
-  
+  private String contentEncoding;
+
   @Override
   public void apply(AdaptrisMessage msg, ObjectMetadata meta) throws ServiceException {
-    if(StringUtils.isEmpty(getExpirationTimeRuleId())) {
-      throw new ServiceException("Expiration Time Rule Id must be specified");
+    if(StringUtils.isEmpty(getContentEncoding())) {
+      throw new ServiceException("Content Encoding must be specified");
     }
-    meta.setExpirationTimeRuleId(msg.resolve(getExpirationTimeRuleId()));
+    meta.setContentEncoding(msg.resolve(getContentEncoding()));
   }
 
-  public String getExpirationTimeRuleId() {
-    return expirationRuleId;
+  public String getContentEncoding() {
+    return contentEncoding;
   }
 
   /**
-   * Sets the BucketLifecycleConfiguration rule ID for this object's expiration.
+   * Sets the optional Content-Encoding HTTP header specifying what
+   * content encodings have been applied to the object and what decoding
+   * mechanisms must be applied in order to obtain the media-type referenced
+   * by the Content-Type field.
+   *
+   * @param contentEncoding
    */
-  public void setExpirationTimeRuleId(String expirationRuleId) {
-    this.expirationRuleId = expirationRuleId;
+  public void setContentEncoding(String contentEncoding) {
+    this.contentEncoding = contentEncoding;
   }
 
 }

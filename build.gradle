@@ -85,8 +85,17 @@ subprojects {
   }
 
   jacoco {
-    toolVersion="0.7.9"
+    toolVersion="0.8.0"
   }
+
+  jacocoTestReport {
+      reports {
+          xml.enabled true
+          html.enabled true
+      }
+  }
+
+  check.dependsOn jacocoTestReport
 
   sourceSets {
     main {
@@ -102,6 +111,8 @@ subprojects {
       ant.propertyfile(file: versionFile) {
         entry(key: 'component.name', value: componentName)
         entry(key: 'build.version', value: releaseVersion)
+        entry(key: 'groupId', value: "com.adaptris")
+        entry(key: 'artifactId', value: project.name)
         entry(key: 'build.date', value: new Date().format('yyyy-MM-dd'))
       }
     }

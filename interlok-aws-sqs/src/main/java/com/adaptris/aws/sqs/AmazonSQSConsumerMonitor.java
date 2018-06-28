@@ -16,18 +16,21 @@
 
 package com.adaptris.aws.sqs;
 
-import static org.junit.Assert.assertEquals;
+import com.adaptris.core.runtime.ConsumerMonitorImpl;
+import com.adaptris.core.runtime.WorkflowManager;
 
-import org.junit.Test;
+public class AmazonSQSConsumerMonitor extends ConsumerMonitorImpl<AmazonSQSConsumer> implements AmazonSQSConsumerMonitorMBean {
 
-import com.amazonaws.regions.Regions;
+  public AmazonSQSConsumerMonitor(WorkflowManager owner, AmazonSQSConsumer consumer) {
+    super(owner, consumer);
+  }
 
-public class AwsHelperTest {
-
-  @Test
-  public void testGetRegion() throws Exception {
-    assertEquals(Regions.EU_WEST_1.getName(), AwsHelper.formatRegion("eu-west-1"));
-    assertEquals(Regions.EU_WEST_1.getName(), AwsHelper.formatRegion("EU-WEST-1"));
-    assertEquals(Regions.EU_WEST_1.getName(), AwsHelper.formatRegion("amazon.eu-west-1"));
+  @Override
+  public int messagesRemaining() {
+    try {
+      return getWrappedComponent().messagesRemaining();
+    } catch (Exception e){
+      return -1;
+    }
   }
 }

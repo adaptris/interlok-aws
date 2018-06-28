@@ -1,3 +1,19 @@
+/*
+    Copyright 2018 Adaptris
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+*/
+
 package com.adaptris.aws.sqs;
 
 import static org.mockito.Matchers.any;
@@ -24,12 +40,7 @@ import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.DeleteMessageRequest;
-import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
-import com.amazonaws.services.sqs.model.GetQueueUrlResult;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import com.amazonaws.services.sqs.model.ReceiveMessageResult;
+import com.amazonaws.services.sqs.model.*;
 
 public class AwsConsumerTest extends ConsumerCase {
 
@@ -185,6 +196,37 @@ public class AwsConsumerTest extends ConsumerCase {
     
     verify(sqsClientMock, times(numMsgs)).deleteMessage(any(DeleteMessageRequest.class));
   }
+
+  public void testMessagesRemaining() throws Exception {
+    when(sqsClientMock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(
+        new GetQueueAttributesResult().addAttributesEntry(QueueAttributeName.ApproximateNumberOfMessages.toString(), "10")
+    );
+    startConsumer();
+    int messages = sqsConsumer.messagesRemaining();
+
+    assertEquals(10, messages);
+    verify(sqsClientMock, times(1)).getQueueAttributes(any(GetQueueAttributesRequest.class));
+  }
+
+  public void testMessagesRemainingWithoutConsumerStart() throws Exception {
+    when(sqsClientMock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(
+        new GetQueueAttributesResult().addAttributesEntry(QueueAttributeName.ApproximateNumberOfMessages.toString(), "10")
+    );
+    messageListener = new MockMessageListener(10);
+
+    sqsConsumer = new AmazonSQSConsumer();
+    sqsConsumer.registerConnection(connectionMock);
+    sqsConsumer.setDestination(new ConfiguredConsumeDestination("queue"));
+    sqsConsumer.setPoller(new QuartzCronPoller("*/1 * * * * ?"));
+    sqsConsumer.setReacquireLockBetweenMessages(true);
+
+    standaloneConsumer = new StandaloneConsumer(sqsConsumer);
+    standaloneConsumer.registerAdaptrisMessageListener(messageListener);
+    int messages = sqsConsumer.messagesRemaining();
+
+    assertEquals(10, messages);
+    verify(sqsClientMock, times(1)).getQueueAttributes(any(GetQueueAttributesRequest.class));
+  }
   
   private ReceiveMessageResult createReceiveMessageResult(int numMsgs) {
     // Create the messages to be received
@@ -250,7 +292,7 @@ public class AwsConsumerTest extends ConsumerCase {
     sqsConsumer.setDestination(new ConfiguredConsumeDestination("queue"));
     sqsConsumer.setPoller(new QuartzCronPoller("*/1 * * * * ?"));
     sqsConsumer.setReacquireLockBetweenMessages(true);
-    sqsConsumer.setOwnerAWSAccountId("accountId");
+    sqsConsumer.setOwnerAwsAccountId("accountId");
 
     standaloneConsumer = new StandaloneConsumer(sqsConsumer);
     standaloneConsumer.registerAdaptrisMessageListener(messageListener);
@@ -274,6 +316,7 @@ public class AwsConsumerTest extends ConsumerCase {
     clientSettings.add(new KeyValuePair("ProxyHost", "127.0.0.1"));
     clientSettings.add(new KeyValuePair("ProxyPort", "3128"));
     conn.setClientConfiguration(clientSettings);
+    sqsConsumer.setOwnerAwsAccountId("owner-account-id");
     StandaloneConsumer result = new StandaloneConsumer(conn, sqsConsumer);
     return result;
   }
