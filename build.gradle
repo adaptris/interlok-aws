@@ -65,7 +65,7 @@ subprojects {
       compile ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
       compile ("org.slf4j:slf4j-api:$slf4jVersion")
 
-      testCompile ('junit:junit:4.11')
+      testCompile ('junit:junit:4.12')
       testCompile ("com.adaptris:interlok-stubs:$interlokCoreVersion") { changing= true}
       testCompile ('log4j:log4j:1.2.17')
       testCompile ("org.slf4j:slf4j-log4j12:$slf4jVersion")
