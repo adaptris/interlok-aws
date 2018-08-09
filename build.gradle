@@ -36,15 +36,9 @@ subprojects {
 
   // In this section you declare where to find the dependencies of your project
   repositories {
-    maven {	url "$defaultNexusRepo" }
+    jcenter()
+    maven { url "$defaultNexusRepo" }
     maven { url "https://development.adaptris.net/nexus/content/groups/public" }
-    maven {
-      credentials {
-        username repoUsername
-        password repoPassword
-      }
-      url "https://development.adaptris.net/nexus/content/groups/private"
-    }
     maven { url "https://development.adaptris.net/nexus/content/repositories/snapshots" }
     maven { url "https://development.adaptris.net/nexus/content/repositories/releases" }
   }
@@ -53,6 +47,13 @@ subprojects {
     javadoc {}
     all*.exclude group: 'c3p0'
     all*.exclude group: 'commons-logging'
+    all*.exclude group: 'javamail'
+    all*.exclude group: 'javax.mail', module: 'mail'
+    all*.exclude group: 'org.glassfish.hk2.external'
+    all*.exclude group: 'xalan', module: 'xalan'
+    all*.exclude group: 'net.sf.saxon', module: 'saxon'
+    all*.exclude group: 'org.codehaus.woodstox'
+    all*.exclude group: 'org.eclipse.jetty.orbit', module: 'javax.mail.glassfish'    
   }
 
   configurations.all {
@@ -65,6 +66,7 @@ subprojects {
       compile ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
       compile ("org.slf4j:slf4j-api:$slf4jVersion")
 
+      annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
       testCompile ('junit:junit:4.12')
       testCompile ("com.adaptris:interlok-stubs:$interlokCoreVersion") { changing= true}
       testCompile ('log4j:log4j:1.2.17')
