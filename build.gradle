@@ -1,12 +1,13 @@
 ext {
-  adpCoreVersion = project.hasProperty('adpCoreVersion') ? project.getProperty('adpCoreVersion') : '3.7-SNAPSHOT'
-  releaseVersion = project.hasProperty('releaseVersion') ? project.getProperty('releaseVersion') : '3.7-SNAPSHOT'
+  interlokCoreVersion = project.hasProperty('interlokCoreVersion') ? project.getProperty('interlokCoreVersion') : '3.8-SNAPSHOT'
+  releaseVersion = project.hasProperty('releaseVersion') ? project.getProperty('releaseVersion') : '3.8-SNAPSHOT'
   mavenPublishUrl = project.hasProperty('mavenPublishUrl') ? project.getProperty('mavenPublishUrl') : 'https://development.adaptris.net/nexus/content/repositories/snapshots'
   repoUsername = project.hasProperty('repoUsername') ? project.getProperty('repoUsername') : 'unknown'
   repoPassword = project.hasProperty('repoPassword') ? project.getProperty('repoPassword') : 'unknown'
   defaultNexusRepo = project.hasProperty('defaultNexusRepo') ? project.getProperty('defaultNexusRepo') : 'https://repo1.maven.org/maven2/'
-  interlokJavadocs= project.hasProperty('interlokJavadocs') ? project.getProperty('interlokJavadocs') : 'https://development.adaptris.net/javadocs/latest/Interlok-API/'
-  interlokCommonJavadocs= project.hasProperty('interlokJavadocs') ? project.getProperty('interlokJavadocs') : 'https://development.adaptris.net/javadocs/latest/Interlok-Common/'
+  javadocsBaseUrl = "https://development.adaptris.net/nexus/content/sites/javadocs/com/adaptris"
+  interlokJavadocs= project.hasProperty('interlokJavadocs') ? project.getProperty('interlokJavadocs') : javadocsBaseUrl + "/interlok-core/" + interlokCoreVersion
+  interlokCommonJavadocs= project.hasProperty('interlokJavadocs') ? project.getProperty('interlokJavadocs') : javadocsBaseUrl + "/interlok-common/" + interlokCoreVersion
 
   slf4jVersion = '1.7.25'
   awsSDKVersion = '1.11.149'
@@ -28,22 +29,16 @@ subprojects {
   apply plugin: 'maven-publish'
   apply plugin: "jacoco"
 
-  sourceCompatibility = 1.7
+  sourceCompatibility = 1.8
   group   = 'com.adaptris'
   version = releaseVersion
   def versionDir = "$buildDir/version"
 
   // In this section you declare where to find the dependencies of your project
   repositories {
-    maven {	url "$defaultNexusRepo" }
+    jcenter()
+    maven { url "$defaultNexusRepo" }
     maven { url "https://development.adaptris.net/nexus/content/groups/public" }
-    maven {
-      credentials {
-        username repoUsername
-        password repoPassword
-      }
-      url "https://development.adaptris.net/nexus/content/groups/private"
-    }
     maven { url "https://development.adaptris.net/nexus/content/repositories/snapshots" }
     maven { url "https://development.adaptris.net/nexus/content/repositories/releases" }
   }
@@ -52,6 +47,13 @@ subprojects {
     javadoc {}
     all*.exclude group: 'c3p0'
     all*.exclude group: 'commons-logging'
+    all*.exclude group: 'javamail'
+    all*.exclude group: 'javax.mail', module: 'mail'
+    all*.exclude group: 'org.glassfish.hk2.external'
+    all*.exclude group: 'xalan', module: 'xalan'
+    all*.exclude group: 'net.sf.saxon', module: 'saxon'
+    all*.exclude group: 'org.codehaus.woodstox'
+    all*.exclude group: 'org.eclipse.jetty.orbit', module: 'javax.mail.glassfish'    
   }
 
   configurations.all {
@@ -60,17 +62,18 @@ subprojects {
 
   // In this section you declare the dependencies for your production and test code
   dependencies {
-      compile ("com.adaptris:adp-core:$adpCoreVersion") { changing= true}
-      compile ("com.adaptris:adp-core-apt:$adpCoreVersion") { changing= true}
+      compile ("com.adaptris:interlok-core:$interlokCoreVersion") { changing= true}
+      compile ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
       compile ("org.slf4j:slf4j-api:$slf4jVersion")
 
-      testCompile ('junit:junit:4.11')
-      testCompile ("com.adaptris:adp-stubs:$adpCoreVersion") { changing= true}
+      annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
+      testCompile ('junit:junit:4.12')
+      testCompile ("com.adaptris:interlok-stubs:$interlokCoreVersion") { changing= true}
       testCompile ('log4j:log4j:1.2.17')
       testCompile ("org.slf4j:slf4j-log4j12:$slf4jVersion")
       testCompile ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
 
-      javadoc("com.adaptris:adp-core-apt:$adpCoreVersion") { changing= true}
+      javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
   }
 
   javadoc {
