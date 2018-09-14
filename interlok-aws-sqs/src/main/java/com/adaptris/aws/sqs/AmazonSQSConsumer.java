@@ -112,6 +112,7 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
         for (Message message : messages) {
           try {
             AdaptrisMessage adpMsg = AdaptrisMessageFactory.defaultIfNull(getMessageFactory()).newMessage(message.getBody());
+            adpMsg.addMetadata("SQSMessageID", message.getMessageId());
             for (Entry<String, String> entry : message.getAttributes().entrySet()) {
               adpMsg.addMetadata(entry.getKey(), entry.getValue());
             }

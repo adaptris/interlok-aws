@@ -175,6 +175,20 @@ public class AwsConsumerTest extends ConsumerCase {
     assertEquals("myValue", messageListener.getMessages().get(0).getMetadataValue("myKey"));
     assertEquals("myValue2", messageListener.getMessages().get(0).getMetadataValue("myKey2"));
   }
+
+  public void testSingleConsumeWithMessageId() throws Exception {
+    when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenReturn(
+        createReceiveMessageResult("message-id-1"),
+        new ReceiveMessageResult());
+
+    startConsumer();
+    sqsConsumer.setPrefetchCount(1);
+    waitForConsumer(1, 10000);
+
+    verify(sqsClientMock, times(1)).deleteMessage(any(DeleteMessageRequest.class));
+    assertEquals(1, messageListener.getMessages().size());
+    assertEquals("message-id-1", messageListener.getMessages().get(0).getMetadataValue("SQSMessageID"));
+  }
   
   
   public void testMultipleConsume() throws Exception {
@@ -253,6 +267,18 @@ public class AwsConsumerTest extends ConsumerCase {
     ReceiveMessageResult result = new ReceiveMessageResult();
     result.setMessages(msgs);
     
+    return result;
+  }
+
+  private ReceiveMessageResult createReceiveMessageResult(String messageId) {
+    // Create the messages to be received
+    List<Message> msgs = new ArrayList<Message>();
+    msgs.add(new Message().withBody(payload).withMessageId(messageId));
+
+    // Set up the connection mock to return a message list when called
+    ReceiveMessageResult result = new ReceiveMessageResult();
+    result.setMessages(msgs);
+
     return result;
   }
 
