@@ -36,6 +36,7 @@ import com.adaptris.core.QuartzCronPoller;
 import com.adaptris.core.StandaloneConsumer;
 import com.adaptris.core.stubs.MockMessageListener;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.util.GuidGenerator;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.AmazonServiceException;
@@ -177,9 +178,10 @@ public class AwsConsumerTest extends ConsumerCase {
   }
 
   public void testSingleConsumeWithMessageId() throws Exception {
+    ReceiveMessageResult receiveMessageResult = createReceiveMessageResult(1);
+    String expected = receiveMessageResult.getMessages().get(0).getMessageId();
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenReturn(
-        createReceiveMessageResult("message-id-1"),
-        new ReceiveMessageResult());
+        receiveMessageResult, new ReceiveMessageResult());
 
     startConsumer();
     sqsConsumer.setPrefetchCount(1);
@@ -187,7 +189,7 @@ public class AwsConsumerTest extends ConsumerCase {
 
     verify(sqsClientMock, times(1)).deleteMessage(any(DeleteMessageRequest.class));
     assertEquals(1, messageListener.getMessages().size());
-    assertEquals("message-id-1", messageListener.getMessages().get(0).getMetadataValue("SQSMessageID"));
+    assertEquals(expected, messageListener.getMessages().get(0).getMetadataValue("SQSMessageID"));
   }
   
   
@@ -244,9 +246,10 @@ public class AwsConsumerTest extends ConsumerCase {
   
   private ReceiveMessageResult createReceiveMessageResult(int numMsgs) {
     // Create the messages to be received
+    GuidGenerator guidGenerator = new GuidGenerator();
     List<Message> msgs = new ArrayList<Message>();
     for(int i=0; i<numMsgs; i++) {
-      msgs.add(new Message().withBody(payload));
+      msgs.add(new Message().withBody(payload).withMessageId(guidGenerator.getUUID()));
     }
     
     // Set up the connection mock to return a message list when called
@@ -258,27 +261,16 @@ public class AwsConsumerTest extends ConsumerCase {
   
   private ReceiveMessageResult createReceiveMessageResult(int numMsgs, Map<String, String> attributes) {
     // Create the messages to be received
+    GuidGenerator guidGenerator = new GuidGenerator();
     List<Message> msgs = new ArrayList<Message>();
     for(int i=0; i<numMsgs; i++) {
-      msgs.add(new Message().withBody(payload).withAttributes(attributes));
+      msgs.add(new Message().withBody(payload).withAttributes(attributes).withMessageId(guidGenerator.getUUID()));
     }
     
     // Set up the connection mock to return a message list when called
     ReceiveMessageResult result = new ReceiveMessageResult();
     result.setMessages(msgs);
     
-    return result;
-  }
-
-  private ReceiveMessageResult createReceiveMessageResult(String messageId) {
-    // Create the messages to be received
-    List<Message> msgs = new ArrayList<Message>();
-    msgs.add(new Message().withBody(payload).withMessageId(messageId));
-
-    // Set up the connection mock to return a message list when called
-    ReceiveMessageResult result = new ReceiveMessageResult();
-    result.setMessages(msgs);
-
     return result;
   }
 
