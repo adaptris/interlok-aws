@@ -10,7 +10,7 @@ ext {
   interlokCommonJavadocs= project.hasProperty('interlokJavadocs') ? project.getProperty('interlokJavadocs') : javadocsBaseUrl + "/interlok-common/" + interlokCoreVersion
 
   slf4jVersion = '1.7.25'
-  awsSDKVersion = '1.11.149'
+  awsSDKVersion = '1.11.410'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
