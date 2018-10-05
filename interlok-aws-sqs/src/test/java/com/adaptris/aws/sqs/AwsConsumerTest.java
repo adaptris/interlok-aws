@@ -36,6 +36,7 @@ import com.adaptris.core.QuartzCronPoller;
 import com.adaptris.core.StandaloneConsumer;
 import com.adaptris.core.stubs.MockMessageListener;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.util.GuidGenerator;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.AmazonServiceException;
@@ -175,6 +176,21 @@ public class AwsConsumerTest extends ConsumerCase {
     assertEquals("myValue", messageListener.getMessages().get(0).getMetadataValue("myKey"));
     assertEquals("myValue2", messageListener.getMessages().get(0).getMetadataValue("myKey2"));
   }
+
+  public void testSingleConsumeWithMessageId() throws Exception {
+    ReceiveMessageResult receiveMessageResult = createReceiveMessageResult(1);
+    String expected = receiveMessageResult.getMessages().get(0).getMessageId();
+    when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenReturn(
+        receiveMessageResult, new ReceiveMessageResult());
+
+    startConsumer();
+    sqsConsumer.setPrefetchCount(1);
+    waitForConsumer(1, 10000);
+
+    verify(sqsClientMock, times(1)).deleteMessage(any(DeleteMessageRequest.class));
+    assertEquals(1, messageListener.getMessages().size());
+    assertEquals(expected, messageListener.getMessages().get(0).getMetadataValue("SQSMessageID"));
+  }
   
   
   public void testMultipleConsume() throws Exception {
@@ -230,9 +246,10 @@ public class AwsConsumerTest extends ConsumerCase {
   
   private ReceiveMessageResult createReceiveMessageResult(int numMsgs) {
     // Create the messages to be received
+    GuidGenerator guidGenerator = new GuidGenerator();
     List<Message> msgs = new ArrayList<Message>();
     for(int i=0; i<numMsgs; i++) {
-      msgs.add(new Message().withBody(payload));
+      msgs.add(new Message().withBody(payload).withMessageId(guidGenerator.getUUID()));
     }
     
     // Set up the connection mock to return a message list when called
@@ -244,9 +261,10 @@ public class AwsConsumerTest extends ConsumerCase {
   
   private ReceiveMessageResult createReceiveMessageResult(int numMsgs, Map<String, String> attributes) {
     // Create the messages to be received
+    GuidGenerator guidGenerator = new GuidGenerator();
     List<Message> msgs = new ArrayList<Message>();
     for(int i=0; i<numMsgs; i++) {
-      msgs.add(new Message().withBody(payload).withAttributes(attributes));
+      msgs.add(new Message().withBody(payload).withAttributes(attributes).withMessageId(guidGenerator.getUUID()));
     }
     
     // Set up the connection mock to return a message list when called
