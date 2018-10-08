@@ -65,6 +65,7 @@ subprojects {
       compile ("com.adaptris:interlok-core:$interlokCoreVersion") { changing= true}
       compile ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
       compile ("org.slf4j:slf4j-api:$slf4jVersion")
+      compile ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
 
       annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
       testCompile ('junit:junit:4.12')
@@ -72,7 +73,9 @@ subprojects {
       testCompile ('log4j:log4j:1.2.17')
       testCompile ("org.slf4j:slf4j-log4j12:$slf4jVersion")
       testCompile ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
-
+      testCompile ("org.apache.logging.log4j:log4j-core:2.8.1")
+      testCompile ("org.apache.logging.log4j:log4j-1.2-api:2.8.1")
+      testCompile ("org.apache.logging.log4j:log4j-api:2.8.1")
       javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
   }
 
@@ -88,7 +91,7 @@ subprojects {
   }
 
   jacoco {
-    toolVersion="0.8.0"
+    toolVersion="0.8.1"
   }
 
   jacocoTestReport {
