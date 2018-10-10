@@ -12,7 +12,7 @@ ext {
 
   slf4jVersion = '1.7.25'
   awsSDKVersion = '1.11.149'
-  log4j2Version = '2.8.1'
+  log4j2Version = '2.9.1'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
@@ -55,7 +55,7 @@ subprojects {
     all*.exclude group: 'xalan', module: 'xalan'
     all*.exclude group: 'net.sf.saxon', module: 'saxon'
     all*.exclude group: 'org.codehaus.woodstox'
-    all*.exclude group: 'org.eclipse.jetty.orbit', module: 'javax.mail.glassfish'    
+    all*.exclude group: 'org.eclipse.jetty.orbit', module: 'javax.mail.glassfish'
   }
 
   configurations.all {
