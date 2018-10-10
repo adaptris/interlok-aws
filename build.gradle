@@ -1,16 +1,18 @@
 ext {
   interlokCoreVersion = project.hasProperty('interlokCoreVersion') ? project.getProperty('interlokCoreVersion') : '3.8-SNAPSHOT'
   releaseVersion = project.hasProperty('releaseVersion') ? project.getProperty('releaseVersion') : '3.8-SNAPSHOT'
-  mavenPublishUrl = project.hasProperty('mavenPublishUrl') ? project.getProperty('mavenPublishUrl') : 'https://development.adaptris.net/nexus/content/repositories/snapshots'
+  nexusBaseUrl = project.hasProperty('nexusBaseUrl') ? project.getProperty('nexusBaseUrl') : 'https://development.adaptris.net/nexus'
+  mavenPublishUrl = project.hasProperty('mavenPublishUrl') ? project.getProperty('mavenPublishUrl') : nexusBaseUrl + '/content/repositories/snapshots'
+  javadocsBaseUrl = nexusBaseUrl + "/content/sites/javadocs/com/adaptris"
   repoUsername = project.hasProperty('repoUsername') ? project.getProperty('repoUsername') : 'unknown'
   repoPassword = project.hasProperty('repoPassword') ? project.getProperty('repoPassword') : 'unknown'
   defaultNexusRepo = project.hasProperty('defaultNexusRepo') ? project.getProperty('defaultNexusRepo') : 'https://repo1.maven.org/maven2/'
-  javadocsBaseUrl = "https://development.adaptris.net/nexus/content/sites/javadocs/com/adaptris"
   interlokJavadocs= project.hasProperty('interlokJavadocs') ? project.getProperty('interlokJavadocs') : javadocsBaseUrl + "/interlok-core/" + interlokCoreVersion
   interlokCommonJavadocs= project.hasProperty('interlokJavadocs') ? project.getProperty('interlokJavadocs') : javadocsBaseUrl + "/interlok-common/" + interlokCoreVersion
 
   slf4jVersion = '1.7.25'
   awsSDKVersion = '1.11.410'
+  log4j2Version = '2.9.1'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
@@ -36,11 +38,11 @@ subprojects {
 
   // In this section you declare where to find the dependencies of your project
   repositories {
-    jcenter()
+    mavenCentral()
     maven { url "$defaultNexusRepo" }
-    maven { url "https://development.adaptris.net/nexus/content/groups/public" }
-    maven { url "https://development.adaptris.net/nexus/content/repositories/snapshots" }
-    maven { url "https://development.adaptris.net/nexus/content/repositories/releases" }
+    maven { url "$nexusBaseUrl/content/groups/public" }
+    maven { url "$nexusBaseUrl/content/repositories/snapshots" }
+    maven { url "$nexusBaseUrl/content/content/repositories/releases" }
   }
 
   configurations {
@@ -53,7 +55,7 @@ subprojects {
     all*.exclude group: 'xalan', module: 'xalan'
     all*.exclude group: 'net.sf.saxon', module: 'saxon'
     all*.exclude group: 'org.codehaus.woodstox'
-    all*.exclude group: 'org.eclipse.jetty.orbit', module: 'javax.mail.glassfish'    
+    all*.exclude group: 'org.eclipse.jetty.orbit', module: 'javax.mail.glassfish'
   }
 
   configurations.all {
@@ -65,6 +67,7 @@ subprojects {
       compile ("com.adaptris:interlok-core:$interlokCoreVersion") { changing= true}
       compile ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
       compile ("org.slf4j:slf4j-api:$slf4jVersion")
+      compile ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
 
       annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
       testCompile ('junit:junit:4.12')
@@ -72,7 +75,9 @@ subprojects {
       testCompile ('log4j:log4j:1.2.17')
       testCompile ("org.slf4j:slf4j-log4j12:$slf4jVersion")
       testCompile ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
-
+      testCompile ("org.apache.logging.log4j:log4j-core:${log4j2Version}")
+      testCompile ("org.apache.logging.log4j:log4j-1.2-api:${log4j2Version}")
+      testCompile ("org.apache.logging.log4j:log4j-api:${log4j2Version}")
       javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
   }
 
@@ -88,7 +93,7 @@ subprojects {
   }
 
   jacoco {
-    toolVersion="0.8.0"
+    toolVersion="0.8.1"
   }
 
   jacocoTestReport {
