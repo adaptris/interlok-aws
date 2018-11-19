@@ -18,6 +18,8 @@ package com.adaptris.aws;
 
 import javax.validation.Valid;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.core.AdaptrisConnectionImp;
 import com.adaptris.util.KeyValuePairSet;
@@ -105,5 +107,9 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
    */
   public void setRegion(String s) {
     this.region = s;
+  }
+  
+  protected boolean hasRegion() {
+    return StringUtils.isNotBlank(getRegion());
   }
 }

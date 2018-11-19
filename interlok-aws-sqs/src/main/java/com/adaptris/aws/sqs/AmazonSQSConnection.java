@@ -107,8 +107,7 @@ public class AmazonSQSConnection extends AWSConnection {
       AWSCredentials creds = authentication().getAWSCredentials();
       ClientConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
 
-      sqsClient = getSqsClientFactory().createClient(authentication().getAWSCredentials(), cc,
-          StringUtils.defaultIfBlank(getRegion(), ""));
+      sqsClient = getSqsClientFactory().createClient(authentication().getAWSCredentials(), cc, getRegion());
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }

@@ -90,7 +90,10 @@ public class AmazonSNSConnection extends AWSConnection {
       if (creds != null) {
         builder.withCredentials(new AWSStaticCredentialsProvider(creds));
       }
-      snsClient = (AmazonSNSClient) builder.withRegion(getRegion()).build();
+      if (hasRegion()) {
+        builder.withRegion(getRegion());
+      }
+      snsClient = (AmazonSNSClient) builder.build();
     }
     catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
