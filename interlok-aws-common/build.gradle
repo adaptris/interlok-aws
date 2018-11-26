@@ -45,3 +45,4 @@ publishing {
     }
   }
 }
+javadoc.dependsOn offlinePackageList

@@ -56,3 +56,4 @@ publishing {
     }
   }
 }
+javadoc.dependsOn offlinePackageList
