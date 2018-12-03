@@ -92,7 +92,10 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
       if (creds != null) {
         builder.withCredentials(new AWSStaticCredentialsProvider(creds));
       }
-      s3 = (AmazonS3Client) builder.withRegion(getRegion()).build();
+      if (hasRegion()) {
+        builder.withRegion(getRegion());
+      }
+      s3 = (AmazonS3Client) builder.build();
       transferManager = TransferManagerBuilder.standard().withS3Client(s3).build();
     }
     catch (Exception e) {
