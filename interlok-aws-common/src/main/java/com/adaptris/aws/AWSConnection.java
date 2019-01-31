@@ -17,9 +17,7 @@
 package com.adaptris.aws;
 
 import javax.validation.Valid;
-
 import org.apache.commons.lang3.StringUtils;
-
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.core.AdaptrisConnectionImp;
 import com.adaptris.util.KeyValuePairSet;
@@ -137,7 +135,8 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
    * 
    */
   protected EndpointBuilder endpointBuilder(){
-    return getCustomEndpoint() != null ? getCustomEndpoint() : new RegionOnly(); 
+    return getCustomEndpoint() != null && getCustomEndpoint().isConfigured() ? getCustomEndpoint()
+        : new RegionOnly();
   }
   
   protected class RegionOnly implements EndpointBuilder {

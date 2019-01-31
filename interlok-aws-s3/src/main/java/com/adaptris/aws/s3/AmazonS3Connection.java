@@ -17,8 +17,10 @@
 package com.adaptris.aws.s3;
 
 import com.adaptris.annotation.AdapterComponent;
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.aws.AWSConnection;
 import com.adaptris.aws.ClientConfigurationBuilder;
@@ -64,11 +66,16 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Connection for supporting connectivity to Amazon S3", tag = "connections,amazon,s3",
     recommended = {S3Service.class})
-@DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy", "customEndpoint" })
+@DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy",
+    "customEndpoint", "forcePathStyleAccess"})
 public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
 
   private transient AmazonS3Client s3;
   private transient TransferManager transferManager;
+
+  @AdvancedConfig
+  @InputFieldDefault(value = "not configured")
+  private Boolean forcePathStyleAccess;
 
   public AmazonS3Connection() {
   }
@@ -88,7 +95,11 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
     try {
       AWSCredentials creds = authentication().getAWSCredentials();
       ClientConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
-      AmazonS3ClientBuilder builder = endpointBuilder().rebuild(AmazonS3ClientBuilder.standard().withClientConfiguration(cc));
+      AmazonS3ClientBuilder builder = endpointBuilder().rebuild(AmazonS3ClientBuilder.standard()
+          .withClientConfiguration(cc));
+      if (getForcePathStyleAccess() != null) {
+        builder.setPathStyleAccessEnabled(getForcePathStyleAccess());
+      }
       if (creds != null) {
         builder.withCredentials(new AWSStaticCredentialsProvider(creds));
       }
@@ -130,6 +141,25 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
   @Override
   public TransferManager transferManager() {
     return transferManager;
+  }
+
+  public Boolean getForcePathStyleAccess() {
+    return forcePathStyleAccess;
+  }
+
+  /**
+   * Configures the client to use path-style access for all requests.
+   * <p>
+   * The default behaviour is to detect which access style to use based on the configured endpoint
+   * (an IP will result in path-style access) and the bucket being accessed (some buckets are not
+   * valid DNS names). Setting this flag will result in path-style access being used for all
+   * requests.
+   * </p>
+   * 
+   * @param b default is not configured
+   */
+  public void setForcePathStyleAccess(Boolean b) {
+    this.forcePathStyleAccess = b;
   }
 
 

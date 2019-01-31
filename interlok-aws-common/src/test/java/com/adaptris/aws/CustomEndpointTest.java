@@ -16,18 +16,28 @@
 
 package com.adaptris.aws;
 
-import static org.junit.Assert.*;
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
-
-import com.amazonaws.ClientConfigurationFactory;
-import com.amazonaws.client.AwsSyncClientParams;
 import com.amazonaws.client.builder.AwsClientBuilder;
 
 public class CustomEndpointTest  {
 
   @Test
-  public void testServiceEndpoint() throws Exception {    
+  public void testIsConfigured() throws Exception {
+    CustomEndpoint c = new CustomEndpoint();
+    assertFalse(c.isConfigured());
+    c.setServiceEndpoint("http://blah");
+    assertFalse(c.isConfigured());
+    c.setSigningRegion("us-west-1");
+    assertTrue(c.isConfigured());
+  }
+
+  @Test
+  public void testServiceEndpoint() throws Exception {
     CustomEndpoint c = new CustomEndpoint();
     assertNull(c.getServiceEndpoint());
     c.setServiceEndpoint("http://blah");
