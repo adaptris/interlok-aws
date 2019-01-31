@@ -3,12 +3,15 @@ package com.adaptris.aws;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
 import com.adaptris.core.CoreException;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
+import com.amazonaws.client.builder.AwsClientBuilder;
 
 public class AwsConnectionTest extends AWSConnection {
 
@@ -77,18 +80,18 @@ public class AwsConnectionTest extends AWSConnection {
     assertNull(getRegion());
     EndpointBuilder b0 = endpointBuilder();
     assertEquals(RegionOnly.class, b0.getClass());
-    assertNull(b0.rebuild(new MockAwsClientBuilder()).getRegion());
+    assertNull(b0.rebuild((AwsClientBuilder) new MockAwsClientBuilder()).getRegion());
 
     setRegion("us-west-1");
     assertEquals("us-west-1", getRegion());
     EndpointBuilder b1 = endpointBuilder();
     assertEquals(RegionOnly.class, b1.getClass());
-    assertEquals("us-west-1", b1.rebuild(new MockAwsClientBuilder()).getRegion());
+    assertEquals("us-west-1", b1.rebuild((AwsClientBuilder)new MockAwsClientBuilder()).getRegion());
 
     setCustomEndpoint(new CustomEndpoint());
     EndpointBuilder b2 = endpointBuilder();
     assertEquals(RegionOnly.class, b2.getClass());
-    assertEquals("us-west-1", b2.rebuild(new MockAwsClientBuilder()).getRegion());
+    assertEquals("us-west-1", b2.rebuild((AwsClientBuilder)new MockAwsClientBuilder()).getRegion());
 
     setCustomEndpoint(
         new CustomEndpoint().withServiceEndpoint("http:/127.0.0.1:4572")
@@ -96,7 +99,7 @@ public class AwsConnectionTest extends AWSConnection {
     EndpointBuilder b3 = endpointBuilder();
     assertEquals(CustomEndpoint.class, b3.getClass());
     assertEquals("http:/127.0.0.1:4572",
-        b3.rebuild(new MockAwsClientBuilder()).getEndpoint().getServiceEndpoint());
+        b3.rebuild((AwsClientBuilder)new MockAwsClientBuilder()).getEndpoint().getServiceEndpoint());
 
   }
 

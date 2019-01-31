@@ -1,6 +1,9 @@
 package com.adaptris.aws;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -11,6 +14,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("aws-custom-endpoint")
 public class CustomEndpoint implements EndpointBuilder {
 
+  private transient Logger log = LoggerFactory.getLogger(this.getClass());
   private String serviceEndpoint;
   private String signingRegion;
   
@@ -28,8 +32,9 @@ public class CustomEndpoint implements EndpointBuilder {
   }
 
   public <T extends AwsClientBuilder<?, ?>> T rebuild(T builder) {
-     builder.setEndpointConfiguration(new EndpointConfiguration(getServiceEndpoint(), getSigningRegion()));
-     return builder;
+    log.trace("Setting EndpointConfiguration to {}:{}", getServiceEndpoint(), getSigningRegion());    
+    builder.setEndpointConfiguration(new EndpointConfiguration(getServiceEndpoint(), getSigningRegion()));
+    return builder;
   }
   
   public String getServiceEndpoint() {

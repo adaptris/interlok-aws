@@ -144,6 +144,7 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
     @Override
     public <T extends AwsClientBuilder<?, ?>> T rebuild(T builder) {
       if (StringUtils.isNotBlank(getRegion())) {
+        log.trace("Setting Region to {}", getRegion());
         builder.setRegion(getRegion());
       }
       return builder;
