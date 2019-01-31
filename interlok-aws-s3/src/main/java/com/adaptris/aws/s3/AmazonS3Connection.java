@@ -64,7 +64,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Connection for supporting connectivity to Amazon S3", tag = "connections,amazon,s3",
     recommended = {S3Service.class})
-@DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy"})
+@DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy", "customEndpoint" })
 public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
 
   private transient AmazonS3Client s3;
@@ -88,12 +88,9 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
     try {
       AWSCredentials creds = authentication().getAWSCredentials();
       ClientConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
-      AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard().withClientConfiguration(cc);
+      AmazonS3ClientBuilder builder = endpointBuilder().rebuild(AmazonS3ClientBuilder.standard().withClientConfiguration(cc));
       if (creds != null) {
         builder.withCredentials(new AWSStaticCredentialsProvider(creds));
-      }
-      if (hasRegion()) {
-        builder.withRegion(getRegion());
       }
       s3 = (AmazonS3Client) builder.build();
       transferManager = TransferManagerBuilder.standard().withS3Client(s3).build();

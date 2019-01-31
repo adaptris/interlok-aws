@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.core.AdaptrisConnectionImp;
 import com.adaptris.util.KeyValuePairSet;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.DefaultAwsRegionProviderChain;
 
 public abstract class AWSConnection extends AdaptrisConnectionImp {
@@ -39,6 +40,10 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
   @AdvancedConfig
   private RetryPolicyFactory retryPolicy;
 
+  @Valid
+  @AdvancedConfig
+  private CustomEndpoint customEndpoint;
+  
   public AWSAuthentication getAuthentication() {
     return authentication;
   }
@@ -109,7 +114,41 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
     this.region = s;
   }
   
-  protected boolean hasRegion() {
-    return StringUtils.isNotBlank(getRegion());
+  public CustomEndpoint getCustomEndpoint() {
+    return customEndpoint;
+  }
+
+  /**
+   * Set a custom endpoint for this connection.
+   * <p>
+   * Generally speaking, you don't need to configure this; use {@link #setRegion(String)} instead. This is only required if you are
+   * planning to use a non-standard service endpoint such as <a href="https://github.com/localstack/localstack">localstack</a> to
+   * provide AWS services. Explicitly configuring this means that your {@link #setRegion(String)} will have no effect (i.e.
+   * {@code AwsClientBuilder#setRegion(String)} will never be invoked.
+   * </p>
+   * 
+   * @param endpoint
+   */
+  public void setCustomEndpoint(CustomEndpoint endpoint) {
+    this.customEndpoint = endpoint;
+  }
+  
+  /** Returns something that can configure a normal AWS builder with a custom endpoint or a region...
+   * 
+   */
+  protected EndpointBuilder endpointBuilder(){
+    return getCustomEndpoint() != null ? getCustomEndpoint() : new RegionOnly(); 
+  }
+  
+  private class RegionOnly implements EndpointBuilder {
+
+    @Override
+    public <T extends AwsClientBuilder<?, ?>> T rebuild(T builder) {
+      if (StringUtils.isNotBlank(getRegion())) {
+        builder.setRegion(getRegion());
+      }
+      return builder;
+    }
+    
   }
 }

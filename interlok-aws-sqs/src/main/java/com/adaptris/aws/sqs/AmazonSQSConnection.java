@@ -71,7 +71,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
     recommended = {AmazonSQSConsumer.class, AmazonSQSProducer.class})
 @DisplayOrder(order =
 {
-    "region", "authentication", "clientConfiguration", "retryPolicy", "sqsClientFactory"
+    "region", "authentication", "clientConfiguration", "retryPolicy", "sqsClientFactory", "customEndpoint"
 })
 public class AmazonSQSConnection extends AWSConnection {
 
@@ -107,7 +107,7 @@ public class AmazonSQSConnection extends AWSConnection {
       AWSCredentials creds = authentication().getAWSCredentials();
       ClientConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
 
-      sqsClient = getSqsClientFactory().createClient(authentication().getAWSCredentials(), cc, getRegion());
+      sqsClient = getSqsClientFactory().createClient(authentication().getAWSCredentials(), cc, endpointBuilder());
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }
