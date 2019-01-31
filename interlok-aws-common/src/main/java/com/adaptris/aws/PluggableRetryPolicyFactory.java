@@ -17,10 +17,11 @@
 package com.adaptris.aws;
 
 import static org.apache.commons.lang.StringUtils.isEmpty;
-
 import javax.validation.constraints.Min;
-
+import org.apache.commons.lang3.BooleanUtils;
+import org.hibernate.validator.constraints.NotBlank;
 import com.adaptris.annotation.InputFieldDefault;
+import com.adaptris.util.NumberUtils;
 import com.amazonaws.retry.RetryPolicy;
 import com.amazonaws.retry.RetryPolicy.BackoffStrategy;
 import com.amazonaws.retry.RetryPolicy.RetryCondition;
@@ -34,7 +35,9 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("aws-pluggable-retry-policy-factory")
 public class PluggableRetryPolicyFactory implements RetryPolicyFactory {
 
+  @NotBlank
   private String retryConditionClass;
+  @NotBlank
   private String backoffStrategyClass;
   @Min(0)
   @InputFieldDefault(value = "0")
@@ -65,6 +68,11 @@ public class PluggableRetryPolicyFactory implements RetryPolicyFactory {
     this.retryConditionClass = clazz;
   }
 
+  public PluggableRetryPolicyFactory withRetryConditionClass(String s) {
+    setRetryConditionClass(s);
+    return this;
+  }
+
   public String getBackoffStrategyClass() {
     return backoffStrategyClass;
   }
@@ -78,10 +86,15 @@ public class PluggableRetryPolicyFactory implements RetryPolicyFactory {
     this.backoffStrategyClass = clazz;
   }
 
+  public PluggableRetryPolicyFactory withBackoffStrategyClass(String s) {
+    setBackoffStrategyClass(s);
+    return this;
+  }
+
   private Object newInstance(String s) {
     Object o = null;
     try {
-      return (!isEmpty(s)) ? Class.forName(s).newInstance() : null;
+      return !isEmpty(s) ? Class.forName(s).newInstance() : null;
     }
     catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
       throw new RuntimeException(e);
@@ -102,8 +115,13 @@ public class PluggableRetryPolicyFactory implements RetryPolicyFactory {
     this.maxErrorRetry = max;
   }
 
+  public PluggableRetryPolicyFactory withMaxErrorRetry(Integer i) {
+    setMaxErrorRetry(i);
+    return this;
+  }
+
   int maxErrorRetry() {
-    return getMaxErrorRetry() != null ? getMaxErrorRetry().intValue() : 0;
+    return NumberUtils.toIntDefaultIfNull(getMaxErrorRetry(), 0);
   }
 
   public Boolean getUseClientConfigurationMaxErrorRetry() {
@@ -119,8 +137,13 @@ public class PluggableRetryPolicyFactory implements RetryPolicyFactory {
     this.useClientConfigurationMaxErrorRetry = b;
   }
 
+  public PluggableRetryPolicyFactory withUseClientConfigurationMaxErrorRetry(Boolean b) {
+    setUseClientConfigurationMaxErrorRetry(b);
+    return this;
+  }
+
   boolean useClientConfigurationMaxErrorRetry() {
-    return getUseClientConfigurationMaxErrorRetry() != null ? getUseClientConfigurationMaxErrorRetry().booleanValue() : true;
+    return BooleanUtils.toBooleanDefaultIfNull(getUseClientConfigurationMaxErrorRetry(), true);
   }
 
 }
