@@ -92,24 +92,30 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
 
   @Override
   protected void initConnection() throws CoreException {
+    AmazonS3ClientBuilder builder = createBuilder();
+    s3 = (AmazonS3Client) builder.build();
+    transferManager = TransferManagerBuilder.standard().withS3Client(s3).build();
+  }
+
+  protected AmazonS3ClientBuilder createBuilder() throws CoreException {
+    AmazonS3ClientBuilder builder = null;
     try {
       AWSCredentials creds = authentication().getAWSCredentials();
-      ClientConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
-      AmazonS3ClientBuilder builder = endpointBuilder().rebuild(AmazonS3ClientBuilder.standard()
-          .withClientConfiguration(cc));
+      ClientConfiguration cc =
+          ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
+      builder = endpointBuilder().rebuild(AmazonS3ClientBuilder.standard().withClientConfiguration(cc));
       if (getForcePathStyleAccess() != null) {
         builder.setPathStyleAccessEnabled(getForcePathStyleAccess());
       }
       if (creds != null) {
         builder.withCredentials(new AWSStaticCredentialsProvider(creds));
       }
-      s3 = (AmazonS3Client) builder.build();
-      transferManager = TransferManagerBuilder.standard().withS3Client(s3).build();
-    }
-    catch (Exception e) {
+    } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }
+    return builder;
   }
+
 
   @Override
   protected void startConnection() throws CoreException {
@@ -123,13 +129,21 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
 
   @Override
   protected void closeConnection() {
-    if (transferManager != null) {
-      transferManager.shutdownNow(false);
-      transferManager = null;
+    shutdownQuietly(transferManager);
+    shutdownQuietly(s3);
+    transferManager = null;
+    s3 = null;
+  }
+
+  protected static void shutdownQuietly(TransferManager tm) {
+    if (tm != null) {
+      tm.shutdownNow(false);
     }
-    if (s3 != null) {
-      s3.shutdown();
-      s3 = null;
+  }
+
+  protected static void shutdownQuietly(AmazonS3Client client) {
+    if (client != null) {
+      client.shutdown();
     }
   }
 
@@ -161,6 +175,7 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
   public void setForcePathStyleAccess(Boolean b) {
     this.forcePathStyleAccess = b;
   }
+
 
 
 }
