@@ -33,6 +33,7 @@ import com.adaptris.core.jms.VendorImplementationImp;
 import com.adaptris.core.util.Args;
 import com.adaptris.security.exc.AdaptrisSecurityException;
 import com.adaptris.security.password.Password;
+import com.adaptris.util.NumberUtils;
 import com.amazon.sqs.javamessaging.SQSConnectionFactory;
 import com.amazon.sqs.javamessaging.SQSConnectionFactory.Builder;
 import com.amazonaws.auth.AWSCredentials;
@@ -180,7 +181,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   }
 
   int prefetchCount() {
-    return getPrefetchCount() != null ? getPrefetchCount().intValue() : DEFAULT_PREFETCH_COUNT;
+    return NumberUtils.toIntDefaultIfNull(getPrefetchCount(), DEFAULT_PREFETCH_COUNT);
   }
 
   @Override

@@ -20,11 +20,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-
 import javax.jms.JMSException;
-
 import org.junit.Test;
-
 import com.adaptris.aws.AWSKeysAuthentication;
 
 public class AmazonSQSImplementationTest {
@@ -52,38 +49,18 @@ public class AmazonSQSImplementationTest {
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testSetter() throws Exception {
     AmazonSQSImplementation jmsImpl = new AmazonSQSImplementation();
     assertNull(jmsImpl.getAccessKey());
     jmsImpl.setAccessKey("XXX");
     assertEquals("XXX", jmsImpl.getAccessKey());
-    try {
-      jmsImpl.setAccessKey(null);
-      fail();
-    } catch (IllegalArgumentException expected) {
-
-    }
-
     assertNull(jmsImpl.getSecretKey());
     jmsImpl.setSecretKey("XXX");
     assertEquals("XXX", jmsImpl.getSecretKey());
-    try {
-      jmsImpl.setSecretKey(null);
-      fail();
-    } catch (IllegalArgumentException expected) {
-
-    }
-
     assertNull(jmsImpl.getRegion());
     jmsImpl.setRegion("XXX");
     assertEquals("XXX", jmsImpl.getRegion());
-    try {
-      jmsImpl.setRegion(null);
-      fail();
-    } catch (IllegalArgumentException expected) {
-
-    }
-
     assertNull(jmsImpl.getPrefetchCount());
     assertEquals(10, jmsImpl.prefetchCount());
     jmsImpl.setPrefetchCount(20);
