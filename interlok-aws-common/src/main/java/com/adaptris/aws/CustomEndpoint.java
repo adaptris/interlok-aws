@@ -1,5 +1,8 @@
 package com.adaptris.aws;
 
+import org.hibernate.validator.constraints.NotBlank;
+
+import com.adaptris.core.util.Args;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -10,7 +13,9 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("aws-custom-endpoint")
 public class CustomEndpoint implements EndpointBuilder {
 
+  @NotBlank
   private String serviceEndpoint;
+  @NotBlank
   private String signingRegion;
   
   public CustomEndpoint() {
@@ -31,7 +36,7 @@ public class CustomEndpoint implements EndpointBuilder {
    * @param s the service endpoint e.g. {@code https://sns.us-west-1.amazonaws.com}.
    */
   public void setServiceEndpoint(String s) {
-    this.serviceEndpoint = s;
+    this.serviceEndpoint = Args.notBlank(s,  "serviceEndpoint");
   }
 
   public CustomEndpoint withServiceEndpoint(String s) {
@@ -48,7 +53,7 @@ public class CustomEndpoint implements EndpointBuilder {
    * @param s the region to use for SigV4 signing of requests (e.g. us-west-1)
    */
   public void setSigningRegion(String s) {
-    this.signingRegion = s;
+    this.signingRegion = Args.notBlank(s, "signingRegion");
   }
   
   public CustomEndpoint withSigningRegion(String s) {

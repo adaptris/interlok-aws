@@ -140,7 +140,7 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
     return getCustomEndpoint() != null ? getCustomEndpoint() : new RegionOnly(); 
   }
   
-  private class RegionOnly implements EndpointBuilder {
+  protected class RegionOnly implements EndpointBuilder {
 
     @Override
     public <T extends AwsClientBuilder<?, ?>> T rebuild(T builder) {
