@@ -17,8 +17,8 @@
 package com.adaptris.aws.s3;
 
 import javax.validation.Valid;
-
 import com.adaptris.annotation.AdvancedConfig;
+import com.adaptris.annotation.Removal;
 import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.ConnectedService;
@@ -114,6 +114,8 @@ public abstract class S3ServiceImpl extends ServiceImp implements ConnectedServi
   /**
    * @deprecated since 3.6.4 use a {@link AmazonS3Connection} instead.
    */
+  @Deprecated
+  @Removal(version = "3.9.0", message = "use AmazonS3Connection as the connection instead")
   public AWSAuthentication getAuthentication() {
     return authentication;
   }
@@ -124,6 +126,8 @@ public abstract class S3ServiceImpl extends ServiceImp implements ConnectedServi
    * @param a the authentication to use.
    * @deprecated since 3.6.4 use a {@link AmazonS3Connection} instead.
    */
+  @Deprecated
+  @Removal(version = "3.9.0", message = "use AmazonS3Connection as the connection instead")
   public void setAuthentication(AWSAuthentication a) {
     this.authentication = a;
   }
@@ -133,6 +137,8 @@ public abstract class S3ServiceImpl extends ServiceImp implements ConnectedServi
    * @return the configurationBuilder
    * @deprecated since 3.6.4 use a {@link AmazonS3Connection} instead.
    */
+  @Deprecated
+  @Removal(version = "3.9.0", message = "use AmazonS3Connection as the connection instead")
   public KeyValuePairSet getClientConfiguration() {
     return clientConfiguration;
   }
@@ -142,6 +148,8 @@ public abstract class S3ServiceImpl extends ServiceImp implements ConnectedServi
    * @param b the configurationBuilder to set
    * @deprecated since 3.6.4 use a {@link AmazonS3Connection} instead.
    */
+  @Deprecated
+  @Removal(version = "3.9.0", message = "use AmazonS3Connection as the connection instead")
   public void setClientConfiguration(KeyValuePairSet b) {
     this.clientConfiguration = b;
   }

@@ -20,11 +20,10 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-
 import org.apache.commons.lang.StringUtils;
-
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.InputFieldHint;
+import com.adaptris.annotation.Removal;
 import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.DefaultAWSAuthentication;
@@ -126,6 +125,8 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   }
 
   @Deprecated
+  @Removal(version = "3.9.0",
+      message = "use AwsKeysAuthentation as your authentation method instead")
   public String getAccessKey() {
     return accessKey;
   }
@@ -137,11 +138,15 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
    * @param key the Access key.
    */
   @Deprecated
+  @Removal(version = "3.9.0",
+      message = "use AwsKeysAuthentation as your authentation method instead")
   public void setAccessKey(String key) {
-    this.accessKey = Args.notBlank(key, "access-key");
+    this.accessKey = key;
   }
 
   @Deprecated
+  @Removal(version = "3.9.0",
+      message = "use AwsKeysAuthentation as your authentation method instead")
   public String getSecretKey() {
     return secretKey;
   }
@@ -154,8 +159,10 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
    * @param key the secret key which could encoded by {@linkplain Password#encode(String, String)}
    */
   @Deprecated
+  @Removal(version = "3.9.0",
+      message = "use AwsKeysAuthentation as your authentation method instead")
   public void setSecretKey(String key) {
-    this.secretKey = Args.notBlank(key, "secret-key");
+    this.secretKey = key;
   }
 
   public Integer getPrefetchCount() {

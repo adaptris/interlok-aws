@@ -20,11 +20,10 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-
 import org.apache.http.util.Args;
-
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.annotation.Removal;
 import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.DefaultRetryPolicyFactory;
 import com.adaptris.aws.RetryPolicyFactory;
@@ -129,6 +128,8 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
    * @deprecated since 3.6.4 use a {@link RetryPolicyFactory} instead.
    */
   @Deprecated
+  @Removal(version = "3.9.0",
+      message = "use PluggableRetryPolicyFactory as part of the connection instead")
   public RetryPolicyBuilder getRetryPolicyBuilder() {
     return retryPolicyBuilder;
   }
@@ -140,6 +141,8 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
    * @param b the builder.
    */
   @Deprecated
+  @Removal(version = "3.9.0",
+      message = "use PluggableRetryPolicyFactory as part of the connection instead")
   public void setRetryPolicyBuilder(RetryPolicyBuilder b) {
     this.retryPolicyBuilder = b;
   }

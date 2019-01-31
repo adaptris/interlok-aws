@@ -17,13 +17,11 @@
 package com.adaptris.aws.sqs.jms;
 
 import static org.apache.commons.lang.StringUtils.isEmpty;
-
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-
 import org.apache.commons.lang3.BooleanUtils;
-
 import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.annotation.Removal;
 import com.adaptris.aws.PluggableRetryPolicyFactory;
 import com.adaptris.aws.RetryPolicyFactory;
 import com.amazonaws.retry.RetryPolicy;
@@ -40,6 +38,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  */
 @XStreamAlias("sqs-retry-policy-builder")
 @Deprecated
+@Removal(version = "3.9.0",
+    message = "use PluggableRetryPolicyFactory as part of the connection instead")
 public class RetryPolicyBuilder {
 
   private String retryConditionClass;
@@ -76,7 +76,7 @@ public class RetryPolicyBuilder {
   }
 
   private Object newInstance(String s) throws InstantiationException, IllegalAccessException, ClassNotFoundException {
-    return (!isEmpty(s)) ? Class.forName(s).newInstance() : null;
+    return !isEmpty(s) ? Class.forName(s).newInstance() : null;
   }
 
 
