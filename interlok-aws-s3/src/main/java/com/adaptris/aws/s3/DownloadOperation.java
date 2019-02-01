@@ -104,6 +104,11 @@ public class DownloadOperation extends TransferOperation {
   public void setTempDirectory(String s) {
     this.tempDirectory = s;
   }
+  
+  public DownloadOperation withTempDirectory(String s) {
+    setTempDirectory(s);
+    return this;
+  }
 
   private class MyProgressListener implements Runnable {
     private Download download;

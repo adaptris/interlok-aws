@@ -61,6 +61,11 @@ public abstract class TransferOperation extends S3OperationImpl {
     this.userMetadataFilter = mf;
   }
 
+  public <T extends TransferOperation> T withUserMetadataFilter(MetadataFilter mf) {
+    setUserMetadataFilter(mf);
+    return (T) this;
+  }
+  
   MetadataFilter userMetadataFilter() {
     return getUserMetadataFilter() != null ? getUserMetadataFilter() : new RemoveAllMetadataFilter();
   }

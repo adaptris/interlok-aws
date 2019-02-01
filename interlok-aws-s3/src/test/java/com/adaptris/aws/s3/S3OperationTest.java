@@ -105,9 +105,9 @@ public class S3OperationTest {
   public void testFilterFromAdaptrisMessage() {
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMetadata(new MetadataElement("hello", "world"));
-    MyS3Operation op = new MyS3Operation();
+    MyS3Operation op = new MyS3Operation().withUserMetadataFilter(new NoOpMetadataFilter());
     Map<String, String> result = op.filterMetadata(msg);
-    assertEquals(0, result.size());
+    assertEquals(1, result.size());
   }
 
   @Test

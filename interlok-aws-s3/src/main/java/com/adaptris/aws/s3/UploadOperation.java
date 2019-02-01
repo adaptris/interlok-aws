@@ -18,6 +18,8 @@ package com.adaptris.aws.s3;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import javax.validation.Valid;
@@ -30,9 +32,7 @@ import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.aws.s3.meta.S3ObjectMetadata;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.core.util.ManagedThreadFactory;
-import com.adaptris.interlok.InterlokException;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
@@ -54,7 +54,7 @@ public class UploadOperation extends TransferOperation {
 
   @AdvancedConfig
   @Valid
-  private List<S3ObjectMetadata> objectMetadata = new ArrayList<>();
+  private List<S3ObjectMetadata> objectMetadata;
   
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
@@ -67,7 +67,7 @@ public class UploadOperation extends TransferOperation {
       s3meta.setContentEncoding(msg.getContentEncoding());
     }
     s3meta.setUserMetadata(filterMetadata(msg));
-    for(S3ObjectMetadata m: getObjectMetadata()) {
+    for(S3ObjectMetadata m: objectMetadata()) {
       m.apply(msg, s3meta);
     }
     try (InputStream in = msg.getInputStream()) {
@@ -86,6 +86,20 @@ public class UploadOperation extends TransferOperation {
     this.objectMetadata = objectMetadata;
   }
 
+  public UploadOperation withObjectMetadata(List<S3ObjectMetadata> objectMetadata) {
+    setObjectMetadata(objectMetadata);
+    return this;
+  }
+  
+  public UploadOperation withObjectMetadata(S3ObjectMetadata... objectMetadata) {
+    return withObjectMetadata(new ArrayList<>(Arrays.asList(objectMetadata)));
+  }
+  
+  private List<S3ObjectMetadata> objectMetadata() {
+    return getObjectMetadata() != null ? getObjectMetadata() : Collections.emptyList();
+  }
+  
+  
   private class MyProgressListener implements Runnable {
     private Upload upload;
     private String name;
