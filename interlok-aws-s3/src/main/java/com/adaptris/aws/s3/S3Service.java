@@ -58,16 +58,18 @@ public class S3Service extends S3ServiceImpl {
   public void doService(AdaptrisMessage msg) throws ServiceException {
     try {
       getOperation().execute(getConnection().retrieveConnection(AmazonS3Connection.class), msg);
-    } catch (InterlokException e) {
+    } catch (Exception e) {
       throw ExceptionHelper.wrapServiceException(e);
     }
   }
 
   @Override
   protected void initService() throws CoreException {
-    super.initService();
-    if (getOperation() == null) {
-      throw new CoreException("No operation configured");
+    try {
+      Args.notNull(getOperation(), "operation");
+      super.initService();
+    } catch (Exception e) {
+      throw ExceptionHelper.wrapCoreException(e);
     }
   }
 

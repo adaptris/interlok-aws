@@ -60,24 +60,20 @@ public class DownloadOperation extends TransferOperation {
   }
 
   @Override
-  public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws InterlokException {
+  public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     TransferManager tm = wrapper.transferManager();
     File tempDir = null;
-    try {
-      if (!isEmpty(getTempDirectory())) {
-        tempDir = new File(getTempDirectory());
-      }
-      GetObjectRequest request = new GetObjectRequest(getBucketName().extract(msg), getKey().extract(msg));
-      log.debug("Getting {} from bucket {}", request.getKey(), request.getBucketName());
-      File destFile = File.createTempFile(this.getClass().getSimpleName(), "", tempDir);
-      Download download = tm.download(request, destFile);
-      threadFactory.newThread(new MyProgressListener(Thread.currentThread().getName(), download)).start();
-      download.waitForCompletion();
-      msg.setMetadata(filterUserMetadata(download.getObjectMetadata().getUserMetadata()));
-      write(destFile, msg);
-    } catch (Exception e) {
-      throw ExceptionHelper.wrapServiceException(e);
+    if (!isEmpty(getTempDirectory())) {
+      tempDir = new File(getTempDirectory());
     }
+    GetObjectRequest request = new GetObjectRequest(getBucketName().extract(msg), getKey().extract(msg));
+    log.debug("Getting {} from bucket {}", request.getKey(), request.getBucketName());
+    File destFile = File.createTempFile(this.getClass().getSimpleName(), "", tempDir);
+    Download download = tm.download(request, destFile);
+    threadFactory.newThread(new MyProgressListener(Thread.currentThread().getName(), download)).start();
+    download.waitForCompletion();
+    msg.setMetadata(filterUserMetadata(download.getObjectMetadata().getUserMetadata()));
+    write(destFile, msg);
   }
 
 

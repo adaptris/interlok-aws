@@ -21,6 +21,6 @@ import com.adaptris.interlok.InterlokException;
 
 public interface S3Operation {
 
-  void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws InterlokException;
+  void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception;
   
 }

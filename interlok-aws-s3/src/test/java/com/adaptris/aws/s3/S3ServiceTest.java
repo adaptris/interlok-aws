@@ -22,11 +22,13 @@ import java.util.List;
 import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.aws.s3.meta.S3ContentLanguage;
 import com.adaptris.aws.s3.meta.S3ServerSideEncryption;
+import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.common.PayloadStreamOutputParameter;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
+import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
 
@@ -83,10 +85,60 @@ public class S3ServiceTest extends ServiceCase {
     abstract S3Operation build();
   }
 
-  public S3ServiceTest(String name) {
-    super(name);
+  public S3ServiceTest() {
   }
 
+  @SuppressWarnings("deprecation")
+  public void testAuthentication() throws Exception {
+    S3Service service = new S3Service();
+    assertNull(service.getAuthentication());
+    service.setAuthentication(new DefaultAWSAuthentication());
+    assertEquals(DefaultAWSAuthentication.class, service.getAuthentication().getClass());
+  }
+
+  @SuppressWarnings("deprecation")
+  public void testClientConfiguration() throws Exception {
+    S3Service service = new S3Service();
+    assertNull(service.getClientConfiguration());
+    service.setClientConfiguration(new KeyValuePairSet());
+    assertEquals(0, service.getClientConfiguration().size());
+  }
+
+  @SuppressWarnings("deprecation")
+  public void testAmazonClient() throws Exception {
+    S3Service service = new S3Service(new AmazonS3Connection(), new S3GetOperation());
+    assertNull(service.amazonClient());
+  }
+  
+  public void testLifecycle() throws Exception {
+    S3Service service = new S3Service();
+    try {
+      LifecycleHelper.prepare(service);
+      LifecycleHelper.init(service);
+      fail();
+    } catch (CoreException expected) {
+      
+    }
+  }
+  
+  @SuppressWarnings("deprecation")
+  public void testDeprecatedConfig() throws Exception {
+    S3Service service = new S3Service();
+    service.setAuthentication(new DefaultAWSAuthentication());
+    service.setClientConfiguration(new KeyValuePairSet());
+    service.handleDeprecatedConfig();
+    assertNotNull(service.getConnection());
+
+    AmazonS3Connection s3Connection = new AmazonS3Connection();
+    service = new S3Service(s3Connection, new S3GetOperation());
+    service.handleDeprecatedConfig();
+    assertEquals(s3Connection, service.getConnection());    
+    service.setAuthentication(new DefaultAWSAuthentication());
+    service.setClientConfiguration(new KeyValuePairSet());
+    service.handleDeprecatedConfig();
+    assertEquals(s3Connection, service.getConnection());    
+  }
+  
   @Override
   protected S3Service retrieveObjectForSampleConfig() {
     return null;

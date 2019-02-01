@@ -131,6 +131,11 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
     this.customEndpoint = endpoint;
   }
   
+  public <T extends AWSConnection> T withCustomEndpoint(CustomEndpoint endpoint) {
+    setCustomEndpoint(endpoint);
+    return (T) this;
+  }
+  
   /** Returns something that can configure a normal AWS builder with a custom endpoint or a region...
    * 
    */

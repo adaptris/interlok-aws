@@ -16,28 +16,34 @@
 
 package com.adaptris.aws.s3;
 
+import java.util.List;
+import java.util.Set;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.util.ExceptionHelper;
-import com.adaptris.interlok.InterlokException;
+import com.adaptris.core.MetadataCollection;
+import com.adaptris.core.MetadataElement;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.model.GetObjectTaggingRequest;
+import com.amazonaws.services.s3.model.GetObjectTaggingResult;
+import com.amazonaws.services.s3.model.Tag;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
- * Delete an object from S3.
+ * Check a file exists in S3 and throw an exception if it doesn't.
  * 
- * @author lchan
- * @config amazon-s3-download
+ * 
+ * @config amazon-s3-check-file-exists
  */
 @AdapterComponent
-@ComponentProfile(summary = "Delete an object from S3")
-@XStreamAlias("amazon-s3-delete")
+@ComponentProfile(summary = "Check a file exists in S3")
+@XStreamAlias("amazon-s3-check-file-exists")
 @DisplayOrder(order ={ "bucketName", "key"})
-public class DeleteOperation extends S3OperationImpl {
+public class CheckFileExistsOperation extends S3OperationImpl {
 
-  public DeleteOperation() {
+  public CheckFileExistsOperation() {
   }
 
   @Override
@@ -45,8 +51,11 @@ public class DeleteOperation extends S3OperationImpl {
     AmazonS3Client s3 = wrapper.amazonClient();
     String bucket = getBucketName().extract(msg);
     String key = getKey().extract(msg);
-    log.trace("Deleting [{}:{}]", bucket, key);
-    s3.deleteObject(bucket, key);
+    if (!s3.doesObjectExist(bucket, key)) {      
+      throw new Exception(String.format("[%s:%s] does not exist", bucket, key));
+    } else {
+      log.trace("[{}:{}] exists", bucket, key);
+    }
   }
-
+  
 }

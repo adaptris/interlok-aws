@@ -21,6 +21,7 @@ import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.common.InputStreamWithEncoding;
+import com.adaptris.core.common.PayloadStreamOutputParameter;
 import com.adaptris.interlok.InterlokException;
 import com.adaptris.interlok.config.DataOutputParameter;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -41,9 +42,12 @@ public class S3GetOperation extends TransferOperation {
   @NotNull
   private DataOutputParameter<InputStreamWithEncoding> responseBody;
 
+  public S3GetOperation() {
+    setResponseBody(new PayloadStreamOutputParameter());
+  }
 
   @Override
-  public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws InterlokException {
+  public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     AmazonS3Client s3 = wrapper.amazonClient();
     GetObjectRequest request = new GetObjectRequest(getBucketName().extract(msg), getKey().extract(msg));
     log.debug("Getting {} from bucket {}", request.getKey(), request.getBucketName());

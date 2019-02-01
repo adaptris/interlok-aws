@@ -57,7 +57,7 @@ public class UploadOperation extends TransferOperation {
   private List<S3ObjectMetadata> objectMetadata = new ArrayList<>();
   
   @Override
-  public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws InterlokException {
+  public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     TransferManager tm = wrapper.transferManager();
     String bucketName = getBucketName().extract(msg);
     String key = getKey().extract(msg);
@@ -75,8 +75,6 @@ public class UploadOperation extends TransferOperation {
       Upload upload = tm.upload(bucketName, key, in, s3meta);
       threadFactory.newThread(new MyProgressListener(Thread.currentThread().getName(), upload)).start();
       upload.waitForCompletion();
-    } catch (Exception e) {
-      throw ExceptionHelper.wrapServiceException(e);
     }
   }
   
