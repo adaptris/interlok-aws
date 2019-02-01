@@ -21,8 +21,10 @@ import static org.junit.Assert.assertNotNull;
 import org.junit.Test;
 
 import com.adaptris.aws.ClientConfigurationBuilder;
+import com.adaptris.aws.EndpointBuilder;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 
 public class UnbufferedClientFactoryTest {
@@ -32,6 +34,11 @@ public class UnbufferedClientFactoryTest {
     UnbufferedSQSClientFactory fac = new UnbufferedSQSClientFactory();
     BasicAWSCredentials creds = new BasicAWSCredentials("accessKey", "secretKey");
     assertNotNull(
-        fac.createClient(creds, ClientConfigurationBuilder.build(new KeyValuePairSet()), Regions.AP_NORTHEAST_1.getName()));
+        fac.createClient(creds, ClientConfigurationBuilder.build(new KeyValuePairSet()), new EndpointBuilder() {
+          public <T extends AwsClientBuilder<?, ?>> T rebuild(T builder) {
+            builder.withRegion(Regions.AP_NORTHEAST_1.getName());
+            return builder;
+          }
+        }));
   }
 }

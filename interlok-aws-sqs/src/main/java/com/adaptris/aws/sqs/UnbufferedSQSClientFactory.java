@@ -20,6 +20,7 @@ import static com.adaptris.aws.sqs.AwsHelper.formatRegion;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.adaptris.aws.EndpointBuilder;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -41,11 +42,8 @@ public class UnbufferedSQSClientFactory implements SQSClientFactory {
   }
   
   @Override
-  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf, String region) {
-    AmazonSQSAsyncClientBuilder builder = AmazonSQSAsyncClientBuilder.standard().withClientConfiguration(conf);
-    if (StringUtils.isNotBlank(region)) {
-      builder.withRegion(formatRegion(region));
-    }
+  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf, EndpointBuilder endpoint) {
+    AmazonSQSAsyncClientBuilder builder = endpoint.rebuild(AmazonSQSAsyncClientBuilder.standard().withClientConfiguration(conf));
     if (creds != null) {
       builder.withCredentials(new AWSStaticCredentialsProvider(creds));
     }

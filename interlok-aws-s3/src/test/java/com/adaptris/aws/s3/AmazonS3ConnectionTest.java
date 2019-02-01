@@ -21,6 +21,7 @@ import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.aws.DefaultRetryPolicyFactory;
 import com.adaptris.aws.PluggableRetryPolicyFactory;
 import com.adaptris.core.BaseCase;
+import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.util.KeyValuePairSet;
 
@@ -66,6 +67,26 @@ public class AmazonS3ConnectionTest extends BaseCase {
     assertEquals(PluggableRetryPolicyFactory.class, c.retryPolicy().getClass());
   }
 
+  public void testCreateBuilder() throws Exception {
+    AmazonS3Connection c = new AmazonS3Connection();
+    assertNotNull(c.createBuilder());
+    c.setForcePathStyleAccess(Boolean.TRUE);
+    assertNotNull(c.createBuilder());
+    c.setForcePathStyleAccess(null);
+    c.setAuthentication(new AWSKeysAuthentication("accessKey", "secretKey"));
+    assertNotNull(c.createBuilder());
+
+    // This will throw a SecurityException
+    try {
+      c.setAuthentication(new AWSKeysAuthentication("accessKey", "PW:BLAH_BLAH_BLAH"));
+      c.createBuilder();
+      fail();
+    } catch (CoreException expected) {
+
+    }
+
+  }
+
   public void testLifecycle() throws Exception {
     AmazonS3Connection c = new AmazonS3Connection();
     try {
@@ -78,5 +99,7 @@ public class AmazonS3ConnectionTest extends BaseCase {
     }
     assertNull(c.amazonClient());
     assertNull(c.transferManager());
+    AmazonS3Connection.shutdownQuietly(c.amazonClient());
+    AmazonS3Connection.shutdownQuietly(c.transferManager());
   }
 }

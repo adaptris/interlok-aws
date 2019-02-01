@@ -16,6 +16,7 @@
 
 package com.adaptris.aws.sqs;
 
+import com.adaptris.aws.EndpointBuilder;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
@@ -27,8 +28,9 @@ public interface SQSClientFactory {
    * 
    * @param creds The credentials to use. If null the default credentials mechanism for the Amazon AWS SDK will be used.
    * @param conf the ClientConfiguration to use.
+   * @param endpointBuilder configures the endpoint / region that the client will use.
    * @return a {@link AmazonSQSAsync} instance.
    */
-  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf, String region);
+  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf, EndpointBuilder endpointBuilder);
   
 }
