@@ -1,4 +1,4 @@
-ConsumerCase.baseDir=build/examples/consumers
-ServiceCase.baseDir=build/examples/services
-ProducerCase.baseDir=build/examples/producers
-WorkflowCase.baseDir=build/examples/workflows
+junit.ConsumerCase.baseDir=@BUILD_DIR@/examples/consumers
+junit.ServiceCase.baseDir=@BUILD_DIR@/examples/services
+junit.ProducerCase.baseDir=@BUILD_DIR@/examples/producers
+junit.WorkflowCase.baseDir=@BUILD_DIR@/examples/workflows
