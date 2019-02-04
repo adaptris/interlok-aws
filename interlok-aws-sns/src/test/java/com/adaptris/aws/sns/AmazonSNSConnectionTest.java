@@ -16,21 +16,24 @@
 
 package com.adaptris.aws.sns;
 
+import static org.mockito.Matchers.anyObject;
+
+import org.mockito.Mockito;
+
 import com.adaptris.aws.AWSKeysAuthentication;
+import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.aws.DefaultRetryPolicyFactory;
+import com.adaptris.aws.EndpointBuilder;
 import com.adaptris.aws.PluggableRetryPolicyFactory;
-import com.adaptris.aws.sns.AmazonSNSConnection;
 import com.adaptris.core.BaseCase;
+import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.util.KeyValuePairSet;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.sns.AmazonSNSClient;
 
 public class AmazonSNSConnectionTest extends BaseCase {
-
-  public AmazonSNSConnectionTest(String name) {
-    super(name);
-  }
-
 
   public void testRegion() {
     AmazonSNSConnection c = new AmazonSNSConnection();
@@ -68,14 +71,47 @@ public class AmazonSNSConnectionTest extends BaseCase {
   }
 
   public void testLifecycle() throws Exception {
-    AmazonSNSConnection c = new AmazonSNSConnection();
+    AmazonSNSConnection conn = new AmazonSNSConnection(new AWSKeysAuthentication("access", "secret"), new KeyValuePairSet());
     try {
-      c.setRegion("eu-central-1");
-      LifecycleHelper.initAndStart(c);
-      assertNotNull(c.amazonClient());
+      conn.setRegion("eu-central-1");
+      LifecycleHelper.initAndStart(conn);
+      assertNotNull(conn.amazonClient());
     } finally {
-      LifecycleHelper.stopAndClose(c);
+      LifecycleHelper.stopAndClose(conn);
     }
-    assertNull(c.amazonClient());
+    assertNull(conn.amazonClient());
+    conn = new AmazonSNSConnection();
+    try {
+      conn.setRegion("eu-central-1");
+      LifecycleHelper.initAndStart(conn);
+      assertNotNull(conn.amazonClient());
+    } finally {
+      LifecycleHelper.stopAndClose(conn);
+    }
+    assertNull(conn.amazonClient());
+    
+    CustomEndpoint customEndpoint = Mockito.mock(CustomEndpoint.class);
+    Mockito.when(customEndpoint.rebuild(anyObject())).thenThrow(new RuntimeException());
+    Mockito.when(customEndpoint.isConfigured()).thenReturn(true);
+    conn = new AmazonSNSConnection();
+    conn.setCustomEndpoint(customEndpoint);
+    try {
+      conn.setRegion("eu-central-1");
+      LifecycleHelper.initAndStart(conn);
+      fail();
+    } catch (CoreException expected) {
+      
+    } finally {
+      LifecycleHelper.stopAndClose(conn);
+    }
+    assertNull(conn.amazonClient());
+
   }
+  
+  public void testCloseQuietly() throws Exception {
+    AmazonSNSClient mockClient= Mockito.mock(AmazonSNSClient.class);
+    AmazonSNSConnection.closeQuietly(null);
+    AmazonSNSConnection.closeQuietly(mockClient);    
+  }
+  
 }
