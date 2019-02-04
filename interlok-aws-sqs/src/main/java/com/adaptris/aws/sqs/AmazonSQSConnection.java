@@ -25,6 +25,7 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.aws.AWSConnection;
 import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.DefaultAWSAuthentication;
@@ -89,7 +90,12 @@ public class AmazonSQSConnection extends AWSConnection {
     setClientConfiguration(new KeyValuePairSet());
   }
 
-
+  public AmazonSQSConnection(AWSAuthentication auth, KeyValuePairSet cfg) {
+    this();
+    setAuthentication(auth);
+    setClientConfiguration(cfg);
+  }
+  
   @Override
   protected void prepareConnection() throws CoreException {
     // nothing to do.

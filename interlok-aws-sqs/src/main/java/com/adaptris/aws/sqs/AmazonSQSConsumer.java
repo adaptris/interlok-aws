@@ -71,6 +71,11 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
     setReacquireLockBetweenMessages(true);
   }
 
+  public AmazonSQSConsumer(ConsumeDestination dest) {
+    this();
+    setDestination(dest);
+  }
+  
   @Override
   public void start() throws CoreException {
     getSynClient();

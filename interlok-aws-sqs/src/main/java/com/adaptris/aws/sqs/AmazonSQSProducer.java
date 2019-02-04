@@ -72,6 +72,12 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
     sendAttributes = new ArrayList<>();
   }
 
+  public AmazonSQSProducer(ProduceDestination d) {
+    this();
+    setDestination(d);
+  }
+
+  
   @Override
   public void init() throws CoreException {
     if(retrieveConnection(AmazonSQSConnection.class) == null) {
