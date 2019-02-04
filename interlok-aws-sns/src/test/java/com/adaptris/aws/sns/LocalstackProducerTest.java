@@ -21,8 +21,8 @@ import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.util.PropertyHelper;
 import com.adaptris.interlok.config.DataInputParameter;
 
-// A new local stack instance; we're going upload, copy, tag, download, get, delete in that order
-// So, sadly we are being really lame, and forcing the ordering...
+// A new local stack instance; we're going publish an SNS message.
+// Note that there must be content to the message otherwise you get a python stack trace in localstack.
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LocalstackProducerTest {
 
@@ -69,10 +69,4 @@ public class LocalstackProducerTest {
         .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion));
     return connection;
   }
-
-  protected DataInputParameter<String> getInputParameter(String cfgKey) {
-    String name = config.getProperty(cfgKey);
-    return new ConstantDataInputParameter(name);
-  }
-  
 }
