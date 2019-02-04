@@ -49,7 +49,7 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 @XStreamAlias("amazon-sqs-consumer")
 @AdapterComponent
 @ComponentProfile(summary = "Receive messages from Amazon SQS", tag = "consumer,amazon,sqs",
-    recommended = {AmazonSQSConnection.class})
+    recommended = {AmazonSQSConnection.class}, metadata= {"SQSMessageID"})
 public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
   private Integer prefetchCount;

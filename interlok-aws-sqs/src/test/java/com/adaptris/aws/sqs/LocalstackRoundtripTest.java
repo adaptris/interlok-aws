@@ -6,6 +6,7 @@ import static com.adaptris.aws.sqs.LocalstackHelper.getProperty;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
@@ -66,15 +67,19 @@ public class LocalstackRoundtripTest {
   public void test_02_TestPublish() throws Exception {
     if (areTestsEnabled()) {
       AmazonSQSProducer sqsProducer = new AmazonSQSProducer(new ConfiguredProduceDestination(getProperty(SQS_QUEUE)));
+      sqsProducer.withMessageAsyncCallback((e) -> {
+        try {
+          System.err.println(e.get().getMessageId());
+        }
+        catch (InterruptedException | ExecutionException e1) {
+        }
+      });
       AmazonSQSConnection conn = helper.createConnection();
       StandaloneProducer sp = new StandaloneProducer(conn, sqsProducer);
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS);
 
       ServiceCase.execute(sp, msg);
       
-      // Since we send async we have to wait for messages to appear :(
-      AmazonSQS sqs = helper.getSyncClient();
-      helper.waitForMessagesToAppear(getProperty(SQS_QUEUE), 1, 30000);
       assertTrue(helper.messagesOnQueue(helper.toQueueURL(getProperty(SQS_QUEUE))) > 0);
     }
     else {
@@ -82,33 +87,35 @@ public class LocalstackRoundtripTest {
     }
   }
 
-//  @Test
-//  public void test_03_TestConsume() throws Exception {
-//    StandaloneConsumer standaloneConsumer = null;
-//    try {
-//      if (areTestsEnabled()) {
-//        AmazonSQSConsumer consumer = new AmazonSQSConsumer(new ConfiguredConsumeDestination(getProperty(SQS_QUEUE)));
-//        AmazonSQSConnection conn = helper.createConnection();
-//        FixedIntervalPoller poller = new FixedIntervalPoller(new TimeInterval(300L, TimeUnit.MILLISECONDS));
-//        consumer.setPoller(poller);
-//
-//        standaloneConsumer = new StandaloneConsumer(conn, consumer);
-//        MockMessageListener listener = new MockMessageListener();
-//        standaloneConsumer.registerAdaptrisMessageListener(listener);
-//        // there is already a message from test_02
-//        LifecycleHelper.initAndStart(standaloneConsumer);
-//        
-//        BaseCase.waitForMessages(listener,1, 20000);
-//        assertEquals(1, listener.getMessages().size());
-//      }
-//      else {
-//        System.err.println("localstack disabled; not executing test_02_TestPublish");
-//      }
-//    }
-//    finally {
-//      LifecycleHelper.stopAndClose(standaloneConsumer);
-//    }
-//  }
+  @Test
+  public void test_03_TestConsume() throws Exception {
+    StandaloneConsumer standaloneConsumer = null;
+    try {
+      if (areTestsEnabled()) {
+        AmazonSQSConsumer consumer = new AmazonSQSConsumer(new ConfiguredConsumeDestination(getProperty(SQS_QUEUE)));
+        AmazonSQSConnection conn = helper.createConnection();
+        FixedIntervalPoller poller = new FixedIntervalPoller(new TimeInterval(300L, TimeUnit.MILLISECONDS));
+        consumer.setPoller(poller);
+        consumer.setPrefetchCount(1);
+
+        standaloneConsumer = new StandaloneConsumer(conn, consumer);
+        MockMessageListener listener = new MockMessageListener();
+        standaloneConsumer.registerAdaptrisMessageListener(listener);
+        // there is already a message from test_02
+        LifecycleHelper.initAndStart(standaloneConsumer);
+        
+        BaseCase.waitForMessages(listener,1, 5000);
+        assertEquals(1, listener.getMessages().size());
+        assertEquals(MSG_CONTENTS, listener.getMessages().get(0).getContent());
+      }
+      else {
+        System.err.println("localstack disabled; not executing test_02_TestPublish");
+      }
+    }
+    finally {
+      LifecycleHelper.stopAndClose(standaloneConsumer);
+    }
+  }
   
   
   @Test
