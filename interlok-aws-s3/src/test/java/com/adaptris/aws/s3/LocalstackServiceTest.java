@@ -50,6 +50,8 @@ public class LocalstackServiceTest {
       CreateBucketOperation create = new CreateBucketOperation().withBucketName(getInputParameter(S3_BUCKETNAME));
       S3Service service = build(create);
       ServiceCase.execute(service, AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS));
+    } else {
+      System.err.println("localstack tests disabled; not executing test_01_CreateBucket");
     }
   }
 
@@ -60,6 +62,8 @@ public class LocalstackServiceTest {
           .withKey(getInputParameter(S3_UPLOAD_FILENAME));
       S3Service service = build(upload);
       ServiceCase.execute(service, AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS));
+    } else {
+      System.err.println("localstack tests disabled; not executing test_02_Upload");
     }
   }
 
@@ -72,6 +76,8 @@ public class LocalstackServiceTest {
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
       ServiceCase.execute(service, msg);
       assertEquals(MSG_CONTENTS, msg.getContent());
+    } else {
+      System.err.println("localstack tests disabled; not executing test_03_Download");
     }
   }
 
@@ -84,6 +90,8 @@ public class LocalstackServiceTest {
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
       ServiceCase.execute(service, msg);
       assertEquals(MSG_CONTENTS, msg.getContent());
+    } else {
+      System.err.println("localstack tests disabled; not executing test_04_Get");
     }
   }
 
@@ -102,6 +110,8 @@ public class LocalstackServiceTest {
       S3Service downloadService = build(download);
       ServiceCase.execute(downloadService, msg);
       assertEquals(MSG_CONTENTS, msg.getContent());
+    } else {
+      System.err.println("localstack tests disabled; not executing test_05_Copy_WithDestinationBucket");
     }
   }
 
@@ -123,6 +133,8 @@ public class LocalstackServiceTest {
       ServiceCase.execute(retrieveTags, msgWithTags);
       assertTrue(msgWithTags.headersContainsKey("MyTag"));
       assertEquals("text", msgWithTags.getMetadataValue("MyTag"));
+    } else {
+      System.err.println("localstack tests disabled; not executing test_06_Tag");
     }
   }
 
@@ -133,6 +145,8 @@ public class LocalstackServiceTest {
           .withKey(getInputParameter(S3_COPY_TO_FILENAME));
       S3Service s1 = build(delete);
       ServiceCase.execute(s1, AdaptrisMessageFactory.getDefaultInstance().newMessage());
+    } else {
+      System.err.println("localstack tests disabled; not executing test_07_DeleteCopy");
     }
   }
 
@@ -150,6 +164,8 @@ public class LocalstackServiceTest {
       S3Service downloadService = build(download);
       ServiceCase.execute(downloadService, msg);
       assertEquals(MSG_CONTENTS, msg.getContent());
+    } else {
+      System.err.println("localstack tests disabled; not executing test_08_Copy_WithoutDestinationBucket");
     }
   }
 
@@ -171,6 +187,8 @@ public class LocalstackServiceTest {
       catch (ServiceException expected) {
 
       }
+    } else {
+      System.err.println("localstack tests disabled; not executing test_09_DeleteCopy");
     }
   }
 
@@ -192,6 +210,8 @@ public class LocalstackServiceTest {
       catch (ServiceException expected) {
 
       }
+    } else {
+      System.err.println("localstack tests disabled; not executing test_10_DeleteUploaded");
     }
   }
 
@@ -202,6 +222,8 @@ public class LocalstackServiceTest {
       DeleteBucketOperation delete = new DeleteBucketOperation().withBucketName(getInputParameter(S3_BUCKETNAME));
       S3Service service = build(delete);
       ServiceCase.execute(service, AdaptrisMessageFactory.getDefaultInstance().newMessage());
+    } else {
+      System.err.println("localstack tests disabled; not executing test_99_DeleteBucket");
     }
   }
   
