@@ -57,19 +57,14 @@ public class CopyOperation extends S3OperationImpl {
   }
 
   @Override
-  public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws InterlokException {
-    try {
-      AmazonS3Client s3 = wrapper.amazonClient();
-      String srcBucket = getBucketName().extract(msg);
-      String srcKey = getKey().extract(msg);
-      String destBucket = destinationBucket(msg);
-      String destKey = getDestinationKey().extract(msg);
-      log.trace("Copying [{}:{}] to [{}:{}]", srcBucket, srcKey, destBucket, destKey);
-      s3.copyObject(srcBucket, srcKey, destBucket, destKey);
-    }
-    catch (Exception e) {
-      throw ExceptionHelper.wrapServiceException(e);
-    }
+  public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
+    AmazonS3Client s3 = wrapper.amazonClient();
+    String srcBucket = getBucketName().extract(msg);
+    String srcKey = getKey().extract(msg);
+    String destBucket = destinationBucket(msg);
+    String destKey = getDestinationKey().extract(msg);
+    log.trace("Copying [{}:{}] to [{}:{}]", srcBucket, srcKey, destBucket, destKey);
+    s3.copyObject(srcBucket, srcKey, destBucket, destKey);
   }
 
   public DataInputParameter<String> getDestinationBucketName() {
@@ -85,6 +80,11 @@ public class CopyOperation extends S3OperationImpl {
     this.destinationBucketName = bucket;
   }
 
+  public CopyOperation withDestinationBucketName(DataInputParameter<String> bucket) {
+    setDestinationBucketName(bucket);
+    return this;
+  }
+  
   private String destinationBucket(InterlokMessage msg) throws InterlokException {
     if (getDestinationBucketName() == null) {
       return getBucketName().extract(msg);
@@ -105,4 +105,8 @@ public class CopyOperation extends S3OperationImpl {
     this.destinationKey = Args.notNull(key, "destinationKey");
   }
 
+  public CopyOperation withDestinationKey(DataInputParameter<String> key) {
+    setDestinationKey(key);
+    return this;
+  }
 }

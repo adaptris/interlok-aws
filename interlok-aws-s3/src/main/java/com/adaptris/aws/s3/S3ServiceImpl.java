@@ -25,6 +25,7 @@ import com.adaptris.core.ConnectedService;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceImp;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -67,12 +68,18 @@ public abstract class S3ServiceImpl extends ServiceImp implements ConnectedServi
 
   @Valid
   private AdaptrisConnection connection;
-
+  private transient boolean warningLogged;
+  
   public S3ServiceImpl() {
   }
 
   @Override
   public void prepare() throws CoreException {
+    handleDeprecatedConfig();
+    LifecycleHelper.prepare(getConnection());
+  }
+
+  protected void handleDeprecatedConfig() {
     if (getAuthentication() != null) {
       log.warn("authentication is deprecated); use amazon-s3-connection instead");
     }
@@ -80,11 +87,12 @@ public abstract class S3ServiceImpl extends ServiceImp implements ConnectedServi
       log.warn("client-configuration is deprecated); use amazon-s3-connection instead");
     }
     if (getConnection() == null) {
+      LoggingHelper.logWarning(warningLogged, ()-> {warningLogged = true;}, 
+          "No Connection; using legacy authentication and client-configuration");      
       setConnection(new AmazonS3Connection(getAuthentication(), getClientConfiguration()));
     }
-    LifecycleHelper.prepare(getConnection());
   }
-
+  
   @Override
   protected void initService() throws CoreException {
     LifecycleHelper.init(getConnection());
@@ -107,6 +115,8 @@ public abstract class S3ServiceImpl extends ServiceImp implements ConnectedServi
     LifecycleHelper.close(getConnection());
   }
 
+  @Deprecated
+  @Removal(version="3.9.0")
   protected AmazonS3Client amazonClient() {
     return getConnection().retrieveConnection(AmazonS3Connection.class).amazonClient();
   }

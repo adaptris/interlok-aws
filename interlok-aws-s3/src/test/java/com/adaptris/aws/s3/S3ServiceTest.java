@@ -15,18 +15,26 @@
 */
 
 package com.adaptris.aws.s3;
+import static org.mockito.Matchers.anyObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.mockito.Mockito;
+
 import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.aws.s3.meta.S3ContentLanguage;
 import com.adaptris.aws.s3.meta.S3ServerSideEncryption;
+import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.AdaptrisMessageFactory;
+import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceCase;
+import com.adaptris.core.ServiceException;
 import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.common.PayloadStreamOutputParameter;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
+import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
 
@@ -65,8 +73,7 @@ public class S3ServiceTest extends ServiceCase {
         op.setUserMetadataFilter(new RemoveAllMetadataFilter());
         S3ContentLanguage type = new S3ContentLanguage();
         type.setContentLanguage("english");
-        op.getObjectMetadata().add(new S3ServerSideEncryption());
-        op.getObjectMetadata().add(type);
+        op.withObjectMetadata(new S3ServerSideEncryption(), type);
         return op;
       }
     },
@@ -83,10 +90,108 @@ public class S3ServiceTest extends ServiceCase {
     abstract S3Operation build();
   }
 
-  public S3ServiceTest(String name) {
-    super(name);
+  public S3ServiceTest() {
   }
 
+  @SuppressWarnings("deprecation")
+  public void testAuthentication() throws Exception {
+    S3Service service = new S3Service();
+    assertNull(service.getAuthentication());
+    service.setAuthentication(new DefaultAWSAuthentication());
+    assertEquals(DefaultAWSAuthentication.class, service.getAuthentication().getClass());
+  }
+
+  @SuppressWarnings("deprecation")
+  public void testClientConfiguration() throws Exception {
+    S3Service service = new S3Service();
+    assertNull(service.getClientConfiguration());
+    service.setClientConfiguration(new KeyValuePairSet());
+    assertEquals(0, service.getClientConfiguration().size());
+  }
+
+  @SuppressWarnings("deprecation")
+  public void testAmazonClient() throws Exception {
+    S3Service service = new S3Service(new AmazonS3Connection(), new S3GetOperation());
+    assertNull(service.amazonClient());
+  }
+  
+  public void testLifecycle() throws Exception {
+    S3Service service = new S3Service();
+    try {
+      LifecycleHelper.prepare(service);
+      LifecycleHelper.init(service);
+      fail();
+    } catch (CoreException expected) {
+      
+    } finally {
+      LifecycleHelper.stopAndClose(service);
+    }
+    AmazonS3Connection connection = Mockito.mock(AmazonS3Connection.class);
+    Mockito.doAnswer((i)-> {return null;}).when(connection).prepareConnection();
+    Mockito.doAnswer((i)-> {return null;}).when(connection).startConnection();
+    Mockito.doAnswer((i)-> {return null;}).when(connection).stopConnection();
+    Mockito.doAnswer((i)-> {return null;}).when(connection).closeConnection();
+    Mockito.doAnswer((i)-> {return null;}).when(connection).initConnection();
+    service.setConnection(connection);
+    service.setOperation(Mockito.mock(S3Operation.class));
+    LifecycleHelper.initAndStart(service);
+    LifecycleHelper.stopAndClose(service);
+  }
+  
+  @SuppressWarnings("deprecation")
+  public void testDeprecatedConfig() throws Exception {
+    S3Service service = new S3Service();
+    service.setAuthentication(new DefaultAWSAuthentication());
+    service.setClientConfiguration(new KeyValuePairSet());
+    service.handleDeprecatedConfig();
+    assertNotNull(service.getConnection());
+
+    AmazonS3Connection s3Connection = new AmazonS3Connection();
+    service = new S3Service(s3Connection, new S3GetOperation());
+    service.handleDeprecatedConfig();
+    assertEquals(s3Connection, service.getConnection());    
+    service.setAuthentication(new DefaultAWSAuthentication());
+    service.setClientConfiguration(new KeyValuePairSet());
+    service.handleDeprecatedConfig();
+    assertEquals(s3Connection, service.getConnection());    
+  }
+  
+  public void testDoService() throws Exception {
+    AmazonS3Connection connection = Mockito.mock(AmazonS3Connection.class);
+    S3Operation operation = Mockito.mock(S3Operation.class);
+    
+    Mockito.doAnswer((i)-> {return null;}).when(connection).prepareConnection();
+    Mockito.doAnswer((i)-> {return null;}).when(connection).startConnection();
+    Mockito.doAnswer((i)-> {return null;}).when(connection).stopConnection();
+    Mockito.doAnswer((i)-> {return null;}).when(connection).closeConnection();
+    Mockito.doAnswer((i)-> {return null;}).when(connection).initConnection();
+    Mockito.doAnswer((i)-> {return null;}).when(operation).execute((ClientWrapper) anyObject(), (AdaptrisMessage) anyObject());
+    S3Service service = new S3Service(connection, operation);
+
+    execute(service, AdaptrisMessageFactory.getDefaultInstance().newMessage());
+  }
+  
+  public void testDoService_Exception() throws Exception {
+    AmazonS3Connection connection = Mockito.mock(AmazonS3Connection.class);
+    S3Operation operation = Mockito.mock(S3Operation.class);
+    
+    Mockito.doAnswer((i)-> {return null;}).when(connection).prepareConnection();
+    Mockito.doAnswer((i)-> {return null;}).when(connection).startConnection();
+    Mockito.doAnswer((i)-> {return null;}).when(connection).stopConnection();
+    Mockito.doAnswer((i)-> {return null;}).when(connection).closeConnection();
+    Mockito.doAnswer((i)-> {return null;}).when(connection).initConnection();
+    Mockito.doThrow(new Exception()).when(operation).execute((ClientWrapper) anyObject(), (AdaptrisMessage) anyObject());
+    S3Service service = new S3Service(connection, operation);
+
+    try {
+      execute(service, AdaptrisMessageFactory.getDefaultInstance().newMessage());
+      fail();
+    } catch (ServiceException expected) {
+      
+    }
+    
+  }
+  
   @Override
   protected S3Service retrieveObjectForSampleConfig() {
     return null;

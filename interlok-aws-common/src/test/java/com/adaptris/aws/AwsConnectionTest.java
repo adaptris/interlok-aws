@@ -60,7 +60,7 @@ public class AwsConnectionTest extends AWSConnection {
     setRegion("us-west-1");
     assertNotNull(endpointBuilder());
     assertEquals(RegionOnly.class, endpointBuilder().getClass());
-    setCustomEndpoint(new CustomEndpoint().withServiceEndpoint("http://localhost").withSigningRegion("us-west-1"));
+    withCustomEndpoint(new CustomEndpoint().withServiceEndpoint("http://localhost").withSigningRegion("us-west-1"));
     assertNotNull(getCustomEndpoint());
     assertEquals(CustomEndpoint.class, endpointBuilder().getClass());
   }

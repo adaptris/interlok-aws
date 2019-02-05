@@ -108,13 +108,17 @@ public class AmazonSNSConnection extends AWSConnection {
 
   @Override
   protected void closeConnection() {
-    if (snsClient != null) {
-      snsClient.shutdown();
-      snsClient = null;
-    }
+    closeQuietly(snsClient);
+    snsClient = null;
   }
 
   public AmazonSNSClient amazonClient() {
     return snsClient;
+  }
+  
+  protected static void closeQuietly(AmazonSNSClient c) {
+    if (c != null) {
+      c.shutdown();
+    }
   }
 }

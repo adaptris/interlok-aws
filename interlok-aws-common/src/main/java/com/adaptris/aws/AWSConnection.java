@@ -17,6 +17,8 @@
 package com.adaptris.aws;
 
 import javax.validation.Valid;
+
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.core.AdaptrisConnectionImp;
@@ -47,7 +49,7 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
   }
 
   public AWSAuthentication authentication() {
-    return getAuthentication() != null ? getAuthentication() : new DefaultAWSAuthentication();
+    return ObjectUtils.defaultIfNull(getAuthentication(), new DefaultAWSAuthentication());
   }
 
   /**
@@ -74,7 +76,7 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
   }
 
   public KeyValuePairSet clientConfiguration() {
-    return getClientConfiguration() != null ? getClientConfiguration() : new KeyValuePairSet();
+    return ObjectUtils.defaultIfNull(getClientConfiguration(), new KeyValuePairSet());
   }
 
   public RetryPolicyFactory getRetryPolicy() {
@@ -91,7 +93,7 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
   }
 
   public RetryPolicyFactory retryPolicy() {
-    return getRetryPolicy() != null ? getRetryPolicy() : new DefaultRetryPolicyFactory();
+    return ObjectUtils.defaultIfNull(getRetryPolicy(), new DefaultRetryPolicyFactory());
   }
 
   public String getRegion() {
@@ -129,6 +131,11 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
    */
   public void setCustomEndpoint(CustomEndpoint endpoint) {
     this.customEndpoint = endpoint;
+  }
+  
+  public <T extends AWSConnection> T withCustomEndpoint(CustomEndpoint endpoint) {
+    setCustomEndpoint(endpoint);
+    return (T) this;
   }
   
   /** Returns something that can configure a normal AWS builder with a custom endpoint or a region...

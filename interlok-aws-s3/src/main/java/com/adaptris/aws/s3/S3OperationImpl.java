@@ -53,6 +53,11 @@ public abstract class S3OperationImpl implements S3Operation {
     this.key = Args.notNull(key, "key");
   }
 
+  public <T extends S3OperationImpl> T withKey(DataInputParameter<String> key) {
+    setKey(key);
+    return (T) this;
+  }
+  
   public DataInputParameter<String> getBucketName() {
     return bucketName;
   }
@@ -61,4 +66,9 @@ public abstract class S3OperationImpl implements S3Operation {
     this.bucketName = Args.notNull(bucketName, "bucketName");
   }
 
+  public <T extends S3OperationImpl> T withBucketName(DataInputParameter<String> key) {
+    setBucketName(key);
+    return (T) this;
+  }
+  
 }

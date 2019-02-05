@@ -61,4 +61,6 @@ publishing {
     }
   }
 }
+
+processTestResources.dependsOn copyUnitTestProperties
 javadoc.dependsOn offlinePackageList

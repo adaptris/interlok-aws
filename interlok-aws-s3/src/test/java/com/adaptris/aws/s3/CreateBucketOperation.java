@@ -16,37 +16,63 @@
 
 package com.adaptris.aws.s3;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
+import org.apache.http.util.Args;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.interlok.InterlokException;
+import com.adaptris.interlok.config.DataInputParameter;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
- * Delete an object from S3.
+ * Create a bucket in S3.
  * 
- * @author lchan
- * @config amazon-s3-download
+ * @config amazon-s3-create-bucket
  */
 @AdapterComponent
-@ComponentProfile(summary = "Delete an object from S3")
-@XStreamAlias("amazon-s3-delete")
-@DisplayOrder(order ={ "bucketName", "key"})
-public class DeleteOperation extends S3OperationImpl {
+@ComponentProfile(summary = "Create a bucket in S3")
+@XStreamAlias("amazon-s3-create-bucket")
+@DisplayOrder(order ={ "bucketName"})
+public class CreateBucketOperation implements S3Operation {
 
-  public DeleteOperation() {
+  protected transient Logger log = LoggerFactory.getLogger(this.getClass().getName());
+
+  @NotNull
+  @Valid
+  private DataInputParameter<String> bucketName;
+  
+  public CreateBucketOperation() {
   }
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     AmazonS3Client s3 = wrapper.amazonClient();
     String bucket = getBucketName().extract(msg);
-    String key = getKey().extract(msg);
-    log.trace("Deleting [{}:{}]", bucket, key);
-    s3.deleteObject(bucket, key);
+    log.trace("Creating Bucket [{}]", bucket);
+    s3.createBucket(bucket);
   }
 
+  
+  public DataInputParameter<String> getBucketName() {
+    return bucketName;
+  }
+
+  public void setBucketName(DataInputParameter<String> bucketName) {
+    this.bucketName = Args.notNull(bucketName, "bucketName");
+  }
+
+  public <T extends CreateBucketOperation> T withBucketName(DataInputParameter<String> key) {
+    setBucketName(key);
+    return (T) this;
+  }
+  
 }

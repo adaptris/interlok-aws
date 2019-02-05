@@ -60,7 +60,7 @@ public class S3OperationTest {
   public void testKey() {
     MyS3Operation op = new MyS3Operation();
     assertNull(op.getKey());
-    op.setKey(new ConstantDataInputParameter("hello"));
+    op.withKey(new ConstantDataInputParameter("hello"));
     assertEquals(ConstantDataInputParameter.class, op.getKey().getClass());
     try {
       op.setKey(null);
@@ -76,7 +76,7 @@ public class S3OperationTest {
   public void testBucket() {
     MyS3Operation op = new MyS3Operation();
     assertNull(op.getBucketName());
-    op.setBucketName(new ConstantDataInputParameter("hello"));
+    op.withBucketName(new ConstantDataInputParameter("hello"));
     assertEquals(ConstantDataInputParameter.class, op.getBucketName().getClass());
     try {
       op.setBucketName(null);
@@ -105,9 +105,9 @@ public class S3OperationTest {
   public void testFilterFromAdaptrisMessage() {
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMetadata(new MetadataElement("hello", "world"));
-    MyS3Operation op = new MyS3Operation();
+    MyS3Operation op = new MyS3Operation().withUserMetadataFilter(new NoOpMetadataFilter());
     Map<String, String> result = op.filterMetadata(msg);
-    assertEquals(0, result.size());
+    assertEquals(1, result.size());
   }
 
   @Test
