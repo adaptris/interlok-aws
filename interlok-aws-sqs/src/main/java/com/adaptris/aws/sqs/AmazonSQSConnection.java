@@ -19,12 +19,13 @@ package com.adaptris.aws.sqs;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.http.util.Args;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.aws.AWSConnection;
 import com.adaptris.aws.ClientConfigurationBuilder;
@@ -79,6 +80,7 @@ public class AmazonSQSConnection extends AWSConnection {
   @NotNull
   @AutoPopulated
   @Valid
+  @InputFieldDefault(value = "UnbufferedSQSClientFactory")
   private SQSClientFactory sqsClientFactory;
 
   private transient AmazonSQSAsync sqsClient;
@@ -158,7 +160,7 @@ public class AmazonSQSConnection extends AWSConnection {
    * How to create the SQS client and set parameters.
    */
   public void setSqsClientFactory(SQSClientFactory sqsClientFactory) {
-    this.sqsClientFactory = sqsClientFactory;
+    this.sqsClientFactory = Args.notNull(sqsClientFactory, "sqsClientFactory");
   }
   
   public SQSClientFactory getSqsClientFactory() {

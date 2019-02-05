@@ -16,13 +16,19 @@
 
 package com.adaptris.aws.sqs.jms;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
 
 import com.adaptris.aws.AWSKeysAuthentication;
+import com.adaptris.aws.CustomEndpoint;
+import com.adaptris.aws.DefaultRetryPolicyFactory;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
+import com.amazon.sqs.javamessaging.SQSConnectionFactory;
 
 public class AdvancedSQSImplementationTest extends AmazonSQSImplementationTest {
 
@@ -39,14 +45,55 @@ public class AdvancedSQSImplementationTest extends AmazonSQSImplementationTest {
     kvps.add(new KeyValuePair("NonProxyHosts", "localhost"));
 
     kvps.add(new KeyValuePair("Hello World", "MyUserAgent"));
+    jmsImpl.prepare();
     assertNotNull(jmsImpl.createConnectionFactory());
   }
 
   @Test
-  public void testConnectionFactory_WithRetryPolicy() throws Exception {
+  @SuppressWarnings("deprecation")
+  public void testConnectionFactory_WithRetryPolicyBuilder() throws Exception {
     AdvancedSQSImplementation jmsImpl = new AdvancedSQSImplementation();
     jmsImpl.setRegion("eu-west-1");
     jmsImpl.setRetryPolicyBuilder(new RetryPolicyBuilder());
+    jmsImpl.prepare();
     assertNotNull(jmsImpl.createConnectionFactory());
   }
+  
+  @Test
+  public void testConnectionFactory_WithRetryPolicy() throws Exception {
+    AdvancedSQSImplementation jmsImpl = new AdvancedSQSImplementation();
+    jmsImpl.setRegion("eu-west-1");
+    jmsImpl.setRetryPolicy(new DefaultRetryPolicyFactory());
+    jmsImpl.prepare();
+    assertNotNull(jmsImpl.createConnectionFactory());
+  }
+  
+  @Test
+  @SuppressWarnings("deprecation")
+  public void testConnectionFactory_WithRetryPolicyBuilderAndFatory() throws Exception {
+    AdvancedSQSImplementation jmsImpl = new AdvancedSQSImplementation();
+    jmsImpl.setRegion("eu-west-1");
+    jmsImpl.setRetryPolicy(new DefaultRetryPolicyFactory());
+    jmsImpl.setRetryPolicyBuilder(new RetryPolicyBuilder());
+    jmsImpl.prepare();
+    SQSConnectionFactory fac = jmsImpl.createConnectionFactory();
+    assertNotNull(fac);
+    assertEquals(fac, jmsImpl.createConnectionFactory());
+  }
+  
+
+  @Test
+  public void testEndpointBuilder() {
+    AdvancedSQSImplementation jmsImpl = new AdvancedSQSImplementation();
+    assertNull(jmsImpl.getCustomEndpoint());
+    jmsImpl.setRegion("us-west-1");
+    assertNotNull(jmsImpl.endpointBuilder());
+    jmsImpl.withCustomEndpoint(new CustomEndpoint().withServiceEndpoint("http://localhost").withSigningRegion("us-west-1"));
+    assertNotNull(jmsImpl.getCustomEndpoint());
+    assertEquals(CustomEndpoint.class, jmsImpl.endpointBuilder().getClass());
+    jmsImpl.withCustomEndpoint(new CustomEndpoint());
+    assertNotNull(jmsImpl.getCustomEndpoint());
+    assertNotSame(CustomEndpoint.class, jmsImpl.endpointBuilder().getClass());
+  }
+  
 }

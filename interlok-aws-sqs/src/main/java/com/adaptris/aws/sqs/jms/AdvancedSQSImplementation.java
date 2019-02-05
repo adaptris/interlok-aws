@@ -16,26 +16,26 @@
 
 package com.adaptris.aws.sqs.jms;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.JMSException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.http.util.Args;
+
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.Removal;
 import com.adaptris.aws.ClientConfigurationBuilder;
+import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.DefaultRetryPolicyFactory;
+import com.adaptris.aws.EndpointBuilder;
 import com.adaptris.aws.RetryPolicyFactory;
 import com.adaptris.core.CoreException;
-import com.adaptris.security.exc.PasswordException;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazon.sqs.javamessaging.SQSConnectionFactory;
-import com.amazon.sqs.javamessaging.SQSConnectionFactory.Builder;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.retry.RetryPolicy;
+import com.amazonaws.services.sqs.AmazonSQS;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
@@ -45,12 +45,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * and Consumer classes. Use regular JMS consumers and producers instead.
  * </p>
  * <p>
- * This vendor implementation class directly exposes almost all the getter and setters that are available in the
- * {@link Builder#getClientConfiguration()}
- * for maximum flexibility in configuration.
- * </p>
- * <p>
- * The key from the <code>connection-factory-properties</code> element should match the name of the underlying ClientConfiguration
+ * The key from the <code>client-configuration-properties</code> element should match the name of the underlying ClientConfiguration
  * property. So if you wanted to control the user-agent you would configure
  * </p>
  * <pre>
@@ -65,7 +60,6 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * </pre>
  * 
  * @config advanced-amazon-sqs-implementation
- * @license STANDARD
  * @since 3.2.1
  */
 @XStreamAlias("advanced-amazon-sqs-implementation")
@@ -81,8 +75,13 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
   @Deprecated
   private RetryPolicyBuilder retryPolicyBuilder;
 
+  @AdvancedConfig
+  @Valid
   private RetryPolicyFactory retryPolicy;
-
+  @Valid
+  @AdvancedConfig
+  private CustomEndpoint customEndpoint;
+    
   public AdvancedSQSImplementation() {
     setClientConfigurationProperties(new KeyValuePairSet());
   }
@@ -96,27 +95,20 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
   }
 
   @Override
-  public ConnectionFactory createConnectionFactory() throws JMSException {
-    SQSConnectionFactory connectionFactory = null;
-    try {
-      connectionFactory = configure(builder()).build();
-    } catch (PasswordException e) {
-      rethrowJMSException(e);
-    } catch (Exception e) {
-      rethrowJMSException("Exception configuring client configuration", e);
-    }
-
-    return connectionFactory;
+  protected SQSConnectionFactory build() throws Exception {
+    
+    ClientConfiguration cc = ClientConfigurationBuilder.build(getClientConfigurationProperties())
+        .withRetryPolicy(retryPolicy());
+    AmazonSQS sqsClient = getSqsClientFactory().createClient(authentication().getAWSCredentials(), cc, endpointBuilder());
+    return new SQSConnectionFactory(newProviderConfiguration(), sqsClient);
   }
-
-  Builder configure(Builder builder) throws Exception {
-    ClientConfiguration cc =
-        ClientConfigurationBuilder.configure(builder.getClientConfiguration(), getClientConfigurationProperties())
-            .withRetryPolicy(retryPolicy());
-    builder.setClientConfiguration(cc);
-    return builder;
+  
+  @Override
+  protected EndpointBuilder endpointBuilder(){
+    return getCustomEndpoint() != null && getCustomEndpoint().isConfigured() ? getCustomEndpoint()
+        : new RegionOnly();
   }
-
+  
   public KeyValuePairSet getClientConfigurationProperties() {
     return clientConfigurationProperties;
   }
@@ -157,6 +149,30 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
     this.retryPolicy = retryPolicy;
   }
 
+  public CustomEndpoint getCustomEndpoint() {
+    return customEndpoint;
+  }
+
+  /**
+   * Set a custom endpoint for this connection.
+   * <p>
+   * Generally speaking, you don't need to configure this; use {@link #setRegion(String)} instead. This is only required if you are
+   * planning to use a non-standard service endpoint such as <a href="https://github.com/localstack/localstack">localstack</a> to
+   * provide AWS services. Explicitly configuring this means that your {@link #setRegion(String)} will have no effect (i.e.
+   * {@code AwsClientBuilder#setRegion(String)} will never be invoked.
+   * </p>
+   * 
+   * @param endpoint
+   */
+  public void setCustomEndpoint(CustomEndpoint endpoint) {
+    this.customEndpoint = endpoint;
+  }
+  
+  public AdvancedSQSImplementation withCustomEndpoint(CustomEndpoint endpoint) {
+    setCustomEndpoint(endpoint);
+    return this;
+  }
+  
   @SuppressWarnings("deprecation")
   RetryPolicy retryPolicy() throws Exception {
     if (getRetryPolicyBuilder() != null) {

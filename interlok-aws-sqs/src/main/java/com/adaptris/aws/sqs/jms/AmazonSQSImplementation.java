@@ -16,28 +16,41 @@
 
 package com.adaptris.aws.sqs.jms;
 
+import static com.adaptris.core.jms.JmsUtils.wrapJMSException;
+
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import org.apache.commons.lang.StringUtils;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.ObjectUtils;
+
 import com.adaptris.annotation.AdvancedConfig;
+import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.annotation.Removal;
 import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.aws.AWSKeysAuthentication;
+import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.DefaultAWSAuthentication;
-import com.adaptris.core.CoreException;
+import com.adaptris.aws.DefaultRetryPolicyFactory;
+import com.adaptris.aws.EndpointBuilder;
+import com.adaptris.aws.sqs.SQSClientFactory;
+import com.adaptris.aws.sqs.UnbufferedSQSClientFactory;
 import com.adaptris.core.jms.VendorImplementationBase;
 import com.adaptris.core.jms.VendorImplementationImp;
 import com.adaptris.core.util.Args;
-import com.adaptris.security.exc.AdaptrisSecurityException;
 import com.adaptris.security.password.Password;
+import com.adaptris.util.KeyValuePairSet;
 import com.adaptris.util.NumberUtils;
+import com.amazon.sqs.javamessaging.ProviderConfiguration;
 import com.amazon.sqs.javamessaging.SQSConnectionFactory;
-import com.amazon.sqs.javamessaging.SQSConnectionFactory.Builder;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.sqs.AmazonSQS;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
@@ -72,44 +85,38 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   @AdvancedConfig
   private Integer prefetchCount;
 
+  @NotNull
+  @AutoPopulated
+  @Valid
+  @InputFieldDefault(value = "UnbufferedSQSClientFactory")
+  private SQSClientFactory sqsClientFactory;
+  
+  private transient SQSConnectionFactory connectionFactory = null;
   
   public AmazonSQSImplementation() {
-    setAuthentication(new DefaultAWSAuthentication());
+    setSqsClientFactory(new UnbufferedSQSClientFactory());
   }
 
   @Override
-  public ConnectionFactory createConnectionFactory() throws JMSException {
-    SQSConnectionFactory connectionFactory = null;
+  public SQSConnectionFactory createConnectionFactory() throws JMSException {
     try {
-      connectionFactory = builder().build();
-    } catch (Exception e) {
-      rethrowJMSException(e);
+      if (connectionFactory == null) connectionFactory = build();
     }
-
+    catch (Exception e) {
+      throw wrapJMSException(e);
+    }
     return connectionFactory;
   }
 
-  protected Builder builder() throws AdaptrisSecurityException {
-    Builder builder = SQSConnectionFactory.builder()
-        .withRegionName(getRegion())
-        .withNumberOfMessagesToPrefetch(prefetchCount());
-    
-    if (getAuthentication() == null && StringUtils.isNotEmpty(getAccessKey()) && StringUtils.isNotEmpty(getSecretKey())) {
-      AWSKeysAuthentication auth = new AWSKeysAuthentication();
-      auth.setAccessKey(getAccessKey());
-      auth.setSecretKey(getSecretKey());
-      setAuthentication(auth);
-    }
-    AWSCredentials creds = getAuthentication().getAWSCredentials();
-    if(creds != null) {
-      builder.withAWSCredentialsProvider(new AWSStaticCredentialsProvider(creds));
-    }
-    return builder;
+  protected SQSConnectionFactory build() throws Exception {
+    ClientConfiguration cc = ClientConfigurationBuilder.build(new KeyValuePairSet());
+    AmazonSQS sqsClient = getSqsClientFactory().createClient(authentication().getAWSCredentials(), cc, endpointBuilder());
+    return new SQSConnectionFactory(newProviderConfiguration(), sqsClient);
   }
 
   @Override
   public boolean connectionEquals(VendorImplementationBase arg0) {
-    return false;
+    return this == arg0;
   }
 
   public String getRegion() {
@@ -180,24 +187,10 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
     this.prefetchCount = prefetchCount;
   }
 
-  int prefetchCount() {
+  protected int prefetchCount() {
     return NumberUtils.toIntDefaultIfNull(getPrefetchCount(), DEFAULT_PREFETCH_COUNT);
   }
 
-  @Override
-  public void prepare() throws CoreException {
-    super.prepare();
-  }
-  
-  protected void rethrowJMSException(String msg, Exception e) throws JMSException {
-    JMSException jmse = new JMSException(msg);
-    jmse.initCause(e);
-    throw jmse;
-  }
-
-  protected void rethrowJMSException(Exception e) throws JMSException {
-    rethrowJMSException(e.getMessage(), e);
-  }
   
   public AWSAuthentication getAuthentication() {
     return authentication;
@@ -210,4 +203,52 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
     this.authentication = authentication;
   }
 
+  /**
+   * How to create the SQS client and set parameters.
+   */
+  public void setSqsClientFactory(SQSClientFactory sqsClientFactory) {
+    this.sqsClientFactory = Args.notNull(sqsClientFactory, "sqsClientFactory");
+  }
+  
+  public SQSClientFactory getSqsClientFactory() {
+    return sqsClientFactory;
+  }
+  
+  protected AWSAuthentication authentication() {
+    AWSAuthentication auth = ObjectUtils.defaultIfNull(getAuthentication(), new DefaultAWSAuthentication());
+    if (getAuthentication() == null && hasLegacyConfig()) {
+      auth = new AWSKeysAuthentication(getAccessKey(), getSecretKey());
+    }
+    return auth;
+  }
+
+  protected EndpointBuilder endpointBuilder() {
+    return new RegionOnly();
+  }
+  
+  protected ProviderConfiguration newProviderConfiguration() {
+    return new ProviderConfiguration().withNumberOfMessagesToPrefetch(prefetchCount());
+  }
+  
+  
+  private boolean hasLegacyConfig() {
+    return BooleanUtils.and(new boolean[]
+    {
+        StringUtils.isNotBlank(getAccessKey()), StringUtils.isNotBlank(getSecretKey())
+    });
+  }
+  
+  
+  protected class RegionOnly implements EndpointBuilder {
+
+    @Override
+    public <T extends AwsClientBuilder<?, ?>> T rebuild(T builder) {
+      if (StringUtils.isNotBlank(getRegion())) {
+        log.trace("Setting Region to {}", getRegion());
+        builder.setRegion(getRegion());
+      }
+      return builder;
+    }
+    
+  }
 }
