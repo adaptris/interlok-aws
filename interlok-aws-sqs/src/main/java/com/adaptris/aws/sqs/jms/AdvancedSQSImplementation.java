@@ -20,6 +20,8 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.http.util.Args;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
@@ -160,7 +162,7 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
     if (getRetryPolicyBuilder() != null) {
       return getRetryPolicyBuilder().build();
     }
-    return getRetryPolicy() != null ? getRetryPolicy().build() : new DefaultRetryPolicyFactory().build();
+    return ObjectUtils.defaultIfNull(getRetryPolicy(), new DefaultRetryPolicyFactory()).build();
   }
 
 }

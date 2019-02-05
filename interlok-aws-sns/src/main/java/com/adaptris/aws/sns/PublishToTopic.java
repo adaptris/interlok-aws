@@ -18,6 +18,7 @@ package com.adaptris.aws.sns;
 
 import javax.validation.Valid;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.adaptris.annotation.AdvancedConfig;
@@ -147,10 +148,10 @@ public class PublishToTopic extends NotificationProducer {
 
   
   protected DataInputParameter<String> source() {
-    return getSource() != null ? getSource() : DEFAULT_SOURCE;
+    return ObjectUtils.defaultIfNull(getSource(), DEFAULT_SOURCE);
   }
 
   protected DataInputParameter<String> subject() {
-    return getSubject() != null ? getSubject() : EMPTY;
+    return ObjectUtils.defaultIfNull(getSubject(), EMPTY);
   }
 }

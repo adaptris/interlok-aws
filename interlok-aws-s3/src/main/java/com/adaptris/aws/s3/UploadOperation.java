@@ -25,6 +25,7 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
@@ -96,7 +97,7 @@ public class UploadOperation extends TransferOperation {
   }
   
   private List<S3ObjectMetadata> objectMetadata() {
-    return getObjectMetadata() != null ? getObjectMetadata() : Collections.emptyList();
+    return ObjectUtils.defaultIfNull(getObjectMetadata(), Collections.emptyList());
   }
   
   

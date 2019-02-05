@@ -33,6 +33,9 @@ import com.amazonaws.services.s3.model.Tag;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 import javax.validation.Valid;
+
+import org.apache.commons.lang3.ObjectUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -89,7 +92,7 @@ public class TagOperation extends S3OperationImpl {
 
   
   protected MetadataFilter tagMetadataFilter() {
-    return getTagMetadataFilter() != null ? getTagMetadataFilter() : new RemoveAllMetadataFilter();
+    return ObjectUtils.defaultIfNull(getTagMetadataFilter(), new RemoveAllMetadataFilter());
   }
   
   protected List<Tag> filterTagMetadata(AdaptrisMessage msg) {

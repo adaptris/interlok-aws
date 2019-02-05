@@ -24,6 +24,7 @@ import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.Removal;
 import com.adaptris.aws.PluggableRetryPolicyFactory;
 import com.adaptris.aws.RetryPolicyFactory;
+import com.adaptris.util.NumberUtils;
 import com.amazonaws.retry.RetryPolicy;
 import com.amazonaws.retry.RetryPolicy.BackoffStrategy;
 import com.amazonaws.retry.RetryPolicy.RetryCondition;
@@ -94,7 +95,7 @@ public class RetryPolicyBuilder {
   }
 
   private int maxErrorRetry() {
-    return getMaxErrorRetry() != null ? getMaxErrorRetry().intValue() : 0;
+    return NumberUtils.toIntDefaultIfNull(getMaxErrorRetry(), 0);
   }
 
   public Boolean getUseClientConfigurationMaxErrorRetry() {

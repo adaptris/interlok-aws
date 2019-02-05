@@ -22,6 +22,8 @@ import java.util.Set;
 
 import javax.validation.Valid;
 
+import org.apache.commons.lang3.ObjectUtils;
+
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.MetadataCollection;
@@ -67,7 +69,7 @@ public abstract class TransferOperation extends S3OperationImpl {
   }
   
   MetadataFilter userMetadataFilter() {
-    return getUserMetadataFilter() != null ? getUserMetadataFilter() : new RemoveAllMetadataFilter();
+    return ObjectUtils.defaultIfNull(getUserMetadataFilter(), new RemoveAllMetadataFilter());
   }
 
   protected Set<MetadataElement> filterUserMetadata(Map<String, String> userMetadata) {
