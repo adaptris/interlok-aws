@@ -1,20 +1,14 @@
 package com.adaptris.aws.sqs;
 
-import static com.adaptris.aws.sqs.LocalstackHelper.SQS_QUEUE;
-import static com.adaptris.aws.sqs.LocalstackHelper.SQS_SIGNING_REGION;
-import static com.adaptris.aws.sqs.LocalstackHelper.SQS_URL;
-import static com.adaptris.aws.sqs.LocalstackHelper.getProperty;
-
 import java.util.Properties;
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.lang3.BooleanUtils;
 
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.CustomEndpoint;
-import com.adaptris.core.CoreException;
+import com.adaptris.aws.sqs.jms.AdvancedSQSImplementation;
+import com.adaptris.core.jms.JmsConnection;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.core.util.PropertyHelper;
 import com.amazonaws.services.sqs.AmazonSQS;
@@ -30,6 +24,7 @@ public class LocalstackHelper {
   public static final String SQS_SIGNING_REGION = "localstack.sqs.signingRegion";
   public static final String SQS_URL = "localstack.sqs.url";
   public static final String SQS_QUEUE = "localstack.sqs.queue";
+  public static final String SQS_JMS_QUEUE = "localstack.sqs.jms.queue";
   public static final String PROPERTIES_RESOURCE = "unit-tests.properties";
 
   private static final long MAX_WAIT = 65000;
@@ -66,11 +61,24 @@ public class LocalstackHelper {
     return connection;
   }
   
-  AmazonSQS getSyncClient() throws Exception {
+  public JmsConnection createJmsConnection() {
+    String serviceEndpoint = getProperty(SQS_URL);
+    String signingRegion = getProperty(SQS_SIGNING_REGION);
+    BufferedSQSClientFactory clientFactory = new BufferedSQSClientFactory();
+    clientFactory.setLongPollWaitTimeoutSeconds(5);
+    AdvancedSQSImplementation jmsImpl = new AdvancedSQSImplementation()
+        .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion))
+        .withClientFactory(clientFactory)
+        .withAuthentication(new AWSKeysAuthentication("TEST", "TEST"));
+    JmsConnection jmsC = new JmsConnection(jmsImpl);
+    return jmsC;
+  }
+  
+  public AmazonSQS getSyncClient() throws Exception {
     return connection.getSyncClient();
   }
 
-  AmazonSQSAsync getASyncClient() throws Exception {
+  public AmazonSQSAsync getASyncClient() throws Exception {
     return connection.getASyncClient();
   }
   

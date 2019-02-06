@@ -7,3 +7,4 @@ junit.localstack.tests.enabled=false
 junit.localstack.sqs.signingRegion=us-east-1
 junit.localstack.sqs.url=http://localhost:4576
 junit.localstack.sqs.queue=SampleQ1
+junit.localstack.sqs.jms.queue=SampleQ2
