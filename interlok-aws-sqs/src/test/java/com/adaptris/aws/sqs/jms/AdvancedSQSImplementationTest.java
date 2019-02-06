@@ -20,9 +20,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
-
 import org.junit.Test;
-
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.DefaultRetryPolicyFactory;
@@ -34,7 +32,7 @@ public class AdvancedSQSImplementationTest extends AmazonSQSImplementationTest {
 
   @Test
   public void testConnectionFactory_WithClientConfiguration() throws Exception {
-    AdvancedSQSImplementation jmsImpl = new AdvancedSQSImplementation();
+    AdvancedSQSImplementation jmsImpl = createImpl();
     jmsImpl.setAuthentication(new AWSKeysAuthentication("MyAccessKey", "MyKey"));
     jmsImpl.setRegion("eu-west-1");
     
@@ -52,7 +50,7 @@ public class AdvancedSQSImplementationTest extends AmazonSQSImplementationTest {
   @Test
   @SuppressWarnings("deprecation")
   public void testConnectionFactory_WithRetryPolicyBuilder() throws Exception {
-    AdvancedSQSImplementation jmsImpl = new AdvancedSQSImplementation();
+    AdvancedSQSImplementation jmsImpl = createImpl();
     jmsImpl.setRegion("eu-west-1");
     jmsImpl.setRetryPolicyBuilder(new RetryPolicyBuilder());
     jmsImpl.prepare();
@@ -61,7 +59,7 @@ public class AdvancedSQSImplementationTest extends AmazonSQSImplementationTest {
   
   @Test
   public void testConnectionFactory_WithRetryPolicy() throws Exception {
-    AdvancedSQSImplementation jmsImpl = new AdvancedSQSImplementation();
+    AdvancedSQSImplementation jmsImpl = createImpl();
     jmsImpl.setRegion("eu-west-1");
     jmsImpl.setRetryPolicy(new DefaultRetryPolicyFactory());
     jmsImpl.prepare();
@@ -71,7 +69,7 @@ public class AdvancedSQSImplementationTest extends AmazonSQSImplementationTest {
   @Test
   @SuppressWarnings("deprecation")
   public void testConnectionFactory_WithRetryPolicyBuilderAndFatory() throws Exception {
-    AdvancedSQSImplementation jmsImpl = new AdvancedSQSImplementation();
+    AdvancedSQSImplementation jmsImpl = createImpl();
     jmsImpl.setRegion("eu-west-1");
     jmsImpl.setRetryPolicy(new DefaultRetryPolicyFactory());
     jmsImpl.setRetryPolicyBuilder(new RetryPolicyBuilder());
@@ -84,7 +82,7 @@ public class AdvancedSQSImplementationTest extends AmazonSQSImplementationTest {
 
   @Test
   public void testEndpointBuilder() {
-    AdvancedSQSImplementation jmsImpl = new AdvancedSQSImplementation();
+    AdvancedSQSImplementation jmsImpl = createImpl();
     assertNull(jmsImpl.getCustomEndpoint());
     jmsImpl.setRegion("us-west-1");
     assertNotNull(jmsImpl.endpointBuilder());
@@ -95,5 +93,10 @@ public class AdvancedSQSImplementationTest extends AmazonSQSImplementationTest {
     assertNotNull(jmsImpl.getCustomEndpoint());
     assertNotSame(CustomEndpoint.class, jmsImpl.endpointBuilder().getClass());
   }
-  
+
+
+  @Override
+  protected AdvancedSQSImplementation createImpl() {
+    return new AdvancedSQSImplementation();
+  }
 }

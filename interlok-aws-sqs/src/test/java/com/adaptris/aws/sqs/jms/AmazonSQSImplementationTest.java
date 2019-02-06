@@ -17,8 +17,10 @@
 package com.adaptris.aws.sqs.jms;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import javax.jms.JMSException;
 import org.junit.Test;
@@ -31,7 +33,7 @@ public class AmazonSQSImplementationTest {
 
   @Test
   public void testCreateFactory() throws Exception {
-    AmazonSQSImplementation jmsImpl = new AmazonSQSImplementation();
+    AmazonSQSImplementation jmsImpl = createImpl();
     jmsImpl.setAuthentication(new AWSKeysAuthentication("MyAccessKey", "MyKey"));
     jmsImpl.setRegion("eu-west-1");
     assertNotNull(jmsImpl.createConnectionFactory());
@@ -39,7 +41,7 @@ public class AmazonSQSImplementationTest {
 
   @Test
   public void testBadPassword() throws Exception {
-    AmazonSQSImplementation jmsImpl = new AmazonSQSImplementation();
+    AmazonSQSImplementation jmsImpl = createImpl();
     jmsImpl.setAuthentication(new AWSKeysAuthentication("MyAccessKey", "PW:BACCy"));
     jmsImpl.setRegion("eu-west-1");
     try {
@@ -53,7 +55,7 @@ public class AmazonSQSImplementationTest {
   @Test
   @SuppressWarnings("deprecation")
   public void testSetter() throws Exception {
-    AmazonSQSImplementation jmsImpl = new AmazonSQSImplementation();
+    AmazonSQSImplementation jmsImpl = createImpl();
     assertNull(jmsImpl.getAccessKey());
     jmsImpl.setAccessKey("XXX");
     assertEquals("XXX", jmsImpl.getAccessKey());
@@ -74,8 +76,9 @@ public class AmazonSQSImplementationTest {
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testAuthentication() throws Exception {
-    AmazonSQSImplementation jmsImpl = new AmazonSQSImplementation();
+    AmazonSQSImplementation jmsImpl = createImpl();
     assertNull(jmsImpl.getAuthentication());
     assertNotNull(jmsImpl.authentication());
     assertEquals(DefaultAWSAuthentication.class, jmsImpl.authentication().getClass());
@@ -93,7 +96,7 @@ public class AmazonSQSImplementationTest {
   
   @Test
   public void testClientFactory() throws Exception {
-    AmazonSQSImplementation jmsImpl = new AmazonSQSImplementation();
+    AmazonSQSImplementation jmsImpl = createImpl();
     assertNotNull(jmsImpl.getSqsClientFactory());
     assertEquals(UnbufferedSQSClientFactory.class, jmsImpl.getSqsClientFactory().getClass());
 
@@ -104,9 +107,12 @@ public class AmazonSQSImplementationTest {
 
   @Test
   public void testConnectionEquals() throws Exception {
-    AmazonSQSImplementation jmsImpl = new AmazonSQSImplementation();
+    AmazonSQSImplementation jmsImpl = createImpl();
     assertFalse(jmsImpl.connectionEquals(new AmazonSQSImplementation()));
     assertTrue(jmsImpl.connectionEquals(jmsImpl));
   }
 
+  protected AmazonSQSImplementation createImpl() {
+    return new AmazonSQSImplementation();
+  }
 }

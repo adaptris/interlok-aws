@@ -20,12 +20,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
 import org.junit.Test;
-
-import com.adaptris.aws.sqs.jms.RetryPolicyBuilder;
 import com.amazonaws.retry.RetryPolicy;
 
+@SuppressWarnings("deprecation")
 public class RetryPolicyBuilderTest {
 
   @Test
