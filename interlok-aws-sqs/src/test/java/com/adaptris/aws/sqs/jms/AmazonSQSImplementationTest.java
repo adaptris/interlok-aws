@@ -33,6 +33,7 @@ public class AmazonSQSImplementationTest {
   public void testCreateFactory() throws Exception {
     AmazonSQSImplementation jmsImpl = new AmazonSQSImplementation();
     jmsImpl.setAuthentication(new AWSKeysAuthentication("MyAccessKey", "MyKey"));
+    jmsImpl.setRegion("eu-west-1");
     assertNotNull(jmsImpl.createConnectionFactory());
   }
 
