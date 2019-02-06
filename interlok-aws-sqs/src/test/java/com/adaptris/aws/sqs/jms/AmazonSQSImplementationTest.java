@@ -24,6 +24,8 @@ import javax.jms.JMSException;
 import org.junit.Test;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.DefaultAWSAuthentication;
+import com.adaptris.aws.sqs.BufferedSQSClientFactory;
+import com.adaptris.aws.sqs.UnbufferedSQSClientFactory;
 
 public class AmazonSQSImplementationTest {
 
@@ -83,9 +85,19 @@ public class AmazonSQSImplementationTest {
     assertNull(jmsImpl.getAuthentication());
     assertEquals(AWSKeysAuthentication.class, jmsImpl.authentication().getClass());
 
-    jmsImpl.setAuthentication(new DefaultAWSAuthentication());
+    jmsImpl.withAuthentication(new DefaultAWSAuthentication());
     assertNotNull(jmsImpl.getAuthentication());
     assertEquals(DefaultAWSAuthentication.class, jmsImpl.authentication().getClass());
+  }
+  
+  @Test
+  public void testClientFactory() throws Exception {
+    AmazonSQSImplementation jmsImpl = new AmazonSQSImplementation();
+    assertNotNull(jmsImpl.getSqsClientFactory());
+    assertEquals(UnbufferedSQSClientFactory.class, jmsImpl.getSqsClientFactory().getClass());
+
+    jmsImpl.withClientFactory(new BufferedSQSClientFactory());
+    assertEquals(BufferedSQSClientFactory.class, jmsImpl.getSqsClientFactory().getClass());   
   }
   
 

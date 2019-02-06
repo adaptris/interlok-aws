@@ -203,6 +203,11 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
     this.authentication = authentication;
   }
 
+  public <T extends AmazonSQSImplementation> T withAuthentication(AWSAuthentication a) {
+    setAuthentication(a);
+    return (T) this;
+  }
+  
   /**
    * How to create the SQS client and set parameters.
    */
@@ -212,6 +217,11 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   
   public SQSClientFactory getSqsClientFactory() {
     return sqsClientFactory;
+  }
+  
+  public <T extends AmazonSQSImplementation> T withClientFactory(SQSClientFactory fac) {
+    setSqsClientFactory(fac);
+    return (T) this;
   }
   
   protected AWSAuthentication authentication() {
