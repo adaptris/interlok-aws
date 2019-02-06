@@ -19,8 +19,6 @@ package com.adaptris.aws.sqs;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.apache.http.util.Args;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
@@ -32,6 +30,7 @@ import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.ClientConfiguration;
