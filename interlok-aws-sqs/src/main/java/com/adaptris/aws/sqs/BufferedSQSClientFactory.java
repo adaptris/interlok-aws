@@ -17,6 +17,7 @@
 package com.adaptris.aws.sqs;
 
 import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.aws.EndpointBuilder;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
@@ -74,7 +75,7 @@ public class BufferedSQSClientFactory extends UnbufferedSQSClientFactory {
   }
   
   @Override
-  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf, String region) {
+  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf,  EndpointBuilder endpoint) {
     QueueBufferConfig config = new QueueBufferConfig()
       .withLongPoll(isLongPoll())
       .withLongPollWaitTimeoutSeconds(getLongPollWaitTimeoutSeconds())
@@ -85,7 +86,7 @@ public class BufferedSQSClientFactory extends UnbufferedSQSClientFactory {
       .withMaxInflightOutboundBatches(getMaxInflightOutboundBatches())
       .withMaxInflightReceiveBatches(getMaxInflightReceiveBatches())
       .withVisibilityTimeoutSeconds(getVisibilityTimeoutSeconds());
-    AmazonSQSAsync realClient = super.createClient(creds, conf, region);
+    AmazonSQSAsync realClient = super.createClient(creds, conf, endpoint);
     return new AmazonSQSBufferedAsyncClient(realClient, config);
   }
   

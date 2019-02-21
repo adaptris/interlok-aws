@@ -24,6 +24,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import com.adaptris.aws.AWSKeysAuthentication;
+import com.adaptris.aws.EndpointBuilder;
 import com.adaptris.core.CoreException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
@@ -60,15 +61,15 @@ public class AmazonSQSConnectionTest extends TestCase {
   }
 
   public void testInit() throws Exception {
-    when(mockClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject(), anyString()))
-        .thenReturn(mockSqsClient);
+    when(mockClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject(),
+        (EndpointBuilder) anyObject())).thenReturn(mockSqsClient);
     amazonSQSConnection.init();
   }
 
 
   public void testStartUp() throws Exception {
-    when(mockClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject(), anyString()))
-        .thenReturn(mockSqsClient);
+    when(mockClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject(),
+        (EndpointBuilder) anyObject())).thenReturn(mockSqsClient);
     amazonSQSConnection.init();
     amazonSQSConnection.start();
   }
@@ -92,17 +93,17 @@ public class AmazonSQSConnectionTest extends TestCase {
   }
   
   public void testGetSyncClientAfterInit() throws Exception {
-    when(mockClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject(), anyString()))
-        .thenReturn(mockSqsClient);
-    
+    when(mockClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject(), 
+        (EndpointBuilder) anyObject())).thenReturn(mockSqsClient);
+
     amazonSQSConnection.init();
     assertEquals(mockSqsClient, amazonSQSConnection.getSyncClient());
   }
   
   public void testGetASyncClientAfterInit() throws Exception {
-    when(mockClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject(), anyString()))
-        .thenReturn(mockSqsClient);
-    
+    when(mockClientFactory.createClient((AWSCredentials) anyObject(), (ClientConfiguration) anyObject(),
+        (EndpointBuilder) anyObject())).thenReturn(mockSqsClient);
+
     amazonSQSConnection.init();
     assertEquals(mockSqsClient, amazonSQSConnection.getASyncClient());
   }

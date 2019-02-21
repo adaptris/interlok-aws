@@ -17,7 +17,6 @@
 package com.adaptris.aws;
 
 import javax.validation.constraints.NotNull;
-
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.core.util.Args;
 import com.amazonaws.retry.PredefinedRetryPolicies;
@@ -73,6 +72,11 @@ public class DefaultRetryPolicyFactory implements RetryPolicyFactory {
     setRetryPolicy(PredefinedPolicy.DEFAULT);
   }
   
+  public DefaultRetryPolicyFactory(PredefinedPolicy p) {
+    this();
+    setRetryPolicy(p);
+  }
+
   @Override
   public RetryPolicy build() {
     return getRetryPolicy().build();

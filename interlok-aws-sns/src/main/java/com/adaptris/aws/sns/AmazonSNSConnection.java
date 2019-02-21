@@ -62,7 +62,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Connection for supporting connectivity to Amazon SNS", tag = "connections,amazon,sns",
     recommended = { NotificationProducer.class })
-@DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy"})
+@DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy", "customEndpoint"})
 public class AmazonSNSConnection extends AWSConnection {
 
   private transient AmazonSNSClient snsClient;
@@ -86,12 +86,9 @@ public class AmazonSNSConnection extends AWSConnection {
     try {
       AWSCredentials creds = authentication().getAWSCredentials();
       ClientConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
-      AmazonSNSClientBuilder builder = AmazonSNSClientBuilder.standard().withClientConfiguration(cc);
+      AmazonSNSClientBuilder builder = endpointBuilder().rebuild(AmazonSNSClientBuilder.standard().withClientConfiguration(cc));
       if (creds != null) {
         builder.withCredentials(new AWSStaticCredentialsProvider(creds));
-      }
-      if (hasRegion()) {
-        builder.withRegion(getRegion());
       }
       snsClient = (AmazonSNSClient) builder.build();
     }

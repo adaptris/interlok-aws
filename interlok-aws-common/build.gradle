@@ -15,7 +15,16 @@ task examplesJar(type: Jar, dependsOn: test) {
     classifier = 'examples'
     from new File(buildDir, '/examples')
 }
-
+jar {
+  manifest {
+    attributes("Built-By": System.getProperty('user.name'),
+              "Build-Jdk": System.getProperty('java.version'),
+              "Implementation-Title": componentName,
+              "Implementation-Version": project.version,
+              "Implementation-Vendor-Id": project.group,
+              "Implementation-Vendor": organizationName)
+  }
+}
 artifacts {
     archives javadocJar
     archives examplesJar
@@ -45,3 +54,4 @@ publishing {
     }
   }
 }
+javadoc.dependsOn offlinePackageList
