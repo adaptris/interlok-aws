@@ -1,0 +1,36 @@
+
+buildscript {
+  repositories {    
+    maven { url 'https://plugins.gradle.org/m2/' }
+    mavenCentral()
+  }
+  dependencies {
+    classpath "gradle.plugin.com.github.spotbugs:spotbugs-gradle-plugin:1.6.10"
+  }
+}
+
+apply plugin: 'com.github.spotbugs'
+
+spotbugs {
+  // showProgress = "true"
+  effort = "max"
+  // Ignore failures?
+  // ignoreFailures = false
+
+  // We only care about "high priority" issues...
+//  reportLevel = "high"
+}
+
+// disable spotbugsTests which checks our test code..
+spotbugsTest.enabled = false
+
+tasks.withType(com.github.spotbugs.SpotBugsTask) {
+  reports {
+    xml.enabled = false
+    html.enabled = true
+  }
+}
+
+
+
+

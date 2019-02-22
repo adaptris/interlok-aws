@@ -1,6 +1,10 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
+plugins {
+  id 'com.github.spotbugs' version '1.6.10' apply false
+}
+
 ext {
   interlokCoreVersion = project.hasProperty('interlokCoreVersion') ? project.getProperty('interlokCoreVersion') : '3.8-SNAPSHOT'
   releaseVersion = project.hasProperty('releaseVersion') ? project.getProperty('releaseVersion') : '3.8-SNAPSHOT'
@@ -18,7 +22,7 @@ ext {
 
   slf4jVersion = '1.7.26'
   awsSDKVersion = '1.11.503'
-  log4j2Version = '2.9.1'
+  log4j2Version = '2.11.2'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
