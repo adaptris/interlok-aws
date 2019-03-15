@@ -18,7 +18,6 @@ package com.adaptris.aws.s3;
 
 import java.util.List;
 import java.util.Set;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
@@ -27,12 +26,11 @@ import com.adaptris.core.MetadataCollection;
 import com.adaptris.core.MetadataElement;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectTaggingRequest;
-import com.amazonaws.services.s3.model.GetObjectTaggingResult;
 import com.amazonaws.services.s3.model.Tag;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
- * Add tags to an object from S3 to another object
+ * Get tags associated with a S3 Object
  * 
  * <p>
  * Uses {@link AmazonS3Client#getObjectTagging#(GetObjectTaggingRequest)}
@@ -41,9 +39,9 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * @config amazon-s3-tag-get
  */
 @AdapterComponent
-@ComponentProfile(summary = "Get tags associated with an object in S3")
+@ComponentProfile(summary = "Get tags associated with an object in S3", since = "3.8.4")
 @XStreamAlias("amazon-s3-tag-get")
-@DisplayOrder(order ={ "bucketName", "key"})
+@DisplayOrder(order = {"bucketName", "key", "tagMetadataFilter"})
 public class GetTagOperation extends TagOperation {
 
   public GetTagOperation() {
