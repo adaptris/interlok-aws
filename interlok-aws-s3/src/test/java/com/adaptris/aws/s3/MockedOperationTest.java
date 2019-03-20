@@ -1,20 +1,23 @@
 package com.adaptris.aws.s3;
 
-import static org.apache.commons.lang.StringUtils.isEmpty;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import com.adaptris.aws.s3.meta.S3ObjectMetadata;
 import com.adaptris.aws.s3.meta.S3ServerSideEncryption;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -24,10 +27,12 @@ import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CopyObjectResult;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.GetObjectTaggingResult;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.SetObjectTaggingRequest;
+import com.amazonaws.services.s3.model.Tag;
 import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferProgress;
@@ -231,4 +236,44 @@ public class MockedOperationTest {
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);    
     uploader.execute(wrapper, msg);
   }
+
+  @Test
+  public void testCheckFileExists() throws Exception {
+    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    TransferManager transferManager = Mockito.mock(TransferManager.class);
+    Mockito.when(client.doesObjectExist(anyString(), anyString())).thenReturn(false).thenReturn(true);
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello");
+    CheckFileExistsOperation checker = new CheckFileExistsOperation()
+        .withBucketName(new ConstantDataInputParameter("srcBucket"))
+        .withKey(new ConstantDataInputParameter("srcKey"));
+    ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
+    try {
+      checker.execute(wrapper, msg);
+      fail();
+    }
+    catch (Exception expcted) {
+
+    }
+    checker.execute(wrapper, msg);
+  }
+
+  @Test
+  public void testGetTagOperation() throws Exception {
+    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    TransferManager transferManager = Mockito.mock(TransferManager.class);
+    GetObjectTaggingResult result = Mockito.mock(GetObjectTaggingResult.class);
+    List<Tag> tags = new ArrayList<Tag>(Arrays.asList(new Tag("hello", "world")));
+    Mockito.when(result.getTagSet()).thenReturn(tags);
+    Mockito.when(client.getObjectTagging(anyObject())).thenReturn(result);
+    GetTagOperation getTags = new GetTagOperation().withTagMetadataFilter(new NoOpMetadataFilter())
+        .withBucketName(new ConstantDataInputParameter("srcBucket")).withKey(new ConstantDataInputParameter("srcKey"));
+
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("");
+    ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
+    getTags.execute(wrapper, msg);
+    assertTrue(msg.headersContainsKey("hello"));
+    assertEquals("world", msg.getMetadataValue("hello"));
+  }
+
+
 }
