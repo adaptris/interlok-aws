@@ -1,3 +1,5 @@
+apply from: "$rootDir/gradle/spotbugs.gradle"
+
 ext {
   componentName='Interlok AWS/SQS'
 }
@@ -5,9 +7,9 @@ ext {
 // In this section you declare the dependencies for your production and test code
 dependencies {
     compile "com.amazonaws:aws-java-sdk-sqs:$awsSDKVersion"
-    compile 'com.amazonaws:amazon-sqs-java-messaging-lib:1.0.4'
+    compile 'com.amazonaws:amazon-sqs-java-messaging-lib:1.0.5'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
-    compile 'org.apache.httpcomponents:httpclient:4.5.7'
+    compile 'org.apache.httpcomponents:httpclient:4.5.8'
 
 
     compile project(':interlok-aws-common')
@@ -65,4 +67,5 @@ publishing {
     }
   }
 }
+processTestResources.dependsOn copyUnitTestProperties
 javadoc.dependsOn offlinePackageList

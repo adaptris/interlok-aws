@@ -20,24 +20,29 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.util.ExceptionHelper;
-import com.adaptris.interlok.InterlokException;
+import com.adaptris.core.services.exception.ExceptionHandlingServiceWrapper;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
- * Delete an object from S3.
+ * Check an exists in S3 and throw an exception if it doesn't.
+ * <p>
+ * Note that this component will throw an exception if the file does not exist possibly cascading
+ * into a failed message; you probably want to use something like
+ * {@link ExceptionHandlingServiceWrapper} or similar if a missing S3 object is part of your
+ * expected integration pipeline.
+ * </p>
  * 
- * @author lchan
- * @config amazon-s3-download
+ * @config amazon-s3-check-file-exists
  */
 @AdapterComponent
-@ComponentProfile(summary = "Delete an object from S3")
-@XStreamAlias("amazon-s3-delete")
+@ComponentProfile(summary = "Check a file exists in S3, throws exception if it doesn't",
+    since = "3.8.4")
+@XStreamAlias("amazon-s3-check-file-exists")
 @DisplayOrder(order ={ "bucketName", "key"})
-public class DeleteOperation extends S3OperationImpl {
+public class CheckFileExistsOperation extends S3OperationImpl {
 
-  public DeleteOperation() {
+  public CheckFileExistsOperation() {
   }
 
   @Override
@@ -45,8 +50,11 @@ public class DeleteOperation extends S3OperationImpl {
     AmazonS3Client s3 = wrapper.amazonClient();
     String bucket = getBucketName().extract(msg);
     String key = getKey().extract(msg);
-    log.trace("Deleting [{}:{}]", bucket, key);
-    s3.deleteObject(bucket, key);
+    if (!s3.doesObjectExist(bucket, key)) {      
+      throw new Exception(String.format("[%s:%s] does not exist", bucket, key));
+    } else {
+      log.trace("[{}:{}] exists", bucket, key);
+    }
   }
-
+  
 }

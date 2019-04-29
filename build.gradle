@@ -1,3 +1,10 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+import org.apache.tools.ant.filters.*
+
+plugins {
+  id 'com.github.spotbugs' version '1.6.10' apply false
+}
+
 ext {
   interlokCoreVersion = project.hasProperty('interlokCoreVersion') ? project.getProperty('interlokCoreVersion') : '3.8-SNAPSHOT'
   releaseVersion = project.hasProperty('releaseVersion') ? project.getProperty('releaseVersion') : '3.8-SNAPSHOT'
@@ -13,9 +20,9 @@ ext {
   interlokCommonJavadocs= project.hasProperty('interlokJavadocs') ? project.getProperty('interlokJavadocs') : javadocsBaseUrl + "/interlok-common/" + interlokCoreVersion
   organizationName = "Adaptris Ltd"
 
-  slf4jVersion = '1.7.25'
-  awsSDKVersion = '1.11.490'
-  log4j2Version = '2.9.1'
+  slf4jVersion = '1.7.26'
+  awsSDKVersion = '1.11.508'
+  log4j2Version = '2.11.2'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
@@ -25,6 +32,22 @@ if (JavaVersion.current().isJava8Compatible()) {
     }
   }
 }
+
+ext.hostname = { ->
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+    return System.getenv("COMPUTERNAME")
+  }
+  return System.getenv("HOSTNAME")
+}
+
+def propertyTemplate(dir, filename) {
+  def file = new File(dir, filename + "." + hostname())
+  if (file.exists()) {
+    return file.getName()
+  }
+  return filename
+}
+
 
 task clean(type: Delete) {
   delete project.buildDir
@@ -112,7 +135,6 @@ subprojects {
       }
   }
 
-  check.dependsOn jacocoTestReport
 
   sourceSets {
     main {
@@ -147,4 +169,33 @@ subprojects {
     include "package-list"
     into offlineJavadocPackageDir
   }
+
+
+  ext.testResourcesDir = { ->
+    return "${project.projectDir}/src/test/resources".replaceAll("\\\\", "/")
+  }
+
+  task generateUnitTestProperties {
+    doLast {
+      ant.property(file: project.projectDir.getCanonicalPath() + "/" + "build.properties")
+      ant.property(file:  testResourcesDir() + "/" + propertyTemplate(testResourcesDir(), "unit-tests.properties.template"))
+      ant.echoproperties(destfile:  testResourcesDir() + '/unit-tests.properties.resolved', prefix: "junit.")
+      ant.replace(file:  testResourcesDir() + '/unit-tests.properties.resolved', token:"junit.", value: "")
+    }
+  }
+
+  task copyUnitTestProperties(type: Copy, dependsOn: generateUnitTestProperties) {
+    delete file( testResourcesDir() + '/unit-tests.properties')
+    from file( testResourcesDir() + "/unit-tests.properties.resolved")
+    into (testResourcesDir())
+    rename { String fileName ->
+      fileName.replace("unit-tests.properties.resolved", 'unit-tests.properties')
+    }
+    filter(ReplaceTokens, tokens: [JAVA_HOME: System.getProperty("java.home").replaceAll("\\\\", "/")])
+    filter(ReplaceTokens, tokens: [BASE_DIR: project.projectDir.getCanonicalPath().replaceAll("\\\\", "/")])
+    filter(ReplaceTokens, tokens: [BUILD_DIR: project.buildDir.getCanonicalPath().replaceAll("\\\\", "/")])
+  }
+
+  check.dependsOn jacocoTestReport
+
 }

@@ -77,7 +77,7 @@ public class BufferedSQSClientFactory extends UnbufferedSQSClientFactory {
   @Override
   public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf,  EndpointBuilder endpoint) {
     QueueBufferConfig config = new QueueBufferConfig()
-      .withLongPoll(isLongPoll())
+      .withLongPoll(getLongPoll())
       .withLongPollWaitTimeoutSeconds(getLongPollWaitTimeoutSeconds())
       .withMaxBatchOpenMs(getMaxBatchOpenMs())
       .withMaxBatchSize(getMaxBatchSize())
@@ -108,7 +108,7 @@ public class BufferedSQSClientFactory extends UnbufferedSQSClientFactory {
     this.longPoll = longPoll;
   }
 
-  public boolean isLongPoll() {
+  public boolean getLongPoll() {
     return longPoll;
   }
 

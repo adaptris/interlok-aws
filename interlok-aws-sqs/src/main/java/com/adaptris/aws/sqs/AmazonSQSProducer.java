@@ -21,11 +21,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang.StringUtils;
+import javax.validation.constraints.NotNull;
+
+import org.apache.commons.lang3.StringUtils;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
+import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageProducer;
@@ -33,12 +38,18 @@ import com.adaptris.core.CoreException;
 import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.ProduceOnlyProducerImp;
+import com.adaptris.core.cache.ExpiringMapCache;
+import com.adaptris.core.util.Args;
+import com.adaptris.core.util.ExceptionHelper;
+import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.util.TimeInterval;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.amazonaws.services.sqs.model.SendMessageResult;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
@@ -49,7 +60,6 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  * </p>
  * 
  * @config amazon-sqs-producer
- * @license STANDARD
  * @since 3.0.3
  */
 @XStreamAlias("amazon-sqs-producer")
@@ -60,26 +70,37 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
 
   private int delaySeconds = 0;
   
-  private transient Map<String, String> cachedQueueURLs = new ConcurrentHashMap<String, String>();
-  
   @XStreamImplicit(itemFieldName = "send-attribute")
+  @NotNull
+  @AutoPopulated
   private List<String> sendAttributes;
 
   @AdvancedConfig
   private String ownerAwsAccountId;
   
+  private transient SendMessageAsyncCallback callback = (e) -> {  };
+  
+  private transient ExpiringMapCache cachedQueueURLs;
+  
   public AmazonSQSProducer() {
-    sendAttributes = new ArrayList<>();
+    setSendAttributes(new ArrayList<String>());
+    cachedQueueURLs = new ExpiringMapCache().withExpiration(new TimeInterval(1L, TimeUnit.HOURS)).withMaxEntries(1024);
   }
 
+  public AmazonSQSProducer(ProduceDestination d) {
+    this();
+    setDestination(d);
+  }
+
+  
   @Override
   public void init() throws CoreException {
-    if(retrieveConnection(AmazonSQSConnection.class) == null) {
-      throw new CoreException("AmazonSQSConnection is required");
-    }
-    
-    if(getDestination() == null) {
-      throw new CoreException("Destination is required");
+    try {
+      LifecycleHelper.init(cachedQueueURLs);
+      Args.notNull(retrieveConnection(AmazonSQSConnection.class), "connection");
+      Args.notNull(getDestination(), "destination");
+    } catch (Exception e) {
+      throw ExceptionHelper.wrapCoreException(e);
     }
   }
   
@@ -89,17 +110,17 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
 
   @Override
   public void start() throws CoreException {
-    // Nothing to do
+    LifecycleHelper.start(cachedQueueURLs);
   }
 
   @Override
   public void stop() {
-    // Nothing to do
+    LifecycleHelper.stop(cachedQueueURLs);
   }
 
   @Override
   public void close() {
-    // Nothing to do
+    LifecycleHelper.close(cachedQueueURLs);
   }
 
   @Override
@@ -115,42 +136,40 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
       }
       
       applyMetadata(sendMessageRequest, msg);
-      getSQS().sendMessageAsync(sendMessageRequest);
+      Future<SendMessageResult> future = getSQS().sendMessageAsync(sendMessageRequest);
+      callback.handleResult(future);
     }
     catch (Exception e) {
       throw new ProduceException(e);
     }
   }
 
-  private void applyMetadata(SendMessageRequest sendMessageRequest, AdaptrisMessage msg) {
-    if((this.getSendAttributes() != null) && (this.getSendAttributes().size() > 0)) {
+  private SendMessageRequest applyMetadata(SendMessageRequest sendMessageRequest, AdaptrisMessage msg) {
+    if(this.getSendAttributes().size() > 0) {
       Map<String, MessageAttributeValue> attributes = new HashMap<>();
       for(String attribute : this.getSendAttributes()) {
         String adpMetadataValue = msg.getMetadataValue(attribute);
-        if((adpMetadataValue != null) && (!adpMetadataValue.equals(""))) {
+        if (!StringUtils.isEmpty(adpMetadataValue)) {
           MessageAttributeValue mav = new MessageAttributeValue();
           mav.setDataType("String");
           mav.setStringValue(msg.getMetadataValue(attribute));
-          attributes.put(attribute, mav);
+          attributes.put(attribute, mav);          
         }
-      }
-      
+      }      
       sendMessageRequest.withMessageAttributes(attributes);
     }
+    return sendMessageRequest;
   }
   
   private String resolveQueueURL(AdaptrisMessage msg) throws AmazonServiceException, AmazonClientException, CoreException {
     // Get destination (possibly from message)
     final String queueName = getDestination().getDestination(msg);
-
-    String queueURL = cachedQueueURLs.get(queueName);
-    
+    String queueURL = (String) cachedQueueURLs.get(queueName);
     // It's not in the cache. Look up the queue url from Amazon and cache it.
     if(queueURL == null) {
       queueURL = retrieveQueueURLFromSQS(queueName);
       cachedQueueURLs.put(queueName, queueURL);
     }
-
     return queueURL;
   }
   
@@ -199,7 +218,7 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
    * @param sendAttributes a list of metadata keys that will be sent as attributes.
    */
   public void setSendAttributes(List<String> sendAttributes) {
-    this.sendAttributes = sendAttributes;
+    this.sendAttributes = Args.notNull(sendAttributes, "sendAttributes");
   }
 
   public String getOwnerAwsAccountId() {
@@ -216,4 +235,14 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
     this.ownerAwsAccountId = ownerAwsAccountId;
   }
 
+  // Just for testing with localstack.
+  protected AmazonSQSProducer withMessageAsyncCallback(SendMessageAsyncCallback callback) {
+    this.callback = Args.notNull(callback, "callback");
+    return this;
+  }
+  
+  @FunctionalInterface
+  public interface SendMessageAsyncCallback {
+    void handleResult(Future<SendMessageResult> future);
+  }
 }

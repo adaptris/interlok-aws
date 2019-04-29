@@ -19,17 +19,18 @@ package com.adaptris.aws.sqs;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.lang.StringUtils;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.InputFieldDefault;
+import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.aws.AWSConnection;
 import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.ClientConfiguration;
@@ -78,6 +79,7 @@ public class AmazonSQSConnection extends AWSConnection {
   @NotNull
   @AutoPopulated
   @Valid
+  @InputFieldDefault(value = "UnbufferedSQSClientFactory")
   private SQSClientFactory sqsClientFactory;
 
   private transient AmazonSQSAsync sqsClient;
@@ -89,7 +91,12 @@ public class AmazonSQSConnection extends AWSConnection {
     setClientConfiguration(new KeyValuePairSet());
   }
 
-
+  public AmazonSQSConnection(AWSAuthentication auth, KeyValuePairSet cfg) {
+    this();
+    setAuthentication(auth);
+    setClientConfiguration(cfg);
+  }
+  
   @Override
   protected void prepareConnection() throws CoreException {
     // nothing to do.
@@ -152,7 +159,7 @@ public class AmazonSQSConnection extends AWSConnection {
    * How to create the SQS client and set parameters.
    */
   public void setSqsClientFactory(SQSClientFactory sqsClientFactory) {
-    this.sqsClientFactory = sqsClientFactory;
+    this.sqsClientFactory = Args.notNull(sqsClientFactory, "sqsClientFactory");
   }
   
   public SQSClientFactory getSqsClientFactory() {

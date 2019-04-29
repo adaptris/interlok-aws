@@ -1,3 +1,8 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+import org.apache.tools.ant.filters.*
+
+apply from: "$rootDir/gradle/spotbugs.gradle"
+
 ext {
   componentName='Interlok AWS/S3'
 }
@@ -10,6 +15,7 @@ dependencies {
 
     testCompile 'org.mockito:mockito-all:1.10.19'
 }
+
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
@@ -30,6 +36,7 @@ jar {
               "Implementation-Vendor": organizationName)
   }
 }
+
 artifacts {
     archives javadocJar
     archives examplesJar
@@ -62,4 +69,5 @@ publishing {
   }
 }
 
+processTestResources.dependsOn copyUnitTestProperties
 javadoc.dependsOn offlinePackageList

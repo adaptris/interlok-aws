@@ -18,17 +18,15 @@ package com.adaptris.aws.sqs;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.core.ConfiguredConsumeDestination;
 import com.adaptris.core.ConsumerCase;
@@ -41,7 +39,15 @@ import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.*;
+import com.amazonaws.services.sqs.model.DeleteMessageRequest;
+import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
+import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
+import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
+import com.amazonaws.services.sqs.model.GetQueueUrlResult;
+import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.sqs.model.QueueAttributeName;
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 
 public class AwsConsumerTest extends ConsumerCase {
 
@@ -89,14 +95,14 @@ public class AwsConsumerTest extends ConsumerCase {
 
   public void testWithoutQueueOwnerAWSAccountId() throws Exception {
     startConsumer();
-    verify(sqsClientMock, times(1)).getQueueUrl(new GetQueueUrlRequest("queue"));
+    verify(sqsClientMock, atLeast(1)).getQueueUrl(new GetQueueUrlRequest("queue"));
   }
 
   public void testWithQueueOwnerAWSAccountId() throws Exception {
     startConsumerWithAccountID();
     GetQueueUrlRequest getQueueUrlRequest = new GetQueueUrlRequest("queue");
     getQueueUrlRequest.withQueueOwnerAWSAccountId("accountId");
-    verify(sqsClientMock, times(1)).getQueueUrl(getQueueUrlRequest);
+    verify(sqsClientMock, atLeast(1)).getQueueUrl(getQueueUrlRequest);
   }
   
   public void testSingleConsume() throws Exception {
@@ -108,7 +114,7 @@ public class AwsConsumerTest extends ConsumerCase {
     startConsumer();
     waitForConsumer(1, 10000);
     
-    verify(sqsClientMock, times(1)).deleteMessage(any(DeleteMessageRequest.class));
+    verify(sqsClientMock, atLeast(1)).deleteMessage(any(DeleteMessageRequest.class));
   }
   
   public void testConsumeWithAmazonReceiveException() throws Exception {
@@ -117,7 +123,7 @@ public class AwsConsumerTest extends ConsumerCase {
 
     startConsumer();
     waitForConsumer(0, 0);
-    verify(sqsClientMock, times(0)).deleteMessage(any(DeleteMessageRequest.class));
+    verify(sqsClientMock, atLeast(0)).deleteMessage(any(DeleteMessageRequest.class));
   }
   
   public void testConsumeWithAmazonDeleteException() throws Exception {
@@ -130,7 +136,7 @@ public class AwsConsumerTest extends ConsumerCase {
         
     startConsumer();
     waitForConsumer(1, 3000);
-    verify(sqsClientMock, times(1)).deleteMessage(any(DeleteMessageRequest.class));
+    verify(sqsClientMock, atLeast(1)).deleteMessage(any(DeleteMessageRequest.class));
   }
   
   public void testSingleConsumeWithAddAtts() throws Exception {
@@ -147,7 +153,7 @@ public class AwsConsumerTest extends ConsumerCase {
     sqsConsumer.setPrefetchCount(1);
     waitForConsumer(1, 10000);
     
-    verify(sqsClientMock, times(1)).deleteMessage(any(DeleteMessageRequest.class));
+    verify(sqsClientMock, atLeast(1)).deleteMessage(any(DeleteMessageRequest.class));
     assertEquals(1, messageListener.getMessages().size());
     assertEquals("myValue", messageListener.getMessages().get(0).getMetadataValue("myKey"));
     assertEquals("myValue2", messageListener.getMessages().get(0).getMetadataValue("myKey2"));
@@ -171,7 +177,7 @@ public class AwsConsumerTest extends ConsumerCase {
     sqsConsumer.setPrefetchCount(1);
     waitForConsumer(1, 10000);
     
-    verify(sqsClientMock, times(1)).deleteMessage(any(DeleteMessageRequest.class));
+    verify(sqsClientMock, atLeast(1)).deleteMessage(any(DeleteMessageRequest.class));
     assertEquals(1, messageListener.getMessages().size());
     assertEquals("myValue", messageListener.getMessages().get(0).getMetadataValue("myKey"));
     assertEquals("myValue2", messageListener.getMessages().get(0).getMetadataValue("myKey2"));
@@ -187,7 +193,7 @@ public class AwsConsumerTest extends ConsumerCase {
     sqsConsumer.setPrefetchCount(1);
     waitForConsumer(1, 10000);
 
-    verify(sqsClientMock, times(1)).deleteMessage(any(DeleteMessageRequest.class));
+    verify(sqsClientMock, atLeast(1)).deleteMessage(any(DeleteMessageRequest.class));
     assertEquals(1, messageListener.getMessages().size());
     assertEquals(expected, messageListener.getMessages().get(0).getMetadataValue("SQSMessageID"));
   }
@@ -210,7 +216,7 @@ public class AwsConsumerTest extends ConsumerCase {
     waitForConsumer(numMsgs, 30000);
     Thread.sleep(500);
     
-    verify(sqsClientMock, times(numMsgs)).deleteMessage(any(DeleteMessageRequest.class));
+    verify(sqsClientMock, atLeast(numMsgs)).deleteMessage(any(DeleteMessageRequest.class));
   }
 
   public void testMessagesRemaining() throws Exception {
@@ -221,7 +227,7 @@ public class AwsConsumerTest extends ConsumerCase {
     int messages = sqsConsumer.messagesRemaining();
 
     assertEquals(10, messages);
-    verify(sqsClientMock, times(1)).getQueueAttributes(any(GetQueueAttributesRequest.class));
+    verify(sqsClientMock, atLeast(1)).getQueueAttributes(any(GetQueueAttributesRequest.class));
   }
 
   public void testMessagesRemainingWithoutConsumerStart() throws Exception {
@@ -241,7 +247,7 @@ public class AwsConsumerTest extends ConsumerCase {
     int messages = sqsConsumer.messagesRemaining();
 
     assertEquals(10, messages);
-    verify(sqsClientMock, times(1)).getQueueAttributes(any(GetQueueAttributesRequest.class));
+    verify(sqsClientMock, atLeast(1)).getQueueAttributes(any(GetQueueAttributesRequest.class));
   }
   
   private ReceiveMessageResult createReceiveMessageResult(int numMsgs) {

@@ -18,6 +18,7 @@ package com.adaptris.aws.sns;
 
 import javax.validation.Valid;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.adaptris.annotation.AdvancedConfig;
@@ -59,7 +60,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 })
 public class PublishToTopic extends NotificationProducer {
 
-  private static final String SNS_MSG_ID_KEY = "SNS_MessageID";
+  /** The metadata that will contain the SNS MessageID post produce.
+   * 
+   */
+  public static final String SNS_MSG_ID_KEY = "SNS_MessageID";
 
   private static final DataInputParameter<String> DEFAULT_SOURCE = new StringPayloadDataInputParameter();
   private static final DataInputParameter<String> EMPTY = new DataInputParameter<String>() {
@@ -86,6 +90,11 @@ public class PublishToTopic extends NotificationProducer {
 
   }
 
+  public PublishToTopic(ProduceDestination destination) {
+    this();
+    setDestination(destination);
+  }
+  
   @Override
   public void produce(AdaptrisMessage msg, ProduceDestination destination) throws ProduceException {
     try {
@@ -114,6 +123,11 @@ public class PublishToTopic extends NotificationProducer {
     this.source = source;
   }
 
+  public <T extends PublishToTopic> T withSource(DataInputParameter<String> source) {
+    setSource(source);
+    return (T)this;
+  }
+  
   public DataInputParameter<String> getSubject() {
     return subject;
   }
@@ -127,11 +141,17 @@ public class PublishToTopic extends NotificationProducer {
     this.subject = subject;
   }
 
-  private DataInputParameter<String> source() {
-    return getSource() != null ? getSource() : DEFAULT_SOURCE;
+  public <T extends PublishToTopic> T withSubject(DataInputParameter<String> subject) {
+    setSubject(subject);
+    return (T)this;
   }
 
-  private DataInputParameter<String> subject() {
-    return getSubject() != null ? getSubject() : EMPTY;
+  
+  protected DataInputParameter<String> source() {
+    return ObjectUtils.defaultIfNull(getSource(), DEFAULT_SOURCE);
+  }
+
+  protected DataInputParameter<String> subject() {
+    return ObjectUtils.defaultIfNull(getSubject(), EMPTY);
   }
 }

@@ -16,26 +16,40 @@
 
 package com.adaptris.aws.sqs;
 
+import static org.apache.commons.lang.StringUtils.isEmpty;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map.Entry;
+
+import javax.management.MalformedObjectNameException;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
-import com.adaptris.core.*;
+import com.adaptris.core.AdaptrisComponent;
+import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.AdaptrisMessageFactory;
+import com.adaptris.core.AdaptrisPollingConsumer;
+import com.adaptris.core.ConsumeDestination;
+import com.adaptris.core.CoreException;
 import com.adaptris.core.runtime.ParentRuntimeInfoComponent;
 import com.adaptris.core.runtime.RuntimeInfoComponent;
 import com.adaptris.core.runtime.RuntimeInfoComponentFactory;
 import com.adaptris.core.runtime.WorkflowManager;
 import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.*;
+import com.amazonaws.services.sqs.model.DeleteMessageRequest;
+import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
+import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
+import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
+import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.sqs.model.MessageAttributeValue;
+import com.amazonaws.services.sqs.model.QueueAttributeName;
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import javax.management.MalformedObjectNameException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map.Entry;
-
-import static org.apache.commons.lang.StringUtils.isEmpty;
 
 /**
  * <p>
@@ -49,7 +63,7 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
 @XStreamAlias("amazon-sqs-consumer")
 @AdapterComponent
 @ComponentProfile(summary = "Receive messages from Amazon SQS", tag = "consumer,amazon,sqs",
-    recommended = {AmazonSQSConnection.class})
+    recommended = {AmazonSQSConnection.class}, metadata= {"SQSMessageID"})
 public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
   private Integer prefetchCount;
@@ -69,6 +83,11 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
   public AmazonSQSConsumer() {
     setReacquireLockBetweenMessages(true);
+  }
+
+  public AmazonSQSConsumer(ConsumeDestination dest) {
+    this();
+    setDestination(dest);
   }
 
   @Override
@@ -148,7 +167,7 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
   int messagesRemaining() throws CoreException {
     GetQueueAttributesResult result = getSynClient().getQueueAttributes(
         new GetQueueAttributesRequest(getQueueUrl()).withAttributeNames(QueueAttributeName.ApproximateNumberOfMessages));
-    return Integer.valueOf(result.getAttributes().get(QueueAttributeName.ApproximateNumberOfMessages.toString()));
+    return Integer.parseInt(result.getAttributes().get(QueueAttributeName.ApproximateNumberOfMessages.toString()));
   }
 
   private AmazonSQS getSynClient() throws CoreException {

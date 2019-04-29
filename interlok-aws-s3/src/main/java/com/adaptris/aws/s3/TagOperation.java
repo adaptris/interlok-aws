@@ -33,6 +33,9 @@ import com.amazonaws.services.s3.model.Tag;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 import javax.validation.Valid;
+
+import org.apache.commons.lang3.ObjectUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,19 +61,14 @@ public class TagOperation extends S3OperationImpl {
   }
 
   @Override
-  public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws InterlokException {
-    try {
-      AmazonS3Client s3 = wrapper.amazonClient();
-      String srcBucket = getBucketName().extract(msg);
-      String srcKey = getKey().extract(msg);
-      List<Tag> tags = filterTagMetadata(msg);
-      if(!tags.isEmpty()) {
-        log.trace("Tagging [{}:{}]", srcBucket, srcKey);
-        s3.setObjectTagging(new SetObjectTaggingRequest(srcBucket, srcKey, new ObjectTagging(tags)));
-      }
-    }
-    catch (Exception e) {
-      throw ExceptionHelper.wrapServiceException(e);
+  public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
+    AmazonS3Client s3 = wrapper.amazonClient();
+    String srcBucket = getBucketName().extract(msg);
+    String srcKey = getKey().extract(msg);
+    List<Tag> tags = filterTagMetadata(msg);
+    if (!tags.isEmpty()) {
+      log.trace("Tagging [{}:{}]", srcBucket, srcKey);
+      s3.setObjectTagging(new SetObjectTaggingRequest(srcBucket, srcKey, new ObjectTagging(tags)));
     }
   }
 
@@ -87,11 +85,17 @@ public class TagOperation extends S3OperationImpl {
     this.tagMetadataFilter = mf;
   }
 
-  private MetadataFilter tagMetadataFilter() {
-    return getTagMetadataFilter() != null ? getTagMetadataFilter() : new RemoveAllMetadataFilter();
+  public <T extends TagOperation> T withTagMetadataFilter(MetadataFilter mf) {
+    setTagMetadataFilter(mf);
+    return (T) this;
   }
 
-  private List<Tag> filterTagMetadata(AdaptrisMessage msg) {
+  
+  protected MetadataFilter tagMetadataFilter() {
+    return ObjectUtils.defaultIfNull(getTagMetadataFilter(), new RemoveAllMetadataFilter());
+  }
+  
+  protected List<Tag> filterTagMetadata(AdaptrisMessage msg) {
     MetadataCollection metadata = tagMetadataFilter().filter(msg);
     List<Tag> result = new ArrayList<>(metadata.size());
     for (MetadataElement e : metadata) {
