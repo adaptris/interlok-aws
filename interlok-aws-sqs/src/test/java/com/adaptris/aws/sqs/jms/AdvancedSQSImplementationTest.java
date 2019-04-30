@@ -20,13 +20,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+
 import org.junit.Test;
+
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.DefaultRetryPolicyFactory;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
-import com.amazon.sqs.javamessaging.SQSConnectionFactory;
 
 public class AdvancedSQSImplementationTest extends AmazonSQSImplementationTest {
 
@@ -46,16 +47,6 @@ public class AdvancedSQSImplementationTest extends AmazonSQSImplementationTest {
     jmsImpl.prepare();
     assertNotNull(jmsImpl.createConnectionFactory());
   }
-
-  @Test
-  @SuppressWarnings("deprecation")
-  public void testConnectionFactory_WithRetryPolicyBuilder() throws Exception {
-    AdvancedSQSImplementation jmsImpl = createImpl();
-    jmsImpl.setRegion("eu-west-1");
-    jmsImpl.setRetryPolicyBuilder(new RetryPolicyBuilder());
-    jmsImpl.prepare();
-    assertNotNull(jmsImpl.createConnectionFactory());
-  }
   
   @Test
   public void testConnectionFactory_WithRetryPolicy() throws Exception {
@@ -66,20 +57,6 @@ public class AdvancedSQSImplementationTest extends AmazonSQSImplementationTest {
     assertNotNull(jmsImpl.createConnectionFactory());
   }
   
-  @Test
-  @SuppressWarnings("deprecation")
-  public void testConnectionFactory_WithRetryPolicyBuilderAndFatory() throws Exception {
-    AdvancedSQSImplementation jmsImpl = createImpl();
-    jmsImpl.setRegion("eu-west-1");
-    jmsImpl.setRetryPolicy(new DefaultRetryPolicyFactory());
-    jmsImpl.setRetryPolicyBuilder(new RetryPolicyBuilder());
-    jmsImpl.prepare();
-    SQSConnectionFactory fac = jmsImpl.createConnectionFactory();
-    assertNotNull(fac);
-    assertEquals(fac, jmsImpl.createConnectionFactory());
-  }
-  
-
   @Test
   public void testEndpointBuilder() {
     AdvancedSQSImplementation jmsImpl = createImpl();

@@ -18,32 +18,25 @@ package com.adaptris.aws.sqs.jms;
 
 import static com.adaptris.core.jms.JmsUtils.wrapJMSException;
 
-import javax.jms.ConnectionFactory;
 import javax.jms.JMSException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
-import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.annotation.Removal;
 import com.adaptris.aws.AWSAuthentication;
-import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.DefaultAWSAuthentication;
-import com.adaptris.aws.DefaultRetryPolicyFactory;
 import com.adaptris.aws.EndpointBuilder;
 import com.adaptris.aws.sqs.SQSClientFactory;
 import com.adaptris.aws.sqs.UnbufferedSQSClientFactory;
 import com.adaptris.core.jms.VendorImplementationBase;
 import com.adaptris.core.jms.VendorImplementationImp;
 import com.adaptris.core.util.Args;
-import com.adaptris.security.password.Password;
 import com.adaptris.util.KeyValuePairSet;
 import com.adaptris.util.NumberUtils;
 import com.amazon.sqs.javamessaging.ProviderConfiguration;
@@ -71,13 +64,6 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
 
   @NotNull
   private String region;
-
-  @Deprecated
-  private String accessKey;
-
-  @InputFieldHint(style = "PASSWORD", external = true)
-  @Deprecated
-  private String secretKey;
 
   @Valid
   private AWSAuthentication authentication;
@@ -132,46 +118,6 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
     this.region = Args.notBlank(str, "region");
   }
 
-  @Deprecated
-  @Removal(version = "3.9.0",
-      message = "use AwsKeysAuthentation as your authentation method instead")
-  public String getAccessKey() {
-    return accessKey;
-  }
-
-  /**
-   * Your Amazon Web Services access key. This can be a root key or the key for an IAM user (recommended).
-   * 
-   * @deprecated Use {@link #setAuthentication(AWSAuthentication)} instead.
-   * @param key the Access key.
-   */
-  @Deprecated
-  @Removal(version = "3.9.0",
-      message = "use AwsKeysAuthentation as your authentation method instead")
-  public void setAccessKey(String key) {
-    this.accessKey = key;
-  }
-
-  @Deprecated
-  @Removal(version = "3.9.0",
-      message = "use AwsKeysAuthentation as your authentation method instead")
-  public String getSecretKey() {
-    return secretKey;
-  }
-
-  /**
-   * Your Amazon Web Services secret key. This can be a root key or the key for an IAM user (recommended).
-   * 
-   * @deprecated Use {@link #setAuthentication(AWSAuthentication)} instead.
-   * 
-   * @param key the secret key which could encoded by {@linkplain Password#encode(String, String)}
-   */
-  @Deprecated
-  @Removal(version = "3.9.0",
-      message = "use AwsKeysAuthentation as your authentation method instead")
-  public void setSecretKey(String key) {
-    this.secretKey = key;
-  }
 
   public Integer getPrefetchCount() {
     return prefetchCount;
@@ -225,11 +171,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   }
   
   protected AWSAuthentication authentication() {
-    AWSAuthentication auth = ObjectUtils.defaultIfNull(getAuthentication(), new DefaultAWSAuthentication());
-    if (getAuthentication() == null && hasLegacyConfig()) {
-      auth = new AWSKeysAuthentication(getAccessKey(), getSecretKey());
-    }
-    return auth;
+    return ObjectUtils.defaultIfNull(getAuthentication(), new DefaultAWSAuthentication());
   }
 
   protected EndpointBuilder endpointBuilder() {
@@ -239,15 +181,6 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   protected ProviderConfiguration newProviderConfiguration() {
     return new ProviderConfiguration().withNumberOfMessagesToPrefetch(prefetchCount());
   }
-  
-  
-  private boolean hasLegacyConfig() {
-    return BooleanUtils.and(new boolean[]
-    {
-        StringUtils.isNotBlank(getAccessKey()), StringUtils.isNotBlank(getSecretKey())
-    });
-  }
-  
   
   protected class RegionOnly implements EndpointBuilder {
 
