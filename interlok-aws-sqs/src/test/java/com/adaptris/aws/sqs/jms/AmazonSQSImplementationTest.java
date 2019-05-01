@@ -22,8 +22,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
 import javax.jms.JMSException;
+
 import org.junit.Test;
+
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.aws.sqs.BufferedSQSClientFactory;
@@ -53,15 +56,8 @@ public class AmazonSQSImplementationTest {
   }
 
   @Test
-  @SuppressWarnings("deprecation")
   public void testSetter() throws Exception {
     AmazonSQSImplementation jmsImpl = createImpl();
-    assertNull(jmsImpl.getAccessKey());
-    jmsImpl.setAccessKey("XXX");
-    assertEquals("XXX", jmsImpl.getAccessKey());
-    assertNull(jmsImpl.getSecretKey());
-    jmsImpl.setSecretKey("XXX");
-    assertEquals("XXX", jmsImpl.getSecretKey());
     assertNull(jmsImpl.getRegion());
     jmsImpl.setRegion("XXX");
     assertEquals("XXX", jmsImpl.getRegion());
@@ -76,21 +72,10 @@ public class AmazonSQSImplementationTest {
   }
 
   @Test
-  @SuppressWarnings("deprecation")
   public void testAuthentication() throws Exception {
     AmazonSQSImplementation jmsImpl = createImpl();
     assertNull(jmsImpl.getAuthentication());
     assertNotNull(jmsImpl.authentication());
-    assertEquals(DefaultAWSAuthentication.class, jmsImpl.authentication().getClass());
-    
-    jmsImpl.setAccessKey("mykey");
-    jmsImpl.setSecretKey("mySecret");
-    assertNotNull(jmsImpl.authentication());
-    assertNull(jmsImpl.getAuthentication());
-    assertEquals(AWSKeysAuthentication.class, jmsImpl.authentication().getClass());
-
-    jmsImpl.withAuthentication(new DefaultAWSAuthentication());
-    assertNotNull(jmsImpl.getAuthentication());
     assertEquals(DefaultAWSAuthentication.class, jmsImpl.authentication().getClass());
   }
   
