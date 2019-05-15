@@ -2,7 +2,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
 plugins {
-  id 'com.github.spotbugs' version '1.7.1' apply false
+  id 'com.github.spotbugs' version '2.0.0' apply false
 }
 
 ext {
