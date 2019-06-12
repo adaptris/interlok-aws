@@ -9,7 +9,7 @@ dependencies {
     compile "com.amazonaws:aws-java-sdk-sqs:$awsSDKVersion"
     compile 'com.amazonaws:amazon-sqs-java-messaging-lib:1.0.6'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
-    compile 'org.apache.httpcomponents:httpclient:4.5.8'
+    compile 'org.apache.httpcomponents:httpclient:4.5.9'
 
 
     compile project(':interlok-aws-common')
