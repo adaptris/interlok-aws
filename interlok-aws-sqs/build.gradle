@@ -49,7 +49,8 @@ publishing {
           artifact javadocJar { classifier "javadoc" }
           artifact examplesJar { classifier "examples" }
           pom.withXml {
-            asNode().appendNode("description", "Integration with AWS SQS")
+            asNode().appendNode("description", "Publishing & Consuming from AWS S3")
+            asNode().appendNode("name", componentName)
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.3.0+")
             properties.appendNode("tags", "aws,sqs")
