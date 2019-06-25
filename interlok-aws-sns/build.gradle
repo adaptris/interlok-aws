@@ -46,6 +46,7 @@ publishing {
           artifact examplesJar { classifier "examples" }
           pom.withXml {
             asNode().appendNode("description", "Publishing to AWS SNS topics")
+            asNode().appendNode("name", componentName)
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.7.2+")
             properties.appendNode("tags", "aws,sns")

@@ -7,9 +7,9 @@ ext {
 // In this section you declare the dependencies for your production and test code
 dependencies {
     compile "com.amazonaws:aws-java-sdk-sqs:$awsSDKVersion"
-    compile 'com.amazonaws:amazon-sqs-java-messaging-lib:1.0.5'
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
-    compile 'org.apache.httpcomponents:httpclient:4.5.8'
+    compile 'com.amazonaws:amazon-sqs-java-messaging-lib:1.0.6'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
+    compile 'org.apache.httpcomponents:httpclient:4.5.9'
 
 
     compile project(':interlok-aws-common')
@@ -49,7 +49,8 @@ publishing {
           artifact javadocJar { classifier "javadoc" }
           artifact examplesJar { classifier "examples" }
           pom.withXml {
-            asNode().appendNode("description", "Integration with AWS SQS")
+            asNode().appendNode("description", "Publishing & Consuming from AWS S3")
+            asNode().appendNode("name", componentName)
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.3.0+")
             properties.appendNode("tags", "aws,sqs")

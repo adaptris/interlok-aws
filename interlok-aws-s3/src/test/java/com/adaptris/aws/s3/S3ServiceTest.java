@@ -92,28 +92,6 @@ public class S3ServiceTest extends ServiceCase {
 
   public S3ServiceTest() {
   }
-
-  @SuppressWarnings("deprecation")
-  public void testAuthentication() throws Exception {
-    S3Service service = new S3Service();
-    assertNull(service.getAuthentication());
-    service.setAuthentication(new DefaultAWSAuthentication());
-    assertEquals(DefaultAWSAuthentication.class, service.getAuthentication().getClass());
-  }
-
-  @SuppressWarnings("deprecation")
-  public void testClientConfiguration() throws Exception {
-    S3Service service = new S3Service();
-    assertNull(service.getClientConfiguration());
-    service.setClientConfiguration(new KeyValuePairSet());
-    assertEquals(0, service.getClientConfiguration().size());
-  }
-
-  @SuppressWarnings("deprecation")
-  public void testAmazonClient() throws Exception {
-    S3Service service = new S3Service(new AmazonS3Connection(), new S3GetOperation());
-    assertNull(service.amazonClient());
-  }
   
   public void testLifecycle() throws Exception {
     S3Service service = new S3Service();
@@ -136,24 +114,6 @@ public class S3ServiceTest extends ServiceCase {
     service.setOperation(Mockito.mock(S3Operation.class));
     LifecycleHelper.initAndStart(service);
     LifecycleHelper.stopAndClose(service);
-  }
-  
-  @SuppressWarnings("deprecation")
-  public void testDeprecatedConfig() throws Exception {
-    S3Service service = new S3Service();
-    service.setAuthentication(new DefaultAWSAuthentication());
-    service.setClientConfiguration(new KeyValuePairSet());
-    service.handleDeprecatedConfig();
-    assertNotNull(service.getConnection());
-
-    AmazonS3Connection s3Connection = new AmazonS3Connection();
-    service = new S3Service(s3Connection, new S3GetOperation());
-    service.handleDeprecatedConfig();
-    assertEquals(s3Connection, service.getConnection());    
-    service.setAuthentication(new DefaultAWSAuthentication());
-    service.setClientConfiguration(new KeyValuePairSet());
-    service.handleDeprecatedConfig();
-    assertEquals(s3Connection, service.getConnection());    
   }
   
   public void testDoService() throws Exception {

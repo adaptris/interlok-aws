@@ -24,13 +24,11 @@ import org.apache.http.util.Args;
 
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
-import com.adaptris.annotation.Removal;
 import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.DefaultRetryPolicyFactory;
 import com.adaptris.aws.EndpointBuilder;
 import com.adaptris.aws.RetryPolicyFactory;
-import com.adaptris.core.CoreException;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazon.sqs.javamessaging.SQSConnectionFactory;
 import com.amazonaws.ClientConfiguration;
@@ -72,11 +70,6 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
 
   @AdvancedConfig
   @Valid
-  @Deprecated
-  private RetryPolicyBuilder retryPolicyBuilder;
-
-  @AdvancedConfig
-  @Valid
   private RetryPolicyFactory retryPolicy;
   @Valid
   @AdvancedConfig
@@ -84,14 +77,6 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
     
   public AdvancedSQSImplementation() {
     setClientConfigurationProperties(new KeyValuePairSet());
-  }
-
-  @Override
-  public void prepare() throws CoreException {
-    super.prepare();
-    if (getRetryPolicyBuilder() != null && getRetryPolicy() == null) {
-      log.warn("retry-policy-builder is deprecated; use retry-policy instead");
-    }
   }
 
   @Override
@@ -115,30 +100,6 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
 
   public void setClientConfigurationProperties(KeyValuePairSet kvps) {
     this.clientConfigurationProperties = Args.notNull(kvps, "clientConfigurationProperties");
-  }
-
-  /**
-   * 
-   * @deprecated since 3.6.4 use a {@link RetryPolicyFactory} instead.
-   */
-  @Deprecated
-  @Removal(version = "3.9.0",
-      message = "use PluggableRetryPolicyFactory as part of the connection instead")
-  public RetryPolicyBuilder getRetryPolicyBuilder() {
-    return retryPolicyBuilder;
-  }
-
-  /**
-   * Set the builder for the {@link com.amazonaws.retry.RetryPolicy}.
-   * 
-   * @deprecated since 3.6.4 use a {@link RetryPolicyFactory} instead.
-   * @param b the builder.
-   */
-  @Deprecated
-  @Removal(version = "3.9.0",
-      message = "use PluggableRetryPolicyFactory as part of the connection instead")
-  public void setRetryPolicyBuilder(RetryPolicyBuilder b) {
-    this.retryPolicyBuilder = b;
   }
 
   public RetryPolicyFactory getRetryPolicy() {
@@ -173,11 +134,7 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
     return this;
   }
   
-  @SuppressWarnings("deprecation")
   RetryPolicy retryPolicy() throws Exception {
-    if (getRetryPolicyBuilder() != null) {
-      return getRetryPolicyBuilder().build();
-    }
     return ObjectUtils.defaultIfNull(getRetryPolicy(), new DefaultRetryPolicyFactory()).build();
   }
 

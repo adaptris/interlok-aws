@@ -40,9 +40,12 @@ publishing {
           artifact javadocJar { classifier "javadoc" }
           artifact examplesJar { classifier "examples" }
           pom.withXml {
+            asNode().appendNode("name", componentName)
             asNode().appendNode("description", "Common components for accessing AWS")
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.3.0+")
+            properties.appendNode("tags", "aws")
+            properties.appendNode("license", "false")
           }
       }
   }
