@@ -22,7 +22,7 @@ ext {
 
   slf4jVersion = '1.7.26'
   awsSDKVersion = '1.11.580'
-  log4j2Version = '2.11.2'
+  log4j2Version = '2.12.0'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
