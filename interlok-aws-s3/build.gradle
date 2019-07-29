@@ -1,8 +1,6 @@
 import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
-apply from: "$rootDir/gradle/spotbugs.gradle"
-
 ext {
   componentName='Interlok AWS/S3'
 }
