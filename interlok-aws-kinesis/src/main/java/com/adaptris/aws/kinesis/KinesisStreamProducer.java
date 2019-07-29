@@ -29,7 +29,7 @@ import com.amazonaws.services.kinesis.producer.KinesisProducer;
  * </ul>
  * </p>
  */
-@ComponentProfile(summary = "Produce to Amazon Kinesis using the Kinesis Producer Library", tag = "amazon,kinesis,producer",
+@ComponentProfile(summary = "Produce to Amazon Kinesis using the Kinesis Producer Library", tag = "amazon,aws,kinesis,producer",
     recommended = {ProducerLibraryConnection.class})
 public class KinesisStreamProducer extends ProduceOnlyProducerImp {
 

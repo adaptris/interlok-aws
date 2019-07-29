@@ -28,7 +28,7 @@ import com.amazonaws.services.kinesis.producer.KinesisProducer;
  */
 public abstract class ProducerLibraryConnection extends AdaptrisConnectionImp implements KinesisProducerWrapper {
 
-  protected transient KinesisProducer producer;
+  protected transient KinesisProducer producer = null;
 
   public ProducerLibraryConnection() {}
 

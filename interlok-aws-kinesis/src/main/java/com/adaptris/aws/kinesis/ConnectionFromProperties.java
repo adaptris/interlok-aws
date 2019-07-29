@@ -40,14 +40,15 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * This derives its connection information from a properties file such as this <a href=
  * "https://raw.githubusercontent.com/awslabs/amazon-kinesis-producer/master/java/amazon-kinesis-producer-sample/default_config.properties">github
  * sample</a>. Configure the location as the {@link #setConfigLocation(String)} and it will be used to build the producer. This
- * effectively means that you will always be using a {@code DefaultAWSCredentialsProviderChain}.
+ * effectively means that you will always be using a {@code DefaultAWSCredentialsProviderChain} since it is impossible to
+ * override the {@code AWSCredentialsProvider} via the property file.
  * </p>
  * 
- * @config amazon-kinesis-kpl-connection-from-properties
+ * @config aws-kinesis-kpl-connection-from-properties
  */
-@XStreamAlias("amazon-kinesis-kpl-connection-from-properties")
+@XStreamAlias("aws-kinesis-kpl-connection-from-properties")
 @AdapterComponent
-@ComponentProfile(summary = "Connection for supporting connectivity to Amazon Kinesis", tag = "connections,amazon,kinesis")
+@ComponentProfile(summary = "Connection for supporting connectivity to AWS Kinesis", tag = "connections,amazon,aws,kinesis")
 @DisplayOrder(order = {"configLocation"})
 public class ConnectionFromProperties extends ProducerLibraryConnection implements KinesisProducerWrapper {
 
