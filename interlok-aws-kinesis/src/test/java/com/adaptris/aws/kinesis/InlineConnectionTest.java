@@ -41,7 +41,7 @@ public class InlineConnectionTest extends ConnectionFromProperties {
   @Test
   public void testKinesisProducer() throws Exception {
     InlineProducerConfiguration conn = new InlineProducerConfiguration()
-        .withCredentials(new StaticCredentialsBuilder()).withMetricsCredentials(new StaticCredentialsBuilder())
+        .withCredentials(new StaticCredentialsBuilder()).withMetricsCredentials(null)
         .withConfig(new KeyValuePairSet());
     try {
       LifecycleHelper.initAndStart(conn);

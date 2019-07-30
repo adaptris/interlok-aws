@@ -63,7 +63,7 @@ public class InlineProducerConfiguration extends ProducerLibraryConnection imple
   private AWSCredentialsProviderBuilder credentials;
   @AdvancedConfig
   @Valid
-  @InputFieldDefault(value = "static-credentials-builder with a default chain")
+  @InputFieldDefault(value = "null")
   private AWSCredentialsProviderBuilder metricsCredentials;
 
   public InlineProducerConfiguration() {
@@ -144,7 +144,7 @@ public class InlineProducerConfiguration extends ProducerLibraryConnection imple
   }
 
   public AWSCredentialsProvider metricsCredentials() throws Exception {
-    return ObjectUtils.defaultIfNull(getMetricsCredentials(), new StaticCredentialsBuilder()).build();
+    return ObjectUtils.defaultIfNull(getMetricsCredentials(), () -> null).build();
   }
 
 }
