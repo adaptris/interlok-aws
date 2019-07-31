@@ -1,0 +1,14 @@
+junit.ConsumerCase.baseDir=@BUILD_DIR@/examples/consumers
+junit.ServiceCase.baseDir=@BUILD_DIR@/examples/services
+junit.ProducerCase.baseDir=@BUILD_DIR@/examples/producers
+junit.WorkflowCase.baseDir=@BUILD_DIR@/examples/workflows
+junit.localstack.tests.enabled=false
+junit.localstack.kinesis.stream=myStream
+junit.localstack.kinesis.partitionKey=partitionKey
+junit.localstack.kinesis.host=localhost
+junit.localstack.kinesis.port=4568
+# $ aws --endpoint-url=https://localhost:4568 --no-verify-ssl kinesis list-streams
+# $ aws --endpoint-url=https://localhost:4568 --no-verify-ssl kinesis create-stream --stream-name "myStream" --shard-count 1
+# $ aws --endpoint-url=https://localhost:4568 --no-verify-ssl kinesis list-shards --stream-name myStream
+# $ aws --endpoint-url=https://localhost:4568 --no-verify-ssl kinesis get-shard-iterator --stream-name myStream --shard-id "the-shard-id" --shard-iterator-type LATEST
+# $ aws --endpoint-url=https://localhost:4568 --no-verify-ssl kinesis get-records --shard-iterator "the shard-iterator id"
