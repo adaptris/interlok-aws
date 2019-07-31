@@ -143,7 +143,7 @@ public class InlineProducerConfiguration extends ProducerLibraryConnection imple
     return this;
   }
 
-  public AWSCredentialsProvider metricsCredentials() throws Exception {
+  private AWSCredentialsProvider metricsCredentials() throws Exception {
     return ObjectUtils.defaultIfNull(getMetricsCredentials(), () -> null).build();
   }
 
