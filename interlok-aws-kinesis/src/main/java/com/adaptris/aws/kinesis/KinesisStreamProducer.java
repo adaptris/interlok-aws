@@ -15,6 +15,7 @@ import com.adaptris.core.ProduceOnlyProducerImp;
 import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
 import com.amazonaws.services.kinesis.producer.KinesisProducer;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * Producer to amazon kinesis using the Kinesis Producer Library.
@@ -28,9 +29,12 @@ import com.amazonaws.services.kinesis.producer.KinesisProducer;
  * <li>{@link #setPartitionKey(String)} should always be populated with a non-blank value, which will be used.</li>
  * </ul>
  * </p>
+ * 
+ * @config aws-kinesis-stream-producer
  */
 @ComponentProfile(summary = "Produce to Amazon Kinesis using the Kinesis Producer Library", tag = "amazon,aws,kinesis,producer",
     recommended = {ProducerLibraryConnection.class})
+@XStreamAlias("aws-kinesis-stream-producer")
 public class KinesisStreamProducer extends ProduceOnlyProducerImp {
 
   @InputFieldHint(expression = true)
