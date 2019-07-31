@@ -38,7 +38,7 @@ import java.io.PrintStream;
  */
 @AdapterComponent
 @ComponentProfile(summary = "List of files based on S3 key",
-    since = "3.9.0")
+    since = "3.9.1")
 @XStreamAlias("amazon-s3-list")
 @DisplayOrder(order ={ "bucketName", "key", "filterSuffix"})
 public class ListOperation extends S3OperationImpl {
