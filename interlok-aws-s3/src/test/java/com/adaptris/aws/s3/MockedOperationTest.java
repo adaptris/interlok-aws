@@ -9,12 +9,9 @@ import static org.mockito.Matchers.anyString;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
+import com.amazonaws.services.s3.model.*;
 import org.junit.Test;
 import org.mockito.Mockito;
 
@@ -25,14 +22,6 @@ import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.lms.FileBackedMessageFactory;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.CopyObjectResult;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.GetObjectTaggingResult;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import com.amazonaws.services.s3.model.SetObjectTaggingRequest;
-import com.amazonaws.services.s3.model.Tag;
 import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferProgress;
@@ -273,6 +262,63 @@ public class MockedOperationTest {
     getTags.execute(wrapper, msg);
     assertTrue(msg.headersContainsKey("hello"));
     assertEquals("world", msg.getMetadataValue("hello"));
+  }
+
+  @Test
+  public void testListOperationNoFilter() throws Exception {
+    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    TransferManager transferManager = Mockito.mock(TransferManager.class);
+    ObjectListing result = Mockito.mock(ObjectListing.class);
+    S3ObjectSummary sbase = new S3ObjectSummary();
+    sbase.setBucketName("srcBucket");
+    sbase.setKey("srcKeyPrefix/");
+    S3ObjectSummary s1 = new S3ObjectSummary();
+    s1.setBucketName("srcBucket");
+    s1.setKey("srcKeyPrefix/file.json");
+    S3ObjectSummary s2 = new S3ObjectSummary();
+    s2.setBucketName("srcBucket");
+    s2.setKey("srcKeyPrefix/file2.csv");
+    List<S3ObjectSummary> list = new ArrayList<>(Arrays.asList(sbase, s1, s2));
+    Mockito.when(result.getObjectSummaries()).thenReturn(list);
+    Mockito.when(client.listObjects(anyString(), anyString())).thenReturn(result);
+    ListOperation ls = new ListOperation()
+        .withBucketName(new ConstantDataInputParameter("srcBucket")).withKey(new ConstantDataInputParameter("srcKeyPrefix/"));
+
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("");
+    ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
+    ls.execute(wrapper, msg);
+    assertEquals(
+        "srcKeyPrefix/" + System.lineSeparator() +
+        "srcKeyPrefix/file.json" + System.lineSeparator() +
+        "srcKeyPrefix/file2.csv" + System.lineSeparator(), msg.getContent());
+  }
+
+
+  @Test
+  public void testListOperationFilter() throws Exception {
+    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    TransferManager transferManager = Mockito.mock(TransferManager.class);
+    ObjectListing result = Mockito.mock(ObjectListing.class);
+    S3ObjectSummary sbase = new S3ObjectSummary();
+    sbase.setBucketName("srcBucket");
+    sbase.setKey("srcKeyPrefix/");
+    S3ObjectSummary s1 = new S3ObjectSummary();
+    s1.setBucketName("srcBucket");
+    s1.setKey("srcKeyPrefix/file.json");
+    S3ObjectSummary s2 = new S3ObjectSummary();
+    s2.setBucketName("srcBucket");
+    s2.setKey("srcKeyPrefix/file2.csv");
+    List<S3ObjectSummary> list = new ArrayList<>(Arrays.asList(sbase, s1, s2));
+    Mockito.when(result.getObjectSummaries()).thenReturn(list);
+    Mockito.when(client.listObjects(anyString(), anyString())).thenReturn(result);
+    ListOperation ls = new ListOperation()
+        .withFilterSuffix(new ConstantDataInputParameter(".json"))
+        .withBucketName(new ConstantDataInputParameter("srcBucket")).withKey(new ConstantDataInputParameter("srcKeyPrefix/"));
+
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("");
+    ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
+    ls.execute(wrapper, msg);
+    assertEquals("srcKeyPrefix/file.json" + System.lineSeparator(), msg.getContent());
   }
 
 

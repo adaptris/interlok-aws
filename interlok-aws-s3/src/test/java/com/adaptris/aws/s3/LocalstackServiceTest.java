@@ -34,6 +34,7 @@ public class LocalstackServiceTest {
   private static final String S3_UPLOAD_FILENAME = "localstack.s3.upload.filename";
   private static final String S3_COPY_TO_FILENAME = "localstack.s3.copy.filename";
   private static final String S3_BUCKETNAME = "localstack.s3.bucketname";
+  private static final String S3_FILTER_PREFIX = "localstack.s3.ls.filterSuffix";
   private static final String PROPERTIES_RESOURCE = "unit-tests.properties";
   private static Properties config = PropertyHelper.loadQuietly(PROPERTIES_RESOURCE);
 
@@ -150,8 +151,25 @@ public class LocalstackServiceTest {
     }
   }
 
+
   @Test
-  public void test_08_Copy_WithoutDestinationBucket() throws Exception {
+  public void test_08_List() throws Exception {
+    if (areTestsEnabled()) {
+      ListOperation ls = new ListOperation()
+          .withFilterSuffix(getInputParameter(S3_FILTER_PREFIX))
+          .withBucketName(getInputParameter(S3_BUCKETNAME))
+          .withKey(getInputParameter("/"));
+      S3Service service = build(ls);
+      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
+      ServiceCase.execute(service, msg);
+      assertEquals(config.getProperty(S3_UPLOAD_FILENAME) + System.lineSeparator(), msg.getContent());
+    } else {
+      System.err.println("localstack tests disabled; not executing test_07_List");
+    }
+  }
+
+  @Test
+  public void test_09_Copy_WithoutDestinationBucket() throws Exception {
     if (areTestsEnabled()) {
       CopyOperation copy = new CopyOperation().withDestinationKey(getInputParameter(S3_COPY_TO_FILENAME))
           .withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter(S3_UPLOAD_FILENAME));
@@ -170,7 +188,7 @@ public class LocalstackServiceTest {
   }
 
   @Test
-  public void test_09_DeleteCopy() throws Exception {
+  public void test_10_DeleteCopy() throws Exception {
     if (areTestsEnabled()) {
       DeleteOperation delete = new DeleteOperation().withBucketName(getInputParameter(S3_BUCKETNAME))
           .withKey(getInputParameter(S3_COPY_TO_FILENAME));
@@ -193,7 +211,7 @@ public class LocalstackServiceTest {
   }
 
   @Test
-  public void test_10_DeleteUploaded() throws Exception {
+  public void test_11_DeleteUploaded() throws Exception {
     if (areTestsEnabled()) {
       DeleteOperation delete = new DeleteOperation().withBucketName(getInputParameter(S3_BUCKETNAME))
           .withKey(getInputParameter(S3_UPLOAD_FILENAME));
