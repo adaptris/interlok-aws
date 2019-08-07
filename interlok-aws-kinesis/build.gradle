@@ -7,22 +7,24 @@ ext {
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
-  compile "com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion"
+  compile ("com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion")
   compile ("com.amazonaws:amazon-kinesis-client:1.10.0") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+    exclude group: "com.google.protobuf", module: "protobuf-java"
   }
   // 0.13.0 doesn't contain the windows execuatble (bad?) so use the older version for now.
   compile ("com.amazonaws:amazon-kinesis-producer:0.12.11") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+    exclude group: "com.google.protobuf", module: "protobuf-java"
   }
-  compile 'com.fasterxml.jackson.core:jackson-databind:2.9.9.3'
-  compile 'com.fasterxml.jackson.core:jackson-core:2.9.9'
+  compile ("com.google.protobuf:protobuf-java:3.9.0")
+  compile ("com.fasterxml.jackson.core:jackson-databind:2.9.9.3")
+  compile ("com.fasterxml.jackson.core:jackson-core:2.9.9")
   compile project(':interlok-aws-common')
-  testCompile 'org.mockito:mockito-all:1.10.19'
+  testCompile ("org.mockito:mockito-all:1.10.19")
 }
-
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
