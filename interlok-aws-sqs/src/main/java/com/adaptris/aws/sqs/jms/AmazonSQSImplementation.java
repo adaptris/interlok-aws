@@ -20,7 +20,6 @@ import static com.adaptris.core.jms.JmsUtils.wrapJMSException;
 import javax.jms.JMSException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
@@ -29,14 +28,11 @@ import com.adaptris.annotation.Removal;
 import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.aws.AWSCredentialsProviderBuilder;
 import com.adaptris.aws.ClientConfigurationBuilder;
-import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.aws.EndpointBuilder;
-import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.aws.sqs.SQSClientFactory;
 import com.adaptris.aws.sqs.UnbufferedSQSClientFactory;
 import com.adaptris.core.jms.VendorImplementationBase;
 import com.adaptris.core.jms.VendorImplementationImp;
-import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.util.KeyValuePairSet;
 import com.adaptris.util.NumberUtils;
 import com.amazon.sqs.javamessaging.ProviderConfiguration;
@@ -123,7 +119,6 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   private SQSClientFactory sqsClientFactory;
   
   private transient SQSConnectionFactory connectionFactory = null;
-  private transient boolean warningLogged;
 
   public AmazonSQSImplementation() {
     setSqsClientFactory(new UnbufferedSQSClientFactory());
@@ -150,15 +145,9 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
     return ClientConfigurationBuilder.build(new KeyValuePairSet());
   }
 
+  @SuppressWarnings("deprecation")
   protected AWSCredentialsProviderBuilder credentialsProvider() {
-    if (getAuthentication() != null) {
-      LoggingHelper.logWarning(warningLogged, () -> {
-        warningLogged = true;
-      }, "authentication is deprecated; use a AWSCredentialsProviderBuilder instead");
-      return new StaticCredentialsBuilder().withAuthentication(getAuthentication());
-    }
-    return ObjectUtils.defaultIfNull(getCredentials(),
-        new StaticCredentialsBuilder().withAuthentication(new DefaultAWSAuthentication()));
+    return AWSCredentialsProviderBuilder.providerWithWarning(getClass().getCanonicalName(), getAuthentication(), getCredentials());
   }
 
 

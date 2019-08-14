@@ -101,20 +101,12 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
   @Getter
   @Setter
   private CustomEndpoint customEndpoint;
-  
-  private transient boolean warningLogged;
 
+  @SuppressWarnings("deprecation")
   public AWSCredentialsProviderBuilder credentialsProvider() {
-    if (getAuthentication() != null) {
-      LoggingHelper.logWarning(warningLogged, () -> {
-        warningLogged = true;
-      }, "authentication is deprecated; use a AWSCredentialsProviderBuilder instead");
-      return new StaticCredentialsBuilder().withAuthentication(getAuthentication());
-    }
-    return ObjectUtils.defaultIfNull(getCredentials(),
-        new StaticCredentialsBuilder().withAuthentication(new DefaultAWSAuthentication()));
+    return AWSCredentialsProviderBuilder.providerWithWarning(LoggingHelper.friendlyName(this), getAuthentication(),
+        getCredentials());
   }
-
 
   public KeyValuePairSet clientConfiguration() {
     return ObjectUtils.defaultIfNull(getClientConfiguration(), new KeyValuePairSet());
