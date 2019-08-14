@@ -16,14 +16,9 @@
 
 package com.adaptris.aws.sqs;
 
-import static com.adaptris.aws.sqs.AwsHelper.formatRegion;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.adaptris.aws.EndpointBuilder;
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -42,11 +37,9 @@ public class UnbufferedSQSClientFactory implements SQSClientFactory {
   }
   
   @Override
-  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf, EndpointBuilder endpoint) {
-    AmazonSQSAsyncClientBuilder builder = endpoint.rebuild(AmazonSQSAsyncClientBuilder.standard().withClientConfiguration(conf));
-    if (creds != null) {
-      builder.withCredentials(new AWSStaticCredentialsProvider(creds));
-    }
+  public AmazonSQSAsync createClient(AWSCredentialsProvider creds, ClientConfiguration conf, EndpointBuilder endpoint) {
+    AmazonSQSAsyncClientBuilder builder =
+        endpoint.rebuild(AmazonSQSAsyncClientBuilder.standard().withClientConfiguration(conf)).withCredentials(creds);
     return builder.build();
   }
 }

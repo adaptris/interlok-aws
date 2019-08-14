@@ -1,18 +1,17 @@
 package com.adaptris.aws.s3;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.*;
-
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import java.util.Properties;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.CustomEndpoint;
+import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ServiceCase;
@@ -252,7 +251,9 @@ public class LocalstackServiceTest {
   protected S3Service build(S3Operation operation) {
     String serviceEndpoint = config.getProperty(S3_URL);
     String signingRegion = config.getProperty(S3_SIGNING_REGION);
-    AmazonS3Connection connection = new AmazonS3Connection(new AWSKeysAuthentication("TEST", "TEST"), null)
+    AmazonS3Connection connection = new AmazonS3Connection()
+        .withCredentialsProviderBuilder(
+            new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("TEST", "TEST")))
         .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion));
     return new S3Service(connection, operation);
   }

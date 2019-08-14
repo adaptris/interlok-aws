@@ -18,6 +18,7 @@ package com.adaptris.aws;
 
 import com.amazonaws.retry.RetryPolicy;
 
+@FunctionalInterface
 public interface RetryPolicyFactory {
 
   /**

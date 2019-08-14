@@ -1,25 +1,22 @@
 package com.adaptris.aws.sns;
 
-import static org.junit.Assert.*;
-
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import java.util.Properties;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.CustomEndpoint;
+import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.StandaloneProducer;
-import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.util.PropertyHelper;
-import com.adaptris.interlok.config.DataInputParameter;
 
 // A new local stack instance; we're going publish an SNS message.
 // Note that there must be content to the message otherwise you get a python stack trace in localstack.
@@ -65,7 +62,8 @@ public class LocalstackProducerTest {
   protected AmazonSNSConnection buildConnection() {
     String serviceEndpoint = config.getProperty(SNS_URL);
     String signingRegion = config.getProperty(SNS_SIGNING_REGION);
-    AmazonSNSConnection connection = new AmazonSNSConnection(new AWSKeysAuthentication("TEST", "TEST"), null)
+    AmazonSNSConnection connection = new AmazonSNSConnection().withCredentialsProviderBuilder(
+        new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("TEST", "TEST")))
         .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion));
     return connection;
   }

@@ -26,6 +26,8 @@ import com.amazonaws.retry.RetryPolicy;
 import com.amazonaws.retry.RetryPolicy.BackoffStrategy;
 import com.amazonaws.retry.RetryPolicy.RetryCondition;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Basic {@link RetryPolicy} builder implementation for AWS that allows you to plug in your own conditions and strategies.
@@ -35,14 +37,34 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("aws-pluggable-retry-policy-factory")
 public class PluggableRetryPolicyFactory implements RetryPolicyFactory {
 
+  /**
+   * The class name for your retry-condition.
+   */
   @NotBlank
+  @Getter
+  @Setter
   private String retryConditionClass;
+  /**
+   * The class name for your backoff strategy
+   */
   @NotBlank
+  @Getter
+  @Setter
   private String backoffStrategyClass;
+  /**
+   * Passed through as {@link RetryPolicy#getMaxErrorRetry()}.
+   */
   @Min(0)
   @InputFieldDefault(value = "0")
+  @Getter
+  @Setter
   private Integer maxErrorRetry;
+  /**
+   * Passed through as {@link RetryPolicy#isMaxErrorRetryInClientConfigHonored()}.
+   */
   @InputFieldDefault(value = "true")
+  @Getter
+  @Setter
   private Boolean useClientConfigurationMaxErrorRetry;
 
   public PluggableRetryPolicyFactory() {
@@ -55,35 +77,9 @@ public class PluggableRetryPolicyFactory implements RetryPolicyFactory {
         (BackoffStrategy) newInstance(getBackoffStrategyClass()), maxErrorRetry(), useClientConfigurationMaxErrorRetry());
   }
 
-  public String getRetryConditionClass() {
-    return retryConditionClass;
-  }
-
-  /**
-   * Set the class name for your retry-condition.
-   * 
-   * @param clazz the class name, null if not specified.
-   */
-  public void setRetryConditionClass(String clazz) {
-    this.retryConditionClass = clazz;
-  }
-
   public PluggableRetryPolicyFactory withRetryConditionClass(String s) {
     setRetryConditionClass(s);
     return this;
-  }
-
-  public String getBackoffStrategyClass() {
-    return backoffStrategyClass;
-  }
-
-  /**
-   * Set the class name for your backoff strategy
-   * 
-   * @param clazz the class name, null if not specified.
-   */
-  public void setBackoffStrategyClass(String clazz) {
-    this.backoffStrategyClass = clazz;
   }
 
   public PluggableRetryPolicyFactory withBackoffStrategyClass(String s) {
@@ -101,20 +97,6 @@ public class PluggableRetryPolicyFactory implements RetryPolicyFactory {
     }
   }
 
-
-  public Integer getMaxErrorRetry() {
-    return maxErrorRetry;
-  }
-
-  /**
-   * Equivalent to {@link RetryPolicy#getMaxErrorRetry()}.
-   * 
-   * @param max the value; defaults to 0
-   */
-  public void setMaxErrorRetry(Integer max) {
-    this.maxErrorRetry = max;
-  }
-
   public PluggableRetryPolicyFactory withMaxErrorRetry(Integer i) {
     setMaxErrorRetry(i);
     return this;
@@ -124,18 +106,6 @@ public class PluggableRetryPolicyFactory implements RetryPolicyFactory {
     return NumberUtils.toIntDefaultIfNull(getMaxErrorRetry(), 0);
   }
 
-  public Boolean getUseClientConfigurationMaxErrorRetry() {
-    return useClientConfigurationMaxErrorRetry;
-  }
-
-  /**
-   * Equivalent to {@link RetryPolicy#isMaxErrorRetryInClientConfigHonored()}.
-   * 
-   * @param b true or false, defaults to true.
-   */
-  public void setUseClientConfigurationMaxErrorRetry(Boolean b) {
-    this.useClientConfigurationMaxErrorRetry = b;
-  }
 
   public PluggableRetryPolicyFactory withUseClientConfigurationMaxErrorRetry(Boolean b) {
     setUseClientConfigurationMaxErrorRetry(b);

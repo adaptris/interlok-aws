@@ -19,7 +19,7 @@ package com.adaptris.aws.sqs;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.aws.EndpointBuilder;
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.buffered.AmazonSQSBufferedAsyncClient;
 import com.amazonaws.services.sqs.buffered.QueueBufferConfig;
@@ -75,7 +75,7 @@ public class BufferedSQSClientFactory extends UnbufferedSQSClientFactory {
   }
   
   @Override
-  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf,  EndpointBuilder endpoint) {
+  public AmazonSQSAsync createClient(AWSCredentialsProvider creds, ClientConfiguration conf, EndpointBuilder endpoint) {
     QueueBufferConfig config = new QueueBufferConfig()
       .withLongPoll(getLongPoll())
       .withLongPollWaitTimeoutSeconds(getLongPollWaitTimeoutSeconds())

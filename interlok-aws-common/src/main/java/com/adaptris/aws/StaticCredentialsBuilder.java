@@ -2,9 +2,6 @@ package com.adaptris.aws;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-
-import org.apache.http.util.Args;
-
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldDefault;
 import com.amazonaws.auth.AWSCredentials;
@@ -12,6 +9,9 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * @config aws-static-credentials-builder
@@ -23,6 +23,9 @@ public class StaticCredentialsBuilder implements AWSCredentialsProviderBuilder {
   @NotNull
   @Valid
   @InputFieldDefault(value = "default-aws-authentication")
+  @NonNull
+  @Getter
+  @Setter
   private AWSAuthentication authentication;
 
   public StaticCredentialsBuilder() {
@@ -36,14 +39,6 @@ public class StaticCredentialsBuilder implements AWSCredentialsProviderBuilder {
       return DefaultAWSCredentialsProviderChain.getInstance();
     }
     return new AWSStaticCredentialsProvider(credentials);
-  }
-
-  public AWSAuthentication getAuthentication() {
-    return authentication;
-  }
-
-  public void setAuthentication(AWSAuthentication a) {
-    this.authentication = Args.notNull(a, "authentication");
   }
 
   public StaticCredentialsBuilder withAuthentication(AWSAuthentication a) {

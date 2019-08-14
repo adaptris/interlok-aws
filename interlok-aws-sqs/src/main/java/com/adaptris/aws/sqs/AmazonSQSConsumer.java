@@ -17,16 +17,12 @@
 package com.adaptris.aws.sqs;
 
 import static org.apache.commons.lang.StringUtils.isEmpty;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
-
 import javax.management.MalformedObjectNameException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -57,7 +53,6 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * </p>
  *
  * @config amazon-sqs-consumer
- * @license STANDARD
  * @since 3.0.3
  */
 @XStreamAlias("amazon-sqs-consumer")

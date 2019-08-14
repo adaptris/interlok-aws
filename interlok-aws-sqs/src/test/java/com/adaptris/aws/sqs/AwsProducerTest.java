@@ -22,14 +22,12 @@ import static org.mockito.Mockito.stub;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-
 import com.adaptris.aws.AWSKeysAuthentication;
+import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ConfiguredProduceDestination;
@@ -147,6 +145,7 @@ public class AwsProducerTest extends ProducerCase {
   
   public void testSingleProduceWithSendAttributes() throws Exception {
     stub(sqsClientMock.sendMessageAsync((SendMessageRequest)anyObject())).toAnswer(new Answer<Object>() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
           Object[] args = invocation.getArguments();
           
@@ -177,6 +176,7 @@ public class AwsProducerTest extends ProducerCase {
   
   public void testSingleProduceWithSendAttributesOneMissing() throws Exception {
     stub(sqsClientMock.sendMessageAsync((SendMessageRequest)anyObject())).toAnswer(new Answer<Object>() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
           Object[] args = invocation.getArguments();
           
@@ -207,6 +207,7 @@ public class AwsProducerTest extends ProducerCase {
   
   public void testSingleProduceWithSendAttributesOneEmpty() throws Exception {
     stub(sqsClientMock.sendMessageAsync((SendMessageRequest)anyObject())).toAnswer(new Answer<Object>() {
+      @Override
       public Object answer(InvocationOnMock invocation) {
           Object[] args = invocation.getArguments();
           
@@ -284,10 +285,7 @@ public class AwsProducerTest extends ProducerCase {
     producer.setSendAttributes(sendAttributes);
     
     AmazonSQSConnection conn = new AmazonSQSConnection();
-    AWSKeysAuthentication kauth = new AWSKeysAuthentication();
-    kauth.setAccessKey("accessKey");
-    kauth.setSecretKey("secretKey");
-    conn.setAuthentication(kauth);
+    conn.setCredentials(new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey")));
     conn.setRegion("My AWS Region");
     StandaloneProducer result = new StandaloneProducer(conn, producer);
     return result;
