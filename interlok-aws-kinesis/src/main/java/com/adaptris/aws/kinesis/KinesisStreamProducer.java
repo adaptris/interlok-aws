@@ -1,10 +1,8 @@
 package com.adaptris.aws.kinesis;
 
 import java.nio.ByteBuffer;
-
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.validator.constraints.NotBlank;
-
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
@@ -16,6 +14,8 @@ import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
 import com.amazonaws.services.kinesis.producer.KinesisProducer;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Producer to amazon kinesis using the Kinesis Producer Library.
@@ -37,10 +37,21 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @XStreamAlias("aws-kinesis-stream-producer")
 public class KinesisStreamProducer extends ProduceOnlyProducerImp {
 
+  /**
+   * The kinesis stream name.
+   * 
+   */
   @InputFieldHint(expression = true)
+  @Getter
+  @Setter
   private String stream;
+  /**
+   * The kinesis partition key.
+   * 
+   */
   @NotBlank
   @InputFieldHint(expression = true)
+  @Getter
   private String partitionKey;
 
   public KinesisStreamProducer() {
@@ -71,21 +82,10 @@ public class KinesisStreamProducer extends ProduceOnlyProducerImp {
     return msg.resolve(getStream());
 
   }
-  public String getStream() {
-    return stream;
-  }
-
-  public void setStream(String stream) {
-    this.stream = stream;
-  }
 
   public KinesisStreamProducer withStream(String s) {
     setStream(s);
     return this;
-  }
-
-  public String getPartitionKey() {
-    return partitionKey;
   }
 
   public void setPartitionKey(String partitionKey) {
