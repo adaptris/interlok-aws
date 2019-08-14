@@ -31,6 +31,7 @@ import com.amazonaws.services.kinesis.producer.KinesisProducer;
 import com.amazonaws.services.kinesis.producer.KinesisProducerConfiguration;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 
 /**
@@ -62,6 +63,7 @@ public class ConnectionFromProperties extends ProducerLibraryConnection implemen
   @NotBlank
   @Getter
   @Setter
+  @NonNull
   private String configLocation;
 
 
