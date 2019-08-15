@@ -5,7 +5,7 @@ ext {
 // In this section you declare the dependencies for your production and test code
 dependencies {
     compile "com.amazonaws:aws-java-sdk-sqs:$awsSDKVersion"
-    compile 'com.amazonaws:amazon-sqs-java-messaging-lib:1.0.7'
+    compile 'com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.9.3'
     compile 'org.apache.httpcomponents:httpclient:4.5.9'
 
