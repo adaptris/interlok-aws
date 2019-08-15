@@ -46,6 +46,8 @@ import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.QueueAttributeName;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * <p>
@@ -61,8 +63,21 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
     recommended = {AmazonSQSConnection.class}, metadata= {"SQSMessageID"})
 public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
+  /**
+   * The maximum number of messages to retrieve from the Amazon SQS queue per request. When omitted
+   * the default setting on the queue will be used.
+   * 
+   */
+  @Getter
+  @Setter
   private Integer prefetchCount;
+  /**
+   * The AWS account ID of the account that created the queue. When omitted the default setting on the
+   * queue will be used.
+   */
   @AdvancedConfig
+  @Getter
+  @Setter
   private String ownerAwsAccountId;
 
   private transient Log log = LogFactory.getLog(this.getClass().getName());
@@ -181,32 +196,6 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
       queueUrl = getSynClient().getQueueUrl(queueUrlRequest).getQueueUrl();
     }
     return queueUrl;
-  }
-
-  public Integer getPrefetchCount() {
-    return prefetchCount;
-  }
-
-  /**
-   * The maximum number of messages to retrieve from the Amazon SQS queue per request. When omitted
-   * the default setting on the queue will be used.
-   * @param prefetchCount
-   */
-  public void setPrefetchCount(Integer prefetchCount) {
-    this.prefetchCount = prefetchCount;
-  }
-
-  public String getOwnerAwsAccountId() {
-    return ownerAwsAccountId;
-  }
-
-  /**
-   * The AWS account ID of the account that created the queue. When omitted
-   * the default setting on the queue will be used.
-    * @param ownerAwsAccountId
-   */
-  public void setOwnerAwsAccountId(String ownerAwsAccountId) {
-    this.ownerAwsAccountId = ownerAwsAccountId;
   }
 
   private static class JmxFactory extends RuntimeInfoComponentFactory {

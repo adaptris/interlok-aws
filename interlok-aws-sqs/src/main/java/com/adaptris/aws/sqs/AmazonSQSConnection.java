@@ -27,13 +27,15 @@ import com.adaptris.aws.AWSConnection;
 import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon SQS.
@@ -71,10 +73,16 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 })
 public class AmazonSQSConnection extends AWSConnection {
 
+  /**
+   * How to create the SQS client and set parameters.
+   */
   @NotNull
   @AutoPopulated
   @Valid
   @InputFieldDefault(value = "UnbufferedSQSClientFactory")
+  @Getter
+  @Setter
+  @NonNull
   private SQSClientFactory sqsClientFactory;
 
   private transient AmazonSQSAsync sqsClient;
@@ -140,16 +148,4 @@ public class AmazonSQSConnection extends AWSConnection {
     
     return sqsClient;
   }
-
-  /**
-   * How to create the SQS client and set parameters.
-   */
-  public void setSqsClientFactory(SQSClientFactory sqsClientFactory) {
-    this.sqsClientFactory = Args.notNull(sqsClientFactory, "sqsClientFactory");
-  }
-  
-  public SQSClientFactory getSqsClientFactory() {
-    return sqsClientFactory;
-  }
-
 }
