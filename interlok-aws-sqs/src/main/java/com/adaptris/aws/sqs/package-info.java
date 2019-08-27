@@ -1,4 +1,4 @@
 /**
  * Adaptris Interlok interface with Amazon SQS.
  */
-package com.adaptris.aws.sqs
+package com.adaptris.aws.sqs;
