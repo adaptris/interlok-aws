@@ -2,18 +2,29 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
 ext {
-  componentName='Interlok AWS/S3'
+  componentName='Interlok AWS/Kinesis'
 }
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
-    compile "com.amazonaws:aws-java-sdk-s3:$awsSDKVersion"
-
-    compile project(':interlok-aws-common')
-
-    testCompile 'org.mockito:mockito-all:1.10.19'
+  compile ("com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion")
+  compile ("com.amazonaws:amazon-kinesis-client:1.11.0") {
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+    exclude group: "com.google.protobuf", module: "protobuf-java"
+  }
+  // 0.13.0 doesn't contain the windows execuatble (bad?) so use the older version for now.
+  compile ("com.amazonaws:amazon-kinesis-producer:0.13.1") {
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+    exclude group: "com.google.protobuf", module: "protobuf-java"
+  }
+  compile ("com.google.protobuf:protobuf-java:3.9.1")
+  compile ("com.fasterxml.jackson.core:jackson-databind:2.9.9.3")
+  compile ("com.fasterxml.jackson.core:jackson-core:2.9.9")
+  compile project(':interlok-aws-common')
+  testCompile ("org.mockito:mockito-all:1.10.19")
 }
-
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
@@ -49,10 +60,10 @@ publishing {
           artifact examplesJar { classifier "examples" }
           pom.withXml {
             asNode().appendNode("name", componentName)
-            asNode().appendNode("description", "Services that interact (upload/download/delete) with AWS S3 Buckets and artefacts")
+            asNode().appendNode("description", "Components that interact AWS Kinesis data streams")
             def properties = asNode().appendNode("properties")
-            properties.appendNode("target", "3.3.0+")
-            properties.appendNode("tags", "aws,s3")
+            properties.appendNode("target", "3.9.1+")
+            properties.appendNode("tags", "aws,kinesis")
             properties.appendNode("license", "false")
           }
       }
