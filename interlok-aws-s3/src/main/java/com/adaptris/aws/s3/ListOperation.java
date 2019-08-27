@@ -16,20 +16,19 @@
 
 package com.adaptris.aws.s3;
 
+import java.io.PrintWriter;
+
+import org.apache.http.util.Args;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.services.exception.ExceptionHandlingServiceWrapper;
 import com.adaptris.interlok.config.DataInputParameter;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import org.apache.http.util.Args;
-
-import java.io.PrintStream;
 
 /**
  * List of files based on S3 key.
@@ -58,7 +57,7 @@ public class ListOperation extends S3OperationImpl {
       filterSuffix = getFilterSuffix().extract(msg);
     }
     ObjectListing listing =  s3.listObjects(bucket, key);
-    try (PrintStream ps = new PrintStream(msg.getOutputStream())) {
+    try (PrintWriter ps = new PrintWriter(msg.getWriter())) {
       for (S3ObjectSummary summary : listing.getObjectSummaries()) {
         if (summary.getKey().endsWith(filterSuffix)) {
           ps.println(summary.getKey());
