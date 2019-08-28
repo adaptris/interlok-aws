@@ -20,12 +20,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
-
 import org.junit.Test;
-
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.DefaultRetryPolicyFactory;
+import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
 
@@ -33,10 +32,10 @@ public class AdvancedSQSImplementationTest extends AmazonSQSImplementationTest {
 
   @Test
   public void testConnectionFactory_WithClientConfiguration() throws Exception {
-    AdvancedSQSImplementation jmsImpl = createImpl();
-    jmsImpl.setAuthentication(new AWSKeysAuthentication("MyAccessKey", "MyKey"));
+    AdvancedSQSImplementation jmsImpl = createImpl().withCredentialsProviderBuilder(
+        new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("MyAccessKey", "MyKey")));
     jmsImpl.setRegion("eu-west-1");
-    
+
     KeyValuePairSet kvps = jmsImpl.getClientConfigurationProperties();
     kvps.add(new KeyValuePair("ConnectionTimeout", "10"));
     kvps.add(new KeyValuePair("ConnectionTTL", "10"));

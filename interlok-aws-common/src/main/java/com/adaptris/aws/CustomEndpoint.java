@@ -3,10 +3,11 @@ package com.adaptris.aws;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.Setter;
 
 /** Wraps {@code AwsClientBuilder.EndpointConfiguration} for configuration purposes.
  *  @config aws-custom-endpoint
@@ -15,7 +16,18 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 public class CustomEndpoint implements EndpointBuilder {
 
   private transient Logger log = LoggerFactory.getLogger(this.getClass());
+  /**
+   * Set the custom service endpoint (e.g. {@code https://sns.us-west-1.amazonaws.com}).
+   */
+  @Getter
+  @Setter
   private String serviceEndpoint;
+  /**
+   * Set the signing region for the endpoint (e.g. {@code us-west-1}).
+   * 
+   */
+  @Getter
+  @Setter
   private String signingRegion;
   
   public CustomEndpoint() {
@@ -31,40 +43,19 @@ public class CustomEndpoint implements EndpointBuilder {
     return StringUtils.isNoneBlank(getServiceEndpoint(), getSigningRegion());
   }
 
+  @Override
   public <T extends AwsClientBuilder<?, ?>> T rebuild(T builder) {
     log.trace("Setting EndpointConfiguration to {}:{}", getServiceEndpoint(), getSigningRegion());    
     builder.setEndpointConfiguration(new EndpointConfiguration(getServiceEndpoint(), getSigningRegion()));
     return builder;
   }
   
-  public String getServiceEndpoint() {
-    return serviceEndpoint;
-  }
-
-  /** Set the service endpoint.
-   * 
-   * @param s the service endpoint e.g. {@code https://sns.us-west-1.amazonaws.com}.
-   */
-  public void setServiceEndpoint(String s) {
-    this.serviceEndpoint = s;
-  }
 
   public CustomEndpoint withServiceEndpoint(String s) {
     setServiceEndpoint(s);
     return this;
   }
-  
-  public String getSigningRegion() {
-    return signingRegion;
-  }
 
-  /** Set the signing region.
-   * 
-   * @param s the region to use for SigV4 signing of requests (e.g. us-west-1)
-   */
-  public void setSigningRegion(String s) {
-    this.signingRegion = s;
-  }
   
   public CustomEndpoint withSigningRegion(String s) {
     setSigningRegion(s);

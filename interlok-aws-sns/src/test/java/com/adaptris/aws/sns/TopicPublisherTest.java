@@ -17,10 +17,9 @@
 package com.adaptris.aws.sns;
 
 import static org.mockito.Matchers.anyObject;
-
 import org.mockito.Mockito;
-
 import com.adaptris.aws.AWSKeysAuthentication;
+import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ConfiguredProduceDestination;
@@ -49,7 +48,7 @@ public class TopicPublisherTest extends ProducerCase {
     AWSKeysAuthentication kauth = new AWSKeysAuthentication();
     kauth.setAccessKey("accessKey");
     kauth.setSecretKey("secretKey");
-    conn.setAuthentication(kauth);
+    conn.setCredentials(new StaticCredentialsBuilder().withAuthentication(kauth));
     conn.setRegion("My AWS Region");
     StandaloneProducer result = new StandaloneProducer(conn, producer);
     return result;

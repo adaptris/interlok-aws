@@ -20,18 +20,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-
 import javax.validation.constraints.NotNull;
-
 import org.apache.commons.lang3.StringUtils;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageProducer;
 import com.adaptris.core.CoreException;
@@ -52,6 +49,9 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * {@link AdaptrisMessageProducer} implementation that sends messages to an Amazon Web Services (AWS) SQS queue.
@@ -68,14 +68,39 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
     recommended = {AmazonSQSConnection.class})
 public class AmazonSQSProducer extends ProduceOnlyProducerImp {
 
+  /**
+   * Delay seconds for every message
+   */
+  @Getter
+  @Setter
+  @InputFieldDefault(value = "0")
   private int delaySeconds = 0;
   
+  /**
+   * Specify a list of a metadata keys that should be attached to a message.
+   * <p>
+   * Amazon SQS supports a limited set of attributes (10 at current count) that can be attached to a
+   * message; use this list to specify the metadata keys that must be sent as attributes, otherwise
+   * all metadata is ignored.
+   * </p>
+   * 
+   * 
+   */
   @XStreamImplicit(itemFieldName = "send-attribute")
   @NotNull
   @AutoPopulated
+  @Getter
+  @Setter
+  @NonNull
   private List<String> sendAttributes;
 
+  /**
+   * The AWS account ID of the account that created the queue. When omitted the default setting on the
+   * queue will be used.
+   */
   @AdvancedConfig
+  @Getter
+  @Setter
   private String ownerAwsAccountId;
   
   private transient SendMessageAsyncCallback callback = (e) -> {  };
@@ -183,56 +208,6 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
 
   @Override
   public void prepare() throws CoreException {
-  }
-
-  /**
-   * Delay seconds for every message
-   * 
-   * @return delaySeconds
-   */
-  public int getDelaySeconds() {
-    return delaySeconds;
-  }
-
-  /**
-   * Delay seconds for every message
-   * 
-   * @param delaySeconds
-   */
-  public void setDelaySeconds(int delaySeconds) {
-    this.delaySeconds = delaySeconds;
-  }
-
-  public List<String> getSendAttributes() {
-    return sendAttributes;
-  }
-
-  /**
-   * Specify a list of a metadata keys that should be attached to a message.
-   * <p>
-   * Amazon SQS supports a limited set of attributes (10 at current count) that can be attached to a message; use this list to
-   * specify the metadata keys that must be sent as attributes, otherwise all metadata is ignored.
-   * </p>
-   * 
-   * @since 3.0.3
-   * @param sendAttributes a list of metadata keys that will be sent as attributes.
-   */
-  public void setSendAttributes(List<String> sendAttributes) {
-    this.sendAttributes = Args.notNull(sendAttributes, "sendAttributes");
-  }
-
-  public String getOwnerAwsAccountId() {
-    return ownerAwsAccountId;
-  }
-
-  /**
-   * The AWS account ID of the account that created the queue. When omitted
-   * the default setting on the queue will be used.
-   * @since 3.7.3
-   * @param ownerAwsAccountId
-   */
-  public void setOwnerAwsAccountId(String ownerAwsAccountId) {
-    this.ownerAwsAccountId = ownerAwsAccountId;
   }
 
   // Just for testing with localstack.

@@ -19,16 +19,12 @@ package com.adaptris.aws.sns;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
-import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.aws.AWSConnection;
 import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.ExceptionHelper;
-import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -70,12 +66,6 @@ public class AmazonSNSConnection extends AWSConnection {
   public AmazonSNSConnection() {
   }
 
-  public AmazonSNSConnection(AWSAuthentication auth, KeyValuePairSet cfg) {
-    this();
-    setAuthentication(auth);
-    setClientConfiguration(cfg);
-  }
-
   @Override
   protected void prepareConnection() throws CoreException {
     // Nothing to do
@@ -84,12 +74,9 @@ public class AmazonSNSConnection extends AWSConnection {
   @Override
   protected void initConnection() throws CoreException {
     try {
-      AWSCredentials creds = authentication().getAWSCredentials();
       ClientConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
       AmazonSNSClientBuilder builder = endpointBuilder().rebuild(AmazonSNSClientBuilder.standard().withClientConfiguration(cc));
-      if (creds != null) {
-        builder.withCredentials(new AWSStaticCredentialsProvider(creds));
-      }
+      builder.withCredentials(credentialsProvider().build());
       snsClient = (AmazonSNSClient) builder.build();
     }
     catch (Exception e) {

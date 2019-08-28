@@ -17,11 +17,8 @@
 package com.adaptris.aws.kinesis;
 
 import java.util.Properties;
-
 import javax.validation.Valid;
-
 import org.apache.commons.lang3.ObjectUtils;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
@@ -37,6 +34,8 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.kinesis.producer.KinesisProducer;
 import com.amazonaws.services.kinesis.producer.KinesisProducerConfiguration;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon Kinesis using the Kinesis Producer Library.
@@ -55,15 +54,39 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @DisplayOrder(order = {"config", "credentials", "metricsCredentials"})
 public class InlineProducerConfiguration extends ProducerLibraryConnection implements KinesisProducerWrapper {
 
+  /**
+   * Set any configuration required.
+   * <p>
+   * Set any configuration that is required. The settings here are directly converted into a
+   * {@link Properties} object for use with {@code KinesisProducerConfiguration} via the
+   * {@code fromProperties()} method.
+   * </p>
+   * 
+   */
   @AdvancedConfig
   @AutoPopulated
+  @Getter
+  @Setter
   private KeyValuePairSet config;
+  /**
+   * Credentials to be used for kinesis
+   * 
+   */
   @Valid
   @InputFieldDefault(value = "static-credentials-builder with a default chain")
+  @Getter
+  @Setter
   private AWSCredentialsProviderBuilder credentials;
+  /**
+   * Credentials to be used for kinesis metrics if different to
+   * {@link #setCredentials(AWSCredentialsProviderBuilder)}.
+   * 
+   */
   @AdvancedConfig
   @Valid
   @InputFieldDefault(value = "null")
+  @Getter
+  @Setter
   private AWSCredentialsProviderBuilder metricsCredentials;
 
   public InlineProducerConfiguration() {
@@ -81,39 +104,9 @@ public class InlineProducerConfiguration extends ProducerLibraryConnection imple
     return producer;
   }
 
-  public KeyValuePairSet getConfig() {
-    return config;
-  }
-
-  /**
-   * Set any configuration required.
-   * <p>
-   * Set any configuration that is required. The settings here are directly converted into a {@link Properties} object for use
-   * with {@code KinesisProducerConfiguration} via the {@code fromProperties()} method.
-   * </p>
-   * 
-   * @param config the configuration.
-   */
-  public void setConfig(KeyValuePairSet config) {
-    this.config = config;
-  }
-
   public InlineProducerConfiguration withConfig(KeyValuePairSet b) {
     setConfig(b);
     return this;
-  }
-
-  public AWSCredentialsProviderBuilder getCredentials() {
-    return credentials;
-  }
-
-  /**
-   * Set the credentials to be used for kinesis
-   * 
-   * @param c
-   */
-  public void setCredentials(AWSCredentialsProviderBuilder c) {
-    this.credentials = c;
   }
 
   public InlineProducerConfiguration withCredentials(AWSCredentialsProviderBuilder b) {
@@ -123,19 +116,6 @@ public class InlineProducerConfiguration extends ProducerLibraryConnection imple
 
   private AWSCredentialsProvider credentials() throws Exception {
     return ObjectUtils.defaultIfNull(getCredentials(), new StaticCredentialsBuilder()).build();
-  }
-
-  public AWSCredentialsProviderBuilder getMetricsCredentials() {
-    return metricsCredentials;
-  }
-
-  /**
-   * Set the credentials to be used for metrics.
-   * 
-   * @param c the credentials for metrics.
-   */
-  public void setMetricsCredentials(AWSCredentialsProviderBuilder c) {
-    this.metricsCredentials = c;
   }
 
   public InlineProducerConfiguration withMetricsCredentials(AWSCredentialsProviderBuilder b) {

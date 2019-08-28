@@ -18,9 +18,7 @@ package com.adaptris.aws.kinesis;
 
 import java.io.InputStream;
 import java.util.Properties;
-
 import org.hibernate.validator.constraints.NotBlank;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
@@ -32,6 +30,9 @@ import com.adaptris.util.URLHelper;
 import com.amazonaws.services.kinesis.producer.KinesisProducer;
 import com.amazonaws.services.kinesis.producer.KinesisProducerConfiguration;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon Kinesis using the Kinesis Producer Library.
@@ -52,7 +53,17 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @DisplayOrder(order = {"configLocation"})
 public class ConnectionFromProperties extends ProducerLibraryConnection implements KinesisProducerWrapper {
 
+  /**
+   * The location of the property file that contains the kinesis producer library configuration.
+   * <p>
+   * This should be a URL style path (e.g. file:///path/to/my/properties).
+   * </p>
+   * 
+   */
   @NotBlank
+  @Getter
+  @Setter
+  @NonNull
   private String configLocation;
 
 
@@ -63,19 +74,6 @@ public class ConnectionFromProperties extends ProducerLibraryConnection implemen
   protected void initConnection() throws CoreException {
     Args.notBlank(getConfigLocation(), "config-location");
     super.initConnection();
-  }
-
-  public String getConfigLocation() {
-    return configLocation;
-  }
-
-  /**
-   * Specify the location of the property file that contains the kinesis producer library configuration.
-   * 
-   * @param p the path to the properties file, generally a URL style value (e.g. file:///path/to/my/properties)
-   */
-  public void setConfigLocation(String p) {
-    this.configLocation = Args.notBlank(p, "config-location");
   }
 
   public ConnectionFromProperties withConfigLocation(String s) {

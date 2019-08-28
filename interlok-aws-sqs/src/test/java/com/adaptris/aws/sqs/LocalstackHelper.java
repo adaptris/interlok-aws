@@ -2,11 +2,10 @@ package com.adaptris.aws.sqs;
 
 import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
-
 import org.apache.commons.lang3.BooleanUtils;
-
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.CustomEndpoint;
+import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.aws.sqs.jms.AdvancedSQSImplementation;
 import com.adaptris.core.jms.JmsConnection;
 import com.adaptris.core.util.LifecycleHelper;
@@ -56,7 +55,9 @@ public class LocalstackHelper {
   public AmazonSQSConnection createConnection() {
     String serviceEndpoint = getProperty(SQS_URL);
     String signingRegion = getProperty(SQS_SIGNING_REGION);
-    AmazonSQSConnection connection = new AmazonSQSConnection(new AWSKeysAuthentication("TEST", "TEST"), null)
+    AmazonSQSConnection connection = new AmazonSQSConnection()
+        .withCredentialsProviderBuilder(
+            new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("TEST", "TEST")))
         .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion));
     return connection;
   }
@@ -69,7 +70,8 @@ public class LocalstackHelper {
     AdvancedSQSImplementation jmsImpl = new AdvancedSQSImplementation()
         .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion))
         .withClientFactory(clientFactory)
-        .withAuthentication(new AWSKeysAuthentication("TEST", "TEST"));
+        .withCredentialsProviderBuilder(
+            new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("TEST", "TEST")));
     JmsConnection jmsC = new JmsConnection(jmsImpl);
     return jmsC;
   }

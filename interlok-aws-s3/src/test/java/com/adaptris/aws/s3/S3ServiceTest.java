@@ -16,13 +16,11 @@
 
 package com.adaptris.aws.s3;
 import static org.mockito.Matchers.anyObject;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.mockito.Mockito;
-
 import com.adaptris.aws.DefaultAWSAuthentication;
+import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.aws.s3.meta.S3ContentLanguage;
 import com.adaptris.aws.s3.meta.S3ServerSideEncryption;
 import com.adaptris.core.AdaptrisMessage;
@@ -161,7 +159,9 @@ public class S3ServiceTest extends ServiceCase {
   protected final List retrieveObjectsForSampleConfig() {
     ArrayList result = new ArrayList();
     for (OperationsBuilder b : OperationsBuilder.values()) {
-      result.add(new S3Service(new AmazonS3Connection(new DefaultAWSAuthentication(), exampleClientConfig()), b.build()));
+      result.add(new S3Service(new AmazonS3Connection()
+          .withCredentialsProviderBuilder(new StaticCredentialsBuilder().withAuthentication(new DefaultAWSAuthentication()))
+          .withClientConfiguration(exampleClientConfig()), b.build()));
     }
     return result;
   }

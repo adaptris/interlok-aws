@@ -17,13 +17,12 @@
 package com.adaptris.aws.sqs;
 
 import static org.junit.Assert.assertNotNull;
-
 import org.junit.Test;
-
+import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.EndpointBuilder;
+import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.util.KeyValuePairSet;
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 
@@ -32,9 +31,11 @@ public class BufferedClientFactoryTest {
   @Test
   public void testCreateClient() throws Exception {
     BufferedSQSClientFactory fac = new BufferedSQSClientFactory();
-    BasicAWSCredentials creds = new BasicAWSCredentials("accessKey", "secretKey");
+    StaticCredentialsBuilder creds =
+        new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey"));
     assertNotNull(
-        fac.createClient(creds, ClientConfigurationBuilder.build(new KeyValuePairSet()), new EndpointBuilder() {
+        fac.createClient(creds.build(), ClientConfigurationBuilder.build(new KeyValuePairSet()), new EndpointBuilder() {
+          @Override
           public <T extends AwsClientBuilder<?, ?>> T rebuild(T builder) {
             builder.withRegion(Regions.AP_NORTHEAST_1.getName());
             return builder;

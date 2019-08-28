@@ -22,13 +22,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
 import javax.jms.JMSException;
-
 import org.junit.Test;
-
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.DefaultAWSAuthentication;
+import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.aws.sqs.BufferedSQSClientFactory;
 import com.adaptris.aws.sqs.UnbufferedSQSClientFactory;
 
@@ -36,16 +34,16 @@ public class AmazonSQSImplementationTest {
 
   @Test
   public void testCreateFactory() throws Exception {
-    AmazonSQSImplementation jmsImpl = createImpl();
-    jmsImpl.setAuthentication(new AWSKeysAuthentication("MyAccessKey", "MyKey"));
+    AmazonSQSImplementation jmsImpl = createImpl().withCredentialsProviderBuilder(
+        new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("MyAccessKey", "MyKey")));;
     jmsImpl.setRegion("eu-west-1");
     assertNotNull(jmsImpl.createConnectionFactory());
   }
 
   @Test
   public void testBadPassword() throws Exception {
-    AmazonSQSImplementation jmsImpl = createImpl();
-    jmsImpl.setAuthentication(new AWSKeysAuthentication("MyAccessKey", "PW:BACCy"));
+    AmazonSQSImplementation jmsImpl = createImpl().withCredentialsProviderBuilder(
+        new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("MyAccessKey", "PW:BACCY")));
     jmsImpl.setRegion("eu-west-1");
     try {
       jmsImpl.createConnectionFactory();
@@ -72,11 +70,25 @@ public class AmazonSQSImplementationTest {
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testAuthentication() throws Exception {
     AmazonSQSImplementation jmsImpl = createImpl();
+
     assertNull(jmsImpl.getAuthentication());
-    assertNotNull(jmsImpl.authentication());
-    assertEquals(DefaultAWSAuthentication.class, jmsImpl.authentication().getClass());
+    assertNull(jmsImpl.getCredentials());
+    assertNotNull(jmsImpl.credentialsProvider());
+    assertEquals(StaticCredentialsBuilder.class, jmsImpl.credentialsProvider().getClass());
+    jmsImpl.withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey"));
+    assertNotNull(jmsImpl.getAuthentication());
+    assertNull(jmsImpl.getCredentials());
+    assertEquals(StaticCredentialsBuilder.class, jmsImpl.credentialsProvider().getClass());
+    assertEquals(AWSKeysAuthentication.class,
+        ((StaticCredentialsBuilder) jmsImpl.credentialsProvider()).getAuthentication().getClass());
+    jmsImpl.setAuthentication(null);
+    jmsImpl.withCredentialsProviderBuilder(new StaticCredentialsBuilder().withAuthentication(new DefaultAWSAuthentication()));
+    assertEquals(StaticCredentialsBuilder.class, jmsImpl.credentialsProvider().getClass());
+    assertEquals(DefaultAWSAuthentication.class,
+        ((StaticCredentialsBuilder) jmsImpl.credentialsProvider()).getAuthentication().getClass());
   }
   
   @Test

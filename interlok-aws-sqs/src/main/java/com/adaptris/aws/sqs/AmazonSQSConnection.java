@@ -18,26 +18,24 @@ package com.adaptris.aws.sqs;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
-import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.aws.AWSConnection;
 import com.adaptris.aws.ClientConfigurationBuilder;
-import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon SQS.
@@ -63,7 +61,6 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * 
  * 
  * @config amazon-sqs-connection
- * @license STANDARD
  * @since 3.0.3
  */
 @XStreamAlias("amazon-sqs-connection")
@@ -76,27 +73,26 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 })
 public class AmazonSQSConnection extends AWSConnection {
 
+  /**
+   * How to create the SQS client and set parameters.
+   */
   @NotNull
   @AutoPopulated
   @Valid
   @InputFieldDefault(value = "UnbufferedSQSClientFactory")
+  @Getter
+  @Setter
+  @NonNull
   private SQSClientFactory sqsClientFactory;
 
   private transient AmazonSQSAsync sqsClient;
 
 
   public AmazonSQSConnection() {
-    setAuthentication(new DefaultAWSAuthentication());
     setSqsClientFactory(new UnbufferedSQSClientFactory());
     setClientConfiguration(new KeyValuePairSet());
   }
 
-  public AmazonSQSConnection(AWSAuthentication auth, KeyValuePairSet cfg) {
-    this();
-    setAuthentication(auth);
-    setClientConfiguration(cfg);
-  }
-  
   @Override
   protected void prepareConnection() throws CoreException {
     // nothing to do.
@@ -111,10 +107,8 @@ public class AmazonSQSConnection extends AWSConnection {
   @Override
   protected synchronized void initConnection() throws CoreException {
     try {
-      AWSCredentials creds = authentication().getAWSCredentials();
       ClientConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
-
-      sqsClient = getSqsClientFactory().createClient(authentication().getAWSCredentials(), cc, endpointBuilder());
+      sqsClient = getSqsClientFactory().createClient(credentialsProvider().build(), cc, endpointBuilder());
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }
@@ -154,16 +148,4 @@ public class AmazonSQSConnection extends AWSConnection {
     
     return sqsClient;
   }
-
-  /**
-   * How to create the SQS client and set parameters.
-   */
-  public void setSqsClientFactory(SQSClientFactory sqsClientFactory) {
-    this.sqsClientFactory = Args.notNull(sqsClientFactory, "sqsClientFactory");
-  }
-  
-  public SQSClientFactory getSqsClientFactory() {
-    return sqsClientFactory;
-  }
-
 }

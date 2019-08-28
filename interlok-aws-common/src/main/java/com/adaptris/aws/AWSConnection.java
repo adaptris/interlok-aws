@@ -17,120 +17,103 @@
 package com.adaptris.aws;
 
 import javax.validation.Valid;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdvancedConfig;
+import com.adaptris.annotation.InputFieldDefault;
+import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisConnectionImp;
+import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.DefaultAwsRegionProviderChain;
+import lombok.Getter;
+import lombok.Setter;
 
 public abstract class AWSConnection extends AdaptrisConnectionImp {
+
+  /**
+   * Set the region for the client.
+   * 
+   * <p>
+   * If the region is not specified, then {@link DefaultAwsRegionProviderChain} is used to determine
+   * the region. You can always specify a region using the standard system property {@code aws.region}
+   * or via environment variables.
+   * </p>
+   * 
+   */
+  @Getter
+  @Setter
   private String region;
 
   @Valid
+  @Deprecated
+  @Removal(version = "3.11.0", message = "Use a AWSCredentialsProviderBuilder instead")
+  @Getter
+  @Setter
   private AWSAuthentication authentication;
 
+  /**
+   * How to provide Credentials for AWS.
+   * <p>
+   * If not specified, then a static credentials provider with a default provider chain will be used.
+   * </p>
+   */
+  @Getter
+  @Setter
+  @Valid
+  @InputFieldDefault(value = "aws-static-credentials-builder with default credentials")
+  private AWSCredentialsProviderBuilder credentials;
+
+  /**
+   * Any specific client configuration.
+   * 
+   */
   @Valid
   @AdvancedConfig
+  @Getter
+  @Setter
   private KeyValuePairSet clientConfiguration;
 
+  /**
+   * The Retry policy.
+   * 
+   */
   @Valid
   @AdvancedConfig
+  @Getter
+  @Setter
   private RetryPolicyFactory retryPolicy;
 
+  /**
+   * The custom endpoint for this connection.
+   * <p>
+   * Generally speaking, you don't need to configure this; use {@link #setRegion(String)} instead.
+   * This is only required if you are planning to use a non-standard service endpoint such as
+   * <a href="https://github.com/localstack/localstack">localstack</a> to provide AWS services.
+   * Explicitly configuring this means that your {@link #setRegion(String)} will have no effect (i.e.
+   * {@code AwsClientBuilder#setRegion(String)} will never be invoked.
+   * </p>
+   * *
+   */
   @Valid
   @AdvancedConfig
+  @Getter
+  @Setter
   private CustomEndpoint customEndpoint;
-  
-  public AWSAuthentication getAuthentication() {
-    return authentication;
-  }
 
-  public AWSAuthentication authentication() {
-    return ObjectUtils.defaultIfNull(getAuthentication(), new DefaultAWSAuthentication());
-  }
-
-  /**
-   * The authentication method to use
-   * 
-   * @param auth the authentication to use, defaults to {@code DefaultAWSAuthentication} if not specified.
-   */
-  public void setAuthentication(AWSAuthentication auth) {
-    this.authentication = auth;
-  }
-
-  /**
-   * @return the clientConfiguration
-   */
-  public KeyValuePairSet getClientConfiguration() {
-    return clientConfiguration;
-  }
-
-  /**
-   * @param b the clientConfiguration to set
-   */
-  public void setClientConfiguration(KeyValuePairSet b) {
-    this.clientConfiguration = b;
+  @SuppressWarnings("deprecation")
+  public AWSCredentialsProviderBuilder credentialsProvider() {
+    return AWSCredentialsProviderBuilder.providerWithWarning(LoggingHelper.friendlyName(this), getAuthentication(),
+        getCredentials());
   }
 
   public KeyValuePairSet clientConfiguration() {
     return ObjectUtils.defaultIfNull(getClientConfiguration(), new KeyValuePairSet());
   }
 
-  public RetryPolicyFactory getRetryPolicy() {
-    return retryPolicy;
-  }
-
-  /**
-   * Set the retry policy if required.
-   * 
-   * @param rp the retry policy, defaults to {@code DefaultRetryPolicyBuilder} if not specified.
-   */
-  public void setRetryPolicy(RetryPolicyFactory rp) {
-    this.retryPolicy = rp;
-  }
-
   public RetryPolicyFactory retryPolicy() {
     return ObjectUtils.defaultIfNull(getRetryPolicy(), new DefaultRetryPolicyFactory());
-  }
-
-  public String getRegion() {
-    return region;
-  }
-
-  /**
-   * Set the region for the client.
-   * 
-   * <p>
-   * If the region is not specified, then {@link DefaultAwsRegionProviderChain} is used to determine the region. You can always
-   * specify a region using the standard system property {@code aws.region} or via environment variables.
-   * </p>
-   * 
-   * @param s the region.
-   */
-  public void setRegion(String s) {
-    this.region = s;
-  }
-  
-  public CustomEndpoint getCustomEndpoint() {
-    return customEndpoint;
-  }
-
-  /**
-   * Set a custom endpoint for this connection.
-   * <p>
-   * Generally speaking, you don't need to configure this; use {@link #setRegion(String)} instead. This is only required if you are
-   * planning to use a non-standard service endpoint such as <a href="https://github.com/localstack/localstack">localstack</a> to
-   * provide AWS services. Explicitly configuring this means that your {@link #setRegion(String)} will have no effect (i.e.
-   * {@code AwsClientBuilder#setRegion(String)} will never be invoked.
-   * </p>
-   * 
-   * @param endpoint
-   */
-  public void setCustomEndpoint(CustomEndpoint endpoint) {
-    this.customEndpoint = endpoint;
   }
   
   public <T extends AWSConnection> T withCustomEndpoint(CustomEndpoint endpoint) {
@@ -138,6 +121,26 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
     return (T) this;
   }
   
+  public <T extends AWSConnection> T withCredentialsProviderBuilder(AWSCredentialsProviderBuilder builder) {
+    setCredentials(builder);
+    return (T) this;
+  }
+
+  public <T extends AWSConnection> T withClientConfiguration(KeyValuePairSet cfg) {
+    setClientConfiguration(cfg);
+    return (T) this;
+  }
+
+  public <T extends AWSConnection> T withRetryPolicy(RetryPolicyFactory f) {
+    setRetryPolicy(f);
+    return (T) this;
+  }
+
+  public <T extends AWSConnection> T withRegion(String s) {
+    setRegion(s);
+    return (T) this;
+  }
+
   /** Returns something that can configure a normal AWS builder with a custom endpoint or a region...
    * 
    */
@@ -146,6 +149,8 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
         : new RegionOnly();
   }
   
+
+
   protected class RegionOnly implements EndpointBuilder {
 
     @Override

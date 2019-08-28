@@ -17,34 +17,34 @@
 package com.adaptris.aws.sqs.jms;
 
 import static com.adaptris.core.jms.JmsUtils.wrapJMSException;
-
 import javax.jms.JMSException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
-
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
+import com.adaptris.annotation.Removal;
 import com.adaptris.aws.AWSAuthentication;
+import com.adaptris.aws.AWSCredentialsProviderBuilder;
 import com.adaptris.aws.ClientConfigurationBuilder;
-import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.aws.EndpointBuilder;
 import com.adaptris.aws.sqs.SQSClientFactory;
 import com.adaptris.aws.sqs.UnbufferedSQSClientFactory;
 import com.adaptris.core.jms.VendorImplementationBase;
 import com.adaptris.core.jms.VendorImplementationImp;
-import com.adaptris.core.util.Args;
 import com.adaptris.util.KeyValuePairSet;
 import com.adaptris.util.NumberUtils;
 import com.amazon.sqs.javamessaging.ProviderConfiguration;
 import com.amazon.sqs.javamessaging.SQSConnectionFactory;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.regions.DefaultAwsRegionProviderChain;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * JMS VendorImplementation for Amazon SQS.
@@ -54,7 +54,6 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * </p>
  * 
  * @config amazon-sqs-implementation
- * @license STANDARD
  * @since 3.0.3
  */
 @XStreamAlias("amazon-sqs-implementation")
@@ -62,23 +61,65 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
 
   private static int DEFAULT_PREFETCH_COUNT = 10;
 
-  @NotNull
+  /**
+   * Set the region for the client.
+   * 
+   * <p>
+   * If the region is not specified, then {@link DefaultAwsRegionProviderChain} is used to determine
+   * the region. You can always specify a region using the standard system property {@code aws.region}
+   * or via environment variables.
+   * </p>
+   * 
+   */
+  @Getter
+  @Setter
   private String region;
 
   @Valid
+  @Deprecated
+  @Removal(version = "3.11.0", message = "Use a AWSCredentialsProviderBuilder instead")
+  @Getter
+  @Setter
   private AWSAuthentication authentication;
 
+  /**
+   * How to provide Credentials for AWS.
+   * <p>
+   * If not specified, then a static credentials provider with a default provider chain will be used.
+   * </p>
+   */
+  @Getter
+  @Setter
+  @Valid
+  @InputFieldDefault(value = "aws-static-credentials-builder with default credentials")
+  private AWSCredentialsProviderBuilder credentials;
+
+
+  /**
+   * The maximum number of messages to retrieve from the Amazon SQS queue per request.
+   * 
+   */
   @AdvancedConfig
+  @Getter
+  @Setter
+  @InputFieldDefault(value = "10")
   private Integer prefetchCount;
 
+  /**
+   * How to create the SQS client and set parameters.
+   * 
+   */
   @NotNull
   @AutoPopulated
   @Valid
   @InputFieldDefault(value = "UnbufferedSQSClientFactory")
+  @Getter
+  @Setter
+  @NonNull
   private SQSClientFactory sqsClientFactory;
   
   private transient SQSConnectionFactory connectionFactory = null;
-  
+
   public AmazonSQSImplementation() {
     setSqsClientFactory(new UnbufferedSQSClientFactory());
   }
@@ -95,74 +136,36 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   }
 
   protected SQSConnectionFactory build() throws Exception {
-    ClientConfiguration cc = ClientConfigurationBuilder.build(new KeyValuePairSet());
-    AmazonSQS sqsClient = getSqsClientFactory().createClient(authentication().getAWSCredentials(), cc, endpointBuilder());
+    ClientConfiguration cc = clientConfiguration();
+    AmazonSQS sqsClient = getSqsClientFactory().createClient(credentialsProvider().build(), cc, endpointBuilder());
     return new SQSConnectionFactory(newProviderConfiguration(), sqsClient);
   }
+
+  protected ClientConfiguration clientConfiguration() throws Exception {
+    return ClientConfigurationBuilder.build(new KeyValuePairSet());
+  }
+
+  @SuppressWarnings("deprecation")
+  protected AWSCredentialsProviderBuilder credentialsProvider() {
+    return AWSCredentialsProviderBuilder.providerWithWarning(getClass().getCanonicalName(), getAuthentication(), getCredentials());
+  }
+
 
   @Override
   public boolean connectionEquals(VendorImplementationBase arg0) {
     return this == arg0;
   }
 
-  public String getRegion() {
-    return region;
-  }
-
-  /**
-   * The Amazon Web Services region to use
-   * 
-   * @param str the region
-   */
-  public void setRegion(String str) {
-    this.region = Args.notBlank(str, "region");
-  }
-
-
-  public Integer getPrefetchCount() {
-    return prefetchCount;
-  }
-
-  /**
-   * The maximum number of messages to retrieve from the Amazon SQS queue per request. When omitted
-   * the default setting on the queue will be used.
-   * 
-   * @param prefetchCount
-   */
-  public void setPrefetchCount(Integer prefetchCount) {
-    this.prefetchCount = prefetchCount;
-  }
-
   protected int prefetchCount() {
     return NumberUtils.toIntDefaultIfNull(getPrefetchCount(), DEFAULT_PREFETCH_COUNT);
   }
 
-  
-  public AWSAuthentication getAuthentication() {
-    return authentication;
-  }
 
-  /**
-   * The authentication method to use
-   */
-  public void setAuthentication(AWSAuthentication authentication) {
-    this.authentication = authentication;
-  }
-
+  @Deprecated
+  @Removal(version = "3.11.0")
   public <T extends AmazonSQSImplementation> T withAuthentication(AWSAuthentication a) {
     setAuthentication(a);
     return (T) this;
-  }
-  
-  /**
-   * How to create the SQS client and set parameters.
-   */
-  public void setSqsClientFactory(SQSClientFactory sqsClientFactory) {
-    this.sqsClientFactory = Args.notNull(sqsClientFactory, "sqsClientFactory");
-  }
-  
-  public SQSClientFactory getSqsClientFactory() {
-    return sqsClientFactory;
   }
   
   public <T extends AmazonSQSImplementation> T withClientFactory(SQSClientFactory fac) {
@@ -170,9 +173,12 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
     return (T) this;
   }
   
-  protected AWSAuthentication authentication() {
-    return ObjectUtils.defaultIfNull(getAuthentication(), new DefaultAWSAuthentication());
+
+  public <T extends AmazonSQSImplementation> T withCredentialsProviderBuilder(AWSCredentialsProviderBuilder builder) {
+    setCredentials(builder);
+    return (T) this;
   }
+
 
   protected EndpointBuilder endpointBuilder() {
     return new RegionOnly();
