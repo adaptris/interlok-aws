@@ -14,6 +14,8 @@ import lombok.NonNull;
 import lombok.Setter;
 
 /**
+ * A static set of credentials for AWS.
+ * 
  * @config aws-static-credentials-builder
  */
 @XStreamAlias("aws-static-credentials-builder")
