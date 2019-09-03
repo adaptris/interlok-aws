@@ -16,7 +16,8 @@ import lombok.Setter;
  * @config aws-profile-credentials-builder
  */
 @XStreamAlias("aws-profile-credentials-builder")
-@ComponentProfile(summary = "Credentials provider based on AWS configuration profiles")
+@ComponentProfile(summary = "Credentials provider based on AWS configuration profiles",
+    since = "3.9.2")
 public class ProfileCredentialsBuilder implements AWSCredentialsProviderBuilder {
 
   /**

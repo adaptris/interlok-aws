@@ -19,7 +19,7 @@ import lombok.Setter;
  * @config aws-static-credentials-builder
  */
 @XStreamAlias("aws-static-credentials-builder")
-@ComponentProfile(summary = "Create a static set of credentials")
+@ComponentProfile(summary = "Create a static set of credentials", since = "3.9.1")
 public class StaticCredentialsBuilder implements AWSCredentialsProviderBuilder {
 
   @NotNull

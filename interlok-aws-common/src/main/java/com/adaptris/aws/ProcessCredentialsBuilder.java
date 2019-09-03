@@ -26,7 +26,7 @@ import lombok.Setter;
  * 
  */
 @XStreamAlias("aws-process-credentials-builder")
-@ComponentProfile(summary = "Credentials provider that can load credentials from an external process")
+@ComponentProfile(summary = "Credentials provider that can load credentials from an external process", since = "3.9.2")
 public class ProcessCredentialsBuilder implements AWSCredentialsProviderBuilder {
 
   /**

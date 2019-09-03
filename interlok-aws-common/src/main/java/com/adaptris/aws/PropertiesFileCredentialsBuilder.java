@@ -36,7 +36,8 @@ import lombok.Setter;
  */
 @XStreamAlias("aws-properties-file-credentials-builder")
 @ComponentProfile(
-    summary = "Credentials provider that loads credentials from a property file either from the filesystem or classpath")
+    summary = "Credentials provider that loads credentials from a property file either from the filesystem or classpath",
+    since = "3.9.2")
 public class PropertiesFileCredentialsBuilder implements AWSCredentialsProviderBuilder {
 
   /**
