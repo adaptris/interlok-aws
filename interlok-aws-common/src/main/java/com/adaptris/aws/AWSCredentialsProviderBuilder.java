@@ -14,7 +14,7 @@ public interface AWSCredentialsProviderBuilder {
    * Helper to log warnings when configuration contains an {@link AWSAuthentication} member rather
    * than a {@link AWSCredentialsProviderBuilder}.
    * 
-   * @deprecated will be removed as soon as {@link AWSAuthenication} is removed from various
+   * @deprecated will be removed as soon as {@link AWSAuthentication} is removed from various
    *             connections.
    */
   @Deprecated
