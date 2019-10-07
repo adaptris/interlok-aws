@@ -16,19 +16,22 @@
 
 package com.adaptris.aws.s3;
 
-import java.io.PrintWriter;
-
-import org.apache.http.util.Args;
-
+import java.util.ArrayList;
+import java.util.Collection;
+import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.interlok.cloud.BlobListRenderer;
+import com.adaptris.interlok.cloud.RemoteBlob;
 import com.adaptris.interlok.config.DataInputParameter;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * List of files based on S3 key.
@@ -42,7 +45,21 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @DisplayOrder(order ={ "bucketName", "key", "filterSuffix"})
 public class ListOperation extends S3OperationImpl {
 
+  @Getter
+  @Setter
   private DataInputParameter<String> filterSuffix;
+
+  /**
+   * Specify the output style.
+   * 
+   * <p>
+   * If left as null, then only the names of the files will be emitted. You may require additional
+   * optional components to utilise other rendering styles.
+   * </p>
+   */
+  @Getter
+  @Setter
+  private BlobListRenderer outputStyle;
 
   public ListOperation() {
   }
@@ -52,30 +69,35 @@ public class ListOperation extends S3OperationImpl {
     AmazonS3Client s3 = wrapper.amazonClient();
     String bucket = getBucketName().extract(msg);
     String key = getKey().extract(msg);
+    ObjectListing listing =  s3.listObjects(bucket, key);
+    filter(listing, msg);
+    outputStyle().render(filter(listing, msg), msg);
+  }
+
+  private Collection<RemoteBlob> filter(ObjectListing listing, AdaptrisMessage msg) throws Exception {
+    Collection<RemoteBlob> list = new ArrayList<>();
     String filterSuffix = "";
-    if (getFilterSuffix() != null){
+    if (getFilterSuffix() != null) {
       filterSuffix = getFilterSuffix().extract(msg);
     }
-    ObjectListing listing =  s3.listObjects(bucket, key);
-    try (PrintWriter ps = new PrintWriter(msg.getWriter())) {
-      for (S3ObjectSummary summary : listing.getObjectSummaries()) {
-        if (summary.getKey().endsWith(filterSuffix)) {
-          ps.println(summary.getKey());
-        }
+    for (S3ObjectSummary summary : listing.getObjectSummaries()) {
+      if (summary.getKey().endsWith(filterSuffix)) {
+        list.add(new RemoteBlob.Builder().setBucket(summary.getBucketName()).setLastModified(summary.getLastModified().getTime())
+            .setName(summary.getKey()).setSize(summary.getSize()).build()
+        );
       }
     }
+    return list;
   }
 
-  public DataInputParameter<String> getFilterSuffix() {
-    return filterSuffix;
-  }
-
-  public void setFilterSuffix(DataInputParameter<String> filterSuffix) {
-    this.filterSuffix = Args.notNull(filterSuffix, "filterSuffix");
-  }
 
   public ListOperation withFilterSuffix(DataInputParameter<String> key) {
     setFilterSuffix(key);
     return this;
   }
+
+  private BlobListRenderer outputStyle() {
+    return ObjectUtils.defaultIfNull(getOutputStyle(), new BlobListRenderer() {});
+  }
+
 }
