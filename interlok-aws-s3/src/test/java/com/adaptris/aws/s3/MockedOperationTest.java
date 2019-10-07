@@ -321,7 +321,7 @@ public class MockedOperationTest {
     assertEquals("srcKeyPrefix/file.json" + System.lineSeparator(), msg.getContent());
   }
 
-  private S3ObjectSummary createSummary(String bucket, String key) {
+  public static S3ObjectSummary createSummary(String bucket, String key) {
     S3ObjectSummary sbase = new S3ObjectSummary();
     sbase.setBucketName(bucket);
     sbase.setKey(key);
