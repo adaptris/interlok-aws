@@ -17,43 +17,20 @@
 package com.adaptris.aws.s3;
 
 import javax.validation.Valid;
-
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.ConnectedService;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceImp;
 import com.adaptris.core.util.LifecycleHelper;
-import com.amazonaws.ClientConfiguration;
 
 /**
  * Abstract implemention of {@link S3Service}
- * <p>
- * This class directly exposes almost all the getter and setters that are available in {@link ClientConfiguration} via the
- * {@link #getClientConfiguration()} property for maximum flexibility in configuration.
- * </p>
- * <p>
- * The key from the <code>client-configuration</code> element should match the name of the underlying ClientConfiguration
- * property; so if you wanted to control the user-agent you would do :
- * </p>
- * <pre>
- * {@code 
- *   <client-configuration>
- *     <key-value-pair>
- *        <key>UserAgent</key>
- *        <value>My User Agent</value>
- *     </key-value-pair>
- *   </client-configuration>
- * }
- * </pre>
  * 
- * @author lchan
- *
  */
 public abstract class S3ServiceImpl extends ServiceImp implements ConnectedService {
 
   @Valid
   private AdaptrisConnection connection;
-  private transient boolean warningLogged;
   
   public S3ServiceImpl() {
   }

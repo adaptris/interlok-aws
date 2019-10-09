@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import java.util.Properties;
+import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.BooleanUtils;
 import org.junit.Assume;
 import org.junit.Before;
@@ -21,6 +22,7 @@ import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RegexMetadataFilter;
 import com.adaptris.core.util.PropertyHelper;
+import com.adaptris.interlok.cloud.RemoteBlobFilterWrapper;
 import com.adaptris.interlok.config.DataInputParameter;
 
 // A new local stack instance; we're going upload, copy, tag, download, get, delete in that order
@@ -34,7 +36,8 @@ public class LocalstackServiceTest {
   private static final String S3_UPLOAD_FILENAME = "localstack.s3.upload.filename";
   private static final String S3_COPY_TO_FILENAME = "localstack.s3.copy.filename";
   private static final String S3_BUCKETNAME = "localstack.s3.bucketname";
-  private static final String S3_FILTER_PREFIX = "localstack.s3.ls.filterSuffix";
+  private static final String S3_FILTER_SUFFIX = "localstack.s3.ls.filterSuffix";
+  private static final String S3_FILTER_REGEXP = "localstack.s3.ls.filterRegexp";
   private static final String PROPERTIES_RESOURCE = "unit-tests.properties";
   private static Properties config = PropertyHelper.loadQuietly(PROPERTIES_RESOURCE);
 
@@ -127,8 +130,8 @@ public class LocalstackServiceTest {
 
 
   @Test
-  public void test_08_List() throws Exception {
-    ListOperation ls = new ListOperation().withFilterSuffix(getInputParameter(S3_FILTER_PREFIX))
+  public void test_08_List_Legacy() throws Exception {
+    ListOperation ls = new ListOperation().withFilterSuffix(getInputParameter(S3_FILTER_SUFFIX))
         .withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter("/"));
     S3Service service = build(ls);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
@@ -137,7 +140,22 @@ public class LocalstackServiceTest {
   }
 
   @Test
-  public void test_09_Copy_WithoutDestinationBucket() throws Exception {
+  public void test_09_List() throws Exception {
+    String regexp = config.getProperty(S3_FILTER_REGEXP, ".*"); // if it doesn't exist, then it will still pass this test...
+    RemoteBlobFilterWrapper filter =
+        new RemoteBlobFilterWrapper().withFilterExpression(regexp).withFilterImp(RegexFileFilter.class.getCanonicalName());
+
+    ListOperation ls =
+        new ListOperation().withFilter(filter)
+        .withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter("/"));
+    S3Service service = build(ls);
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
+    ServiceCase.execute(service, msg);
+    assertEquals(config.getProperty(S3_UPLOAD_FILENAME) + System.lineSeparator(), msg.getContent());
+  }
+
+  @Test
+  public void test_10_Copy_WithoutDestinationBucket() throws Exception {
     CopyOperation copy = new CopyOperation().withDestinationKey(getInputParameter(S3_COPY_TO_FILENAME))
         .withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter(S3_UPLOAD_FILENAME));
     S3Service copyService = build(copy);
@@ -153,7 +171,7 @@ public class LocalstackServiceTest {
   }
 
   @Test
-  public void test_10_DeleteCopy() throws Exception {
+  public void test_11_DeleteCopy() throws Exception {
     DeleteOperation delete =
         new DeleteOperation().withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter(S3_COPY_TO_FILENAME));
     S3Service service = build(delete);
@@ -171,7 +189,7 @@ public class LocalstackServiceTest {
   }
 
   @Test
-  public void test_11_DeleteUploaded() throws Exception {
+  public void test_12_DeleteUploaded() throws Exception {
     DeleteOperation delete =
         new DeleteOperation().withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter(S3_UPLOAD_FILENAME));
     S3Service service = build(delete);

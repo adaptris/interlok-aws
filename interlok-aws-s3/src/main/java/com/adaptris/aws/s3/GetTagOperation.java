@@ -33,7 +33,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * Get tags associated with a S3 Object
  * 
  * <p>
- * Uses {@link AmazonS3Client#getObjectTagging#(GetObjectTaggingRequest)}
+ * Uses {@code AmazonS3Client#getObjectTagging(GetObjectTaggingRequest)}
  * </p>
  * 
  * @config amazon-s3-tag-get
