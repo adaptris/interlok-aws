@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.junit.Test;
 import org.mockito.Mockito;
 import com.adaptris.core.AdaptrisMessage;
@@ -16,6 +17,7 @@ import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.ServiceException;
 import com.adaptris.interlok.cloud.BlobListRenderer;
+import com.adaptris.interlok.cloud.RemoteBlobFilterWrapper;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
@@ -55,9 +57,11 @@ public class BucketListTest {
         createSummary("srcBucket", "srcKeyPrefix/file.json"), createSummary("srcBucket", "srcKeyPrefix/file2.csv")));
     Mockito.when(listing.getObjectSummaries()).thenReturn(summaries);
     Mockito.when(client.listObjects(anyString(), anyString())).thenReturn(listing);
+    RemoteBlobFilterWrapper filter =
+        new RemoteBlobFilterWrapper().withFilterExpression(".*\\.json").withFilterImp(RegexFileFilter.class.getCanonicalName());
 
     S3BucketList bucket =
-        new S3BucketList().withConnection(mockConnection).withBucket("srcBucket").withKey("srcKeyPrefix").withFilterSuffix(".json");
+        new S3BucketList().withConnection(mockConnection).withBucket("srcBucket").withKey("srcKeyPrefix").withFilter(filter);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ServiceCase.execute(bucket, msg);
     List<String> lines = IOUtils.readLines(new StringReader(msg.getContent()));
