@@ -41,6 +41,16 @@ ext.hostname = { ->
   return System.getenv("HOSTNAME")
 }
 
+ext.hasGraphViz = { ->
+  def app = "dot"
+  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+    app = app + ".exe"
+  }
+  return System.getenv("PATH").split(File.pathSeparator).any{
+    java.nio.file.Paths.get("${it}").resolve(app).toFile().exists()
+  }
+}
+
 def propertyTemplate(dir, filename) {
   def file = new File(dir, filename + "." + hostname())
   if (file.exists()) {
@@ -79,6 +89,7 @@ subprojects {
 
   configurations {
     javadoc {}
+    umlDoclet {}
     offlineJavadocPackages {}
     all*.exclude group: 'c3p0'
     all*.exclude group: 'commons-logging'
@@ -112,6 +123,7 @@ subprojects {
       testCompile ("org.apache.logging.log4j:log4j-1.2-api:${log4j2Version}")
       testCompile ("org.apache.logging.log4j:log4j-api:${log4j2Version}")
       javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
+      umlDoclet("nl.talsmasoftware:umldoclet:1.1.4")
 
       offlineJavadocPackages ("com.adaptris:interlok-core:$interlokCoreVersion:javadoc@jar") { changing= true}
       offlineJavadocPackages ("com.adaptris:interlok-common:$interlokCoreVersion:javadoc@jar") { changing= true}
@@ -119,11 +131,51 @@ subprojects {
   }
 
   javadoc {
+    onlyIf {
+      !hasGraphViz()
+    }
     configure(options) {
       options.linksOffline(interlokJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-core-$interlokCoreVersion-javadoc.jar")
       options.linksOffline(interlokCommonJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-common-$interlokCoreVersion-javadoc.jar")
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
+    }
+  }
+
+  task umlJavadoc(type: Javadoc) {
+    group 'Documentation'
+    description 'Build javadocs using plantuml + graphviz + umldoclet, if dot is available'
+
+    onlyIf {
+      hasGraphViz()
+    }
+    // Since we are using lombok, we have to switch the source.
+    // c.f. https://github.com/freefair/gradle-plugins/issues/132
+    // source = sourceSets.main.allJava
+    source = sourceSets.main.extensions.delombokTask
+    classpath = project.sourceSets.main.compileClasspath
+    configure(options) {
+      options.linksOffline(interlokJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-core-$interlokCoreVersion-javadoc.jar")
+      options.linksOffline(interlokCommonJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-common-$interlokCoreVersion-javadoc.jar")
+      taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
+      options.addStringOption "tagletpath", configurations.javadoc.asPath
+      options.docletpath = configurations.umlDoclet.files.asType(List)
+      options.doclet = "nl.talsmasoftware.umldoclet.UMLDoclet"
+      options.addStringOption "umlBasePath", destinationDir.getCanonicalPath()
+      options.addStringOption "umlImageFormat", "SVG"
+      options.addStringOption "umlExcludedReferences", "java.lang.Exception,java.lang.Object,java.lang.Enum"
+      options.addStringOption "umlIncludePrivateClasses","false"
+      options.addStringOption "umlIncludePackagePrivateClasses","false"
+      options.addStringOption "umlIncludeProtectedClasses","false"
+      options.addStringOption "umlIncludeAbstractSuperclassMethods","false"
+      options.addStringOption "umlIncludeConstructors","false"
+      options.addStringOption "umlIncludePublicFields","false"
+      options.addStringOption "umlIncludePackagePrivateFields","false"
+      options.addStringOption "umlIncludeProtectedFields", "false"
+      options.addStringOption "umlIncludeDeprecatedClasses", "false"
+      options.addStringOption "umlIncludePrivateInnerClasses", "false"
+      options.addStringOption "umlIncludePackagePrivateInnerClasses", "false"
+      options.addStringOption "umlIncludeProtectedInnerClasses","false"
     }
   }
 
@@ -222,5 +274,6 @@ subprojects {
   }
 
   check.dependsOn jacocoTestReport
+  javadoc.dependsOn offlinePackageList, umlJavadoc
 
 }
