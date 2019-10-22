@@ -8,7 +8,7 @@ ext {
 // In this section you declare the dependencies for your production and test code
 dependencies {
   compile ("com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion")
-  compile ("com.amazonaws:amazon-kinesis-client:1.11.2") {
+  compile ("com.amazonaws:amazon-kinesis-client:1.12.0") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.google.protobuf", module: "protobuf-java"
