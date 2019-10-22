@@ -1,6 +1,7 @@
 package com.adaptris.aws.sns;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Properties;
 
@@ -12,14 +13,17 @@ import org.junit.runners.MethodSorters;
 
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.CustomEndpoint;
+import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.StandaloneProducer;
-import com.adaptris.core.common.ConstantDataInputParameter;
+import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.core.util.PropertyHelper;
-import com.adaptris.interlok.config.DataInputParameter;
+import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sns.model.CreateTopicRequest;
+import com.amazonaws.services.sns.model.CreateTopicResult;
 
 // A new local stack instance; we're going publish an SNS message.
 // Note that there must be content to the message otherwise you get a python stack trace in localstack.
@@ -40,10 +44,12 @@ public class LocalstackProducerTest {
 
   }
 
+
   @Test
   public void test_01_TestPublish() throws Exception {
     if (areTestsEnabled()) {
-      PublishToTopic producer = new PublishToTopic(new ConfiguredProduceDestination(config.getProperty(SNS_TOPIC)));
+      String topic = createTopicArn();
+      PublishToTopic producer = new PublishToTopic(new ConfiguredProduceDestination(topic));
       AmazonSNSConnection connection = buildConnection();
       StandaloneProducer sp = new StandaloneProducer(connection, producer);
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS);
@@ -62,10 +68,25 @@ public class LocalstackProducerTest {
     return BooleanUtils.toBoolean(config.getProperty(TESTS_ENABLED, "false"));
   }
 
+
+  private String createTopicArn() throws Exception {
+    AmazonSNSConnection connection = buildConnection();
+    try {
+      LifecycleHelper.initAndStart(connection);
+      AmazonSNSClient client = connection.amazonClient();
+      CreateTopicRequest createTopicRequest = new CreateTopicRequest(config.getProperty(SNS_TOPIC));
+      CreateTopicResult createTopicResponse = client.createTopic(createTopicRequest);
+      return createTopicResponse.getTopicArn();
+    } finally {
+      LifecycleHelper.stopAndClose(connection);
+    }
+  }
+
   protected AmazonSNSConnection buildConnection() {
     String serviceEndpoint = config.getProperty(SNS_URL);
     String signingRegion = config.getProperty(SNS_SIGNING_REGION);
-    AmazonSNSConnection connection = new AmazonSNSConnection(new AWSKeysAuthentication("TEST", "TEST"), null)
+    AmazonSNSConnection connection = new AmazonSNSConnection().withCredentialsProviderBuilder(
+        new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("TEST", "TEST")))
         .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion));
     return connection;
   }

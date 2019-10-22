@@ -17,7 +17,6 @@
 package com.adaptris.aws;
 
 import javax.validation.constraints.NotNull;
-
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.interlok.resolver.ExternalResolver;
@@ -26,6 +25,9 @@ import com.adaptris.security.password.Password;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * Specify explicit keys for AWS access. Either the root keys for the AWS account (not recommended) or IAM keys.
@@ -34,11 +36,24 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @ComponentProfile(summary="Specify explicit keys for AWS access. Either the root keys for the AWS account (not recommended) or IAM keys.")
 public class AWSKeysAuthentication implements AWSAuthentication {
 
+  /**
+   * The access key for the AWS account
+   */
   @NotNull
+  @Getter
+  @Setter
+  @NonNull
   private String accessKey;
   
+  /**
+   * The secret key for the AWS account which may be encoded or external.
+   * 
+   */
   @NotNull
   @InputFieldHint(style = "PASSWORD", external = true)
+  @Getter
+  @Setter
+  @NonNull
   private String secretKey;
 
   public AWSKeysAuthentication() {
@@ -54,42 +69,6 @@ public class AWSKeysAuthentication implements AWSAuthentication {
   @Override
   public AWSCredentials getAWSCredentials() throws AdaptrisSecurityException {
     return new BasicAWSCredentials(getAccessKey(), Password.decode(ExternalResolver.resolve(getSecretKey())));
-  }
-  
-  /**
-   * The access key for the AWS account
-   * 
-   * @return accessKey
-   */
-  public String getAccessKey() {
-    return accessKey;
-  }
-
-  /**
-   * The access key for the AWS account
-   * 
-   * @param accessKey
-   */
-  public void setAccessKey(String accessKey) {
-    this.accessKey = accessKey;
-  }
-
-  /**
-   * The secret key for the AWS account. Can be encoded.
-   * 
-   * @return secretKey
-   */
-  public String getSecretKey() {
-    return secretKey;
-  }
-
-  /**
-   * The secret key for the AWS account. Can be encoded.
-   * 
-   * @param secretKey
-   */
-  public void setSecretKey(String secretKey) {
-    this.secretKey = secretKey;
   }
 
 }

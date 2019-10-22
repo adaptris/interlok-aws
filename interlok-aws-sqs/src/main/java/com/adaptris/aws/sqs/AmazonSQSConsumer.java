@@ -17,16 +17,12 @@
 package com.adaptris.aws.sqs;
 
 import static org.apache.commons.lang.StringUtils.isEmpty;
-
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
-
 import javax.management.MalformedObjectNameException;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -50,6 +46,8 @@ import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.QueueAttributeName;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * <p>
@@ -57,7 +55,6 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * </p>
  *
  * @config amazon-sqs-consumer
- * @license STANDARD
  * @since 3.0.3
  */
 @XStreamAlias("amazon-sqs-consumer")
@@ -66,8 +63,21 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
     recommended = {AmazonSQSConnection.class}, metadata= {"SQSMessageID"})
 public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
+  /**
+   * The maximum number of messages to retrieve from the Amazon SQS queue per request. When omitted
+   * the default setting on the queue will be used.
+   * 
+   */
+  @Getter
+  @Setter
   private Integer prefetchCount;
+  /**
+   * The AWS account ID of the account that created the queue. When omitted the default setting on the
+   * queue will be used.
+   */
   @AdvancedConfig
+  @Getter
+  @Setter
   private String ownerAwsAccountId;
 
   private transient Log log = LogFactory.getLog(this.getClass().getName());
@@ -186,32 +196,6 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
       queueUrl = getSynClient().getQueueUrl(queueUrlRequest).getQueueUrl();
     }
     return queueUrl;
-  }
-
-  public Integer getPrefetchCount() {
-    return prefetchCount;
-  }
-
-  /**
-   * The maximum number of messages to retrieve from the Amazon SQS queue per request. When omitted
-   * the default setting on the queue will be used.
-   * @param prefetchCount
-   */
-  public void setPrefetchCount(Integer prefetchCount) {
-    this.prefetchCount = prefetchCount;
-  }
-
-  public String getOwnerAwsAccountId() {
-    return ownerAwsAccountId;
-  }
-
-  /**
-   * The AWS account ID of the account that created the queue. When omitted
-   * the default setting on the queue will be used.
-    * @param ownerAwsAccountId
-   */
-  public void setOwnerAwsAccountId(String ownerAwsAccountId) {
-    this.ownerAwsAccountId = ownerAwsAccountId;
   }
 
   private static class JmxFactory extends RuntimeInfoComponentFactory {

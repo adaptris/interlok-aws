@@ -18,9 +18,10 @@ package com.adaptris.aws.sqs;
 
 import com.adaptris.aws.EndpointBuilder;
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 
+@FunctionalInterface
 public interface SQSClientFactory {
 
   /**
@@ -31,6 +32,6 @@ public interface SQSClientFactory {
    * @param endpointBuilder configures the endpoint / region that the client will use.
    * @return a {@link AmazonSQSAsync} instance.
    */
-  public AmazonSQSAsync createClient(AWSCredentials creds, ClientConfiguration conf, EndpointBuilder endpointBuilder);
+  public AmazonSQSAsync createClient(AWSCredentialsProvider creds, ClientConfiguration conf, EndpointBuilder endpointBuilder);
   
 }

@@ -16,20 +16,26 @@
 
 package com.adaptris.aws.s3;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdapterComponent;
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.services.exception.ExceptionHandlingServiceWrapper;
+import com.adaptris.core.util.LoggingHelper;
+import com.adaptris.interlok.cloud.BlobListRenderer;
+import com.adaptris.interlok.cloud.RemoteBlob;
+import com.adaptris.interlok.cloud.RemoteBlobFilter;
 import com.adaptris.interlok.config.DataInputParameter;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import org.apache.http.util.Args;
-
-import java.io.PrintStream;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * List of files based on S3 key.
@@ -40,10 +46,36 @@ import java.io.PrintStream;
 @ComponentProfile(summary = "List of files based on S3 key",
     since = "3.9.1")
 @XStreamAlias("amazon-s3-list")
-@DisplayOrder(order ={ "bucketName", "key", "filterSuffix"})
+@DisplayOrder(order = {"bucketName", "key", "filter", "filterSuffix"})
 public class ListOperation extends S3OperationImpl {
+  private transient boolean warningLogged;
 
+  @Getter
+  @Setter
+  @Deprecated
+  @Removal(version = "3.11.0", message = "Use a RemoteBlobFilter instead")
   private DataInputParameter<String> filterSuffix;
+
+  /**
+   * Specify any additional filtering you wish to perform on the list.
+   * 
+   */
+  @AdvancedConfig
+  @Getter
+  @Setter
+  private RemoteBlobFilter filter;
+
+  /**
+   * Specify the output style.
+   * 
+   * <p>
+   * If left as null, then only the names of the files will be emitted. You may require additional
+   * optional components to utilise other rendering styles.
+   * </p>
+   */
+  @Getter
+  @Setter
+  private BlobListRenderer outputStyle;
 
   public ListOperation() {
   }
@@ -53,30 +85,56 @@ public class ListOperation extends S3OperationImpl {
     AmazonS3Client s3 = wrapper.amazonClient();
     String bucket = getBucketName().extract(msg);
     String key = getKey().extract(msg);
-    String filterSuffix = "";
-    if (getFilterSuffix() != null){
-      filterSuffix = getFilterSuffix().extract(msg);
-    }
     ObjectListing listing =  s3.listObjects(bucket, key);
-    try (PrintStream ps = new PrintStream(msg.getOutputStream())) {
-      for (S3ObjectSummary summary : listing.getObjectSummaries()) {
-        if (summary.getKey().endsWith(filterSuffix)) {
-          ps.println(summary.getKey());
-        }
+    filter(listing, msg);
+    outputStyle().render(filter(listing, msg), msg);
+  }
+
+  private Collection<RemoteBlob> filter(ObjectListing listing, AdaptrisMessage msg) throws Exception {
+    Collection<RemoteBlob> list = new ArrayList<>();
+    RemoteBlobFilter filterToUse = blobFilter(msg);
+    for (S3ObjectSummary summary : listing.getObjectSummaries()) {
+      RemoteBlob blob = new RemoteBlob.Builder().setBucket(summary.getBucketName()).setLastModified(summary.getLastModified().getTime())
+          .setName(summary.getKey()).setSize(summary.getSize()).build();
+      if (filterToUse.accept(blob)) {
+        list.add(blob);
       }
     }
+    return list;
   }
 
-  public DataInputParameter<String> getFilterSuffix() {
-    return filterSuffix;
-  }
 
-  public void setFilterSuffix(DataInputParameter<String> filterSuffix) {
-    this.filterSuffix = Args.notNull(filterSuffix, "filterSuffix");
-  }
-
+  @Deprecated
+  @Removal(version = "3.11.0")
   public ListOperation withFilterSuffix(DataInputParameter<String> key) {
     setFilterSuffix(key);
     return this;
   }
+
+  private BlobListRenderer outputStyle() {
+    return ObjectUtils.defaultIfNull(getOutputStyle(), new BlobListRenderer() {});
+  }
+
+  public ListOperation withOutputStyle(BlobListRenderer render) {
+    setOutputStyle(render);
+    return this;
+  }
+
+
+  public ListOperation withFilter(RemoteBlobFilter filter) {
+    setFilter(filter);
+    return this;
+  }
+
+  private RemoteBlobFilter blobFilter(AdaptrisMessage msg) throws Exception {
+    if (getFilterSuffix() != null) {
+      LoggingHelper.logWarning(warningLogged, () -> {
+        warningLogged = true;
+      }, "Use of filter-suffix is deprecated; use a filter instead");
+      final String suffix = getFilterSuffix().extract(msg);
+      return (blob) -> blob.getName().endsWith(suffix);
+    }
+    return ObjectUtils.defaultIfNull(getFilter(), (blob) -> true);
+  }
+
 }

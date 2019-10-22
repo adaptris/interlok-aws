@@ -20,12 +20,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
 import java.io.IOException;
-
 import org.junit.Test;
 import org.mockito.Mockito;
-
 import com.adaptris.core.util.LifecycleHelper;
 import com.amazonaws.services.kinesis.producer.KinesisProducer;
 
@@ -39,7 +36,7 @@ public class ConnectionFromPropertiesTest extends ConnectionFromProperties {
     try {
       conn.setConfigLocation(null);
       fail();
-    } catch (IllegalArgumentException expected) {
+    } catch (Exception expected) {
 
     }
   }

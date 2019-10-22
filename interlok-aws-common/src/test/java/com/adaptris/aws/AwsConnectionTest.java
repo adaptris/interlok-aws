@@ -3,11 +3,9 @@ package com.adaptris.aws;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
 import com.adaptris.core.CoreException;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
@@ -24,13 +22,21 @@ public class AwsConnectionTest extends AWSConnection {
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testAuthentication() {
     assertNull(getAuthentication());
-    assertNotNull(authentication());
-    assertEquals(DefaultAWSAuthentication.class, authentication().getClass());
+    assertNull(getCredentials());
+    assertNotNull(credentialsProvider());
+    assertEquals(StaticCredentialsBuilder.class, credentialsProvider().getClass());
     setAuthentication(new AWSKeysAuthentication("accessKey", "secretKey"));
     assertNotNull(getAuthentication());
-    assertEquals(AWSKeysAuthentication.class, authentication().getClass());    
+    assertNull(getCredentials());
+    assertEquals(StaticCredentialsBuilder.class, credentialsProvider().getClass());    
+    assertEquals(AWSKeysAuthentication.class, ((StaticCredentialsBuilder) credentialsProvider()).getAuthentication().getClass());
+    setAuthentication(null);
+    withCredentialsProviderBuilder(new StaticCredentialsBuilder().withAuthentication(new DefaultAWSAuthentication()));
+    assertEquals(StaticCredentialsBuilder.class, credentialsProvider().getClass());
+    assertEquals(DefaultAWSAuthentication.class, ((StaticCredentialsBuilder) credentialsProvider()).getAuthentication().getClass());
   }
 
   @Test
@@ -39,7 +45,7 @@ public class AwsConnectionTest extends AWSConnection {
     assertEquals(0, clientConfiguration().size());
     KeyValuePairSet set = new KeyValuePairSet();
     set.add(new KeyValuePair("key", "value"));
-    setClientConfiguration(set);
+    withClientConfiguration(set);
     assertEquals(set, getClientConfiguration());
     assertEquals(1, clientConfiguration().size());
   }
@@ -49,7 +55,7 @@ public class AwsConnectionTest extends AWSConnection {
     assertNull(getRetryPolicy());
     assertNotNull(retryPolicy());
     assertEquals(DefaultRetryPolicyFactory.class, retryPolicy().getClass());
-    setRetryPolicy(new RetryNotFoundPolicyFactory());
+    withRetryPolicy(new RetryNotFoundPolicyFactory());
     assertNotNull(getRetryPolicy());
     assertEquals(RetryNotFoundPolicyFactory.class, retryPolicy().getClass());    
   }
@@ -69,7 +75,7 @@ public class AwsConnectionTest extends AWSConnection {
   @Test
   public void testRegion() {
     assertNull(getRegion());
-    setRegion("us-west-1");
+    withRegion("us-west-1");
     assertEquals("us-west-1", getRegion());
     assertNotNull(endpointBuilder());
     assertEquals(RegionOnly.class, endpointBuilder().getClass());

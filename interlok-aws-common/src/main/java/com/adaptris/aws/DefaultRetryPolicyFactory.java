@@ -18,10 +18,12 @@ package com.adaptris.aws;
 
 import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.AutoPopulated;
-import com.adaptris.core.util.Args;
 import com.amazonaws.retry.PredefinedRetryPolicies;
 import com.amazonaws.retry.RetryPolicy;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * The default retry policy builder using one of the predefined policies from {@link PredefinedRetryPolicies}.
@@ -66,6 +68,9 @@ public class DefaultRetryPolicyFactory implements RetryPolicyFactory {
 
   @NotNull
   @AutoPopulated
+  @NonNull
+  @Getter
+  @Setter
   private PredefinedPolicy retryPolicy;
   
   public DefaultRetryPolicyFactory() {
@@ -81,13 +86,4 @@ public class DefaultRetryPolicyFactory implements RetryPolicyFactory {
   public RetryPolicy build() {
     return getRetryPolicy().build();
   }
-
-  public PredefinedPolicy getRetryPolicy() {
-    return retryPolicy;
-  }
-
-  public void setRetryPolicy(PredefinedPolicy p) {
-    this.retryPolicy = Args.notNull(p, "retryPolicy");
-  }
-
 }

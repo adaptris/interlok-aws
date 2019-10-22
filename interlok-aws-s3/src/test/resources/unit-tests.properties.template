@@ -10,3 +10,4 @@ junit.localstack.s3.upload.filename=hello-world.txt
 junit.localstack.s3.copy.filename=goodbye.txt
 junit.localstack.s3.tmp.dir=@BUILD_DIR@/tmp
 junit.localstack.s3.ls.filterSuffix=.txt
+junit.localstack.s3.ls.filterRegexp=.*\\.txt

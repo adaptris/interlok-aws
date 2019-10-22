@@ -17,20 +17,13 @@
 package com.adaptris.aws.sns;
 
 import static org.mockito.Matchers.anyObject;
-
 import org.mockito.Mockito;
-
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.CustomEndpoint;
-import com.adaptris.aws.DefaultAWSAuthentication;
-import com.adaptris.aws.DefaultRetryPolicyFactory;
-import com.adaptris.aws.EndpointBuilder;
-import com.adaptris.aws.PluggableRetryPolicyFactory;
+import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.BaseCase;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LifecycleHelper;
-import com.adaptris.util.KeyValuePairSet;
-import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.services.sns.AmazonSNSClient;
 
 public class AmazonSNSConnectionTest extends BaseCase {
@@ -42,36 +35,9 @@ public class AmazonSNSConnectionTest extends BaseCase {
     assertEquals("eu-central-1", c.getRegion());
   }
 
-  public void testAuthentication() {
-    AmazonSNSConnection c = new AmazonSNSConnection();
-    assertNull(c.getAuthentication());
-    assertEquals(DefaultAWSAuthentication.class, c.authentication().getClass());
-    AWSKeysAuthentication auth = new AWSKeysAuthentication("access", "secret");
-    c.setAuthentication(auth);
-    assertEquals(auth, c.getAuthentication());
-    assertEquals(auth, c.authentication());
-  }
-
-  public void testClientConfiguration() {
-    AmazonSNSConnection c = new AmazonSNSConnection();
-    assertNull(c.getClientConfiguration());
-    assertEquals(0, c.clientConfiguration().size());
-    c.setClientConfiguration(new KeyValuePairSet());
-    assertNotNull(c.getClientConfiguration());
-    assertEquals(0, c.clientConfiguration().size());
-  }
-
-  public void testRetryPolicy() {
-    AmazonSNSConnection c = new AmazonSNSConnection();
-    assertNull(c.getRetryPolicy());
-    assertEquals(DefaultRetryPolicyFactory.class, c.retryPolicy().getClass());
-    c.setRetryPolicy(new PluggableRetryPolicyFactory());
-    assertNotNull(c.getRetryPolicy());
-    assertEquals(PluggableRetryPolicyFactory.class, c.retryPolicy().getClass());
-  }
-
   public void testLifecycle() throws Exception {
-    AmazonSNSConnection conn = new AmazonSNSConnection(new AWSKeysAuthentication("access", "secret"), new KeyValuePairSet());
+    AmazonSNSConnection conn = new AmazonSNSConnection().withCredentialsProviderBuilder(
+        new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("access", "secret")));
     try {
       conn.setRegion("eu-central-1");
       LifecycleHelper.initAndStart(conn);

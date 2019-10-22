@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.adaptris.aws.AWSKeysAuthentication;
+import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.ConfiguredConsumeDestination;
 import com.adaptris.core.ConsumerCase;
 import com.adaptris.core.QuartzCronPoller;
@@ -331,10 +332,7 @@ public class AwsConsumerTest extends ConsumerCase {
     sqsConsumer.setDestination(new ConfiguredConsumeDestination("SampleQueue"));
     
     AmazonSQSConnection conn = new AmazonSQSConnection();
-    AWSKeysAuthentication kauth = new AWSKeysAuthentication();
-    kauth.setAccessKey("accessKey");
-    kauth.setSecretKey("secretKey");
-    conn.setAuthentication(kauth);
+    conn.setCredentials(new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey")));
     conn.setRegion("My AWS Region");
     KeyValuePairSet clientSettings = new KeyValuePairSet();
     clientSettings.add(new KeyValuePair("ProxyHost", "127.0.0.1"));
