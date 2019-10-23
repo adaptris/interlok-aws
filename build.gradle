@@ -123,7 +123,7 @@ subprojects {
       testCompile ("org.apache.logging.log4j:log4j-1.2-api:${log4j2Version}")
       testCompile ("org.apache.logging.log4j:log4j-api:${log4j2Version}")
       javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
-      umlDoclet("nl.talsmasoftware:umldoclet:1.1.4")
+      umlDoclet("nl.talsmasoftware:umldoclet:2.0.5")
 
       offlineJavadocPackages ("com.adaptris:interlok-core:$interlokCoreVersion:javadoc@jar") { changing= true}
       offlineJavadocPackages ("com.adaptris:interlok-common:$interlokCoreVersion:javadoc@jar") { changing= true}
