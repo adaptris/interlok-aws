@@ -50,6 +50,24 @@ ext.hasGraphViz = { ->
     java.nio.file.Paths.get("${it}").resolve(app).toFile().exists()
   }
 }
+ext.gitBranchNameOrTimestamp = { branchName ->
+  if (branchName.equals("HEAD") || branchName.equals("develop") || branchName.startsWith("release")) {
+    return new Date().format('HH:mm:ss z');
+  }
+  return branchName;
+}
+
+ext.buildInfo = { ->
+   new ByteArrayOutputStream().withStream { os ->
+      exec {
+        executable = "git"
+        args = ["rev-parse", "--abbrev-ref", "HEAD"]
+        standardOutput = os
+      }
+      def branchName = os.toString().replaceAll("\r", "").replaceAll("\n", "").trim();
+      return gitBranchNameOrTimestamp(branchName);
+    }
+}
 
 def propertyTemplate(dir, filename) {
   def file = new File(dir, filename + "." + hostname())
@@ -208,6 +226,7 @@ subprojects {
         entry(key: 'groupId', value: "com.adaptris")
         entry(key: 'artifactId', value: project.name)
         entry(key: 'build.date', value: new Date().format('yyyy-MM-dd'))
+        entry(key: 'build.info', value: buildInfo())
       }
     }
   }
