@@ -15,6 +15,12 @@ task examplesJar(type: Jar, dependsOn: test) {
     classifier = 'examples'
     from new File(buildDir, '/examples')
 }
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.extensions.delombokTask
+}
+
 jar {
   manifest {
     attributes("Built-By": System.getProperty('user.name'),
@@ -28,6 +34,7 @@ jar {
 artifacts {
     archives javadocJar
     archives examplesJar
+    archives sourcesJar
 }
 
 publishing {
@@ -37,6 +44,7 @@ publishing {
 
           artifact javadocJar { classifier "javadoc" }
           artifact examplesJar { classifier "examples" }
+          artifact sourcesJar { classifier "sources" }
           pom.withXml {
             asNode().appendNode("name", componentName)
             asNode().appendNode("description", "Common components for accessing AWS")
