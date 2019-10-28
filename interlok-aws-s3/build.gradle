@@ -3,6 +3,7 @@ import org.apache.tools.ant.filters.*
 
 ext {
   componentName='Interlok AWS/S3'
+  delombokTargetDir = new File("${project.projectDir}/src/main/generated")
 }
 
 // In this section you declare the dependencies for your production and test code
@@ -75,4 +76,14 @@ publishing {
   }
 }
 
+
+delombok {
+  target = delombokTargetDir
+}
+
+task deleteGeneratedFiles(type: Delete) {
+  delete file(testResourcesDir() + "/unit-tests.properties"), file(testResourcesDir() + "/unit-tests.properties.resolved"), delombokTargetDir
+}
+
+clean.dependsOn deleteGeneratedFiles
 processTestResources.dependsOn copyUnitTestProperties

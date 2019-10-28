@@ -288,6 +288,16 @@ subprojects {
     // excludeFilter = new File("$rootDir/gradle/spotbugs-exclude.xml")
   }
 
+  task lgtmCompile(type: JavaCompile, dependsOn: delombok) {
+    group 'Build'
+    description 'Compile for lgtm'
+
+    source = sourceSets.main.extensions.delombokTask
+    destinationDir = sourceSets.main.java.outputDir
+    classpath = project.sourceSets.main.compileClasspath
+  }
+
+
   check.dependsOn jacocoTestReport
   javadoc.dependsOn offlinePackageList, umlJavadoc
 

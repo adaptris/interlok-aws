@@ -1,5 +1,6 @@
 ext {
   componentName='Interlok AWS/Common'
+  delombokTargetDir = new File("${project.projectDir}/src/main/generated")
 }
 
 dependencies {
@@ -65,3 +66,13 @@ publishing {
     }
   }
 }
+
+delombok {
+  target = delombokTargetDir
+}
+
+task deleteGeneratedFiles(type: Delete) {
+  delete delombokTargetDir
+}
+
+clean.dependsOn deleteGeneratedFiles
