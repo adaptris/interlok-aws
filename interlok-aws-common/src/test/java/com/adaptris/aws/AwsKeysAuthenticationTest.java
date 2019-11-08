@@ -1,13 +1,16 @@
 package com.adaptris.aws;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import org.junit.Test;
 
 public class AwsKeysAuthenticationTest {
 
   @Test
   public void testAWSCredentials() throws Exception {
-    AWSKeysAuthentication auth = new AWSKeysAuthentication("accessKey", "secretKey");
-    assertNotNull(auth.getAWSCredentials());
+    assertNotNull(new AWSKeysAuthentication("accessKey", "secretKey").getAWSCredentials());
+    assertNotNull(new AWSKeysAuthentication("", "secretKey").getAWSCredentials());
+    assertNotNull(new AWSKeysAuthentication("accessKey", "").getAWSCredentials());
+    assertNull(new AWSKeysAuthentication().getAWSCredentials());
   }
 }
