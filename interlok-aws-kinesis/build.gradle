@@ -21,7 +21,7 @@ dependencies {
     exclude group: "com.google.protobuf", module: "protobuf-java"
   }
   compile ("com.google.protobuf:protobuf-java:3.10.0")
-  compile ("com.fasterxml.jackson.core:jackson-databind:2.10.0")
+  compile ("com.fasterxml.jackson.core:jackson-databind:2.10.1")
   compile ("com.fasterxml.jackson.core:jackson-core:2.10.1")
   compile project(':interlok-aws-common')
   testCompile ("org.mockito:mockito-all:1.10.19")
