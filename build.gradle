@@ -22,7 +22,7 @@ ext {
   organizationName = "Adaptris Ltd"
 
   slf4jVersion = '1.7.29'
-  awsSDKVersion = '1.11.685'
+  awsSDKVersion = '1.11.693'
   log4j2Version = '2.12.1'
 }
 
