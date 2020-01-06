@@ -28,3 +28,8 @@ bin
 gradle.properties
 unit-tests.properties
 unit-tests.properties.resolved
+interlok-aws-common/src/main/generated
+interlok-aws-kinesis/src/main/generated
+interlok-aws-s3/src/main/generated
+interlok-aws-sns/src/main/generated
+interlok-aws-sqs/src/main/generated

@@ -3,6 +3,7 @@ import org.apache.tools.ant.filters.*
 
 ext {
   componentName='Interlok AWS/S3'
+  delombokTargetDir = new File("${project.projectDir}/src/main/generated")
 }
 
 // In this section you declare the dependencies for your production and test code
@@ -24,6 +25,11 @@ task examplesJar(type: Jar, dependsOn: test) {
     classifier = 'examples'
     from new File(buildDir, '/examples')
 }
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.extensions.delombokTask
+}
 jar {
   manifest {
     attributes("Built-By": System.getProperty('user.name'),
@@ -38,6 +44,7 @@ jar {
 artifacts {
     archives javadocJar
     archives examplesJar
+    archives sourcesJar
 }
 
 publishing {
@@ -47,6 +54,7 @@ publishing {
 
           artifact javadocJar { classifier "javadoc" }
           artifact examplesJar { classifier "examples" }
+          artifact sourcesJar { classifier "sources" }
           pom.withXml {
             asNode().appendNode("name", componentName)
             asNode().appendNode("description", "Services that interact (upload/download/delete) with AWS S3 Buckets and artefacts")
@@ -68,5 +76,14 @@ publishing {
   }
 }
 
+
+delombok {
+  target = delombokTargetDir
+}
+
+task deleteGeneratedFiles(type: Delete) {
+  delete file(testResourcesDir() + "/unit-tests.properties"), file(testResourcesDir() + "/unit-tests.properties.resolved"), delombokTargetDir
+}
+
+clean.dependsOn deleteGeneratedFiles
 processTestResources.dependsOn copyUnitTestProperties
-javadoc.dependsOn offlinePackageList

@@ -1,5 +1,6 @@
 ext {
   componentName='Interlok AWS/SNS'
+  delombokTargetDir = new File("${project.projectDir}/src/main/generated")
 }
 
 // In this section you declare the dependencies for your production and test code
@@ -20,6 +21,11 @@ task examplesJar(type: Jar, dependsOn: test) {
     classifier = 'examples'
     from new File(buildDir, '/examples')
 }
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.extensions.delombokTask
+}
 jar {
   manifest {
     attributes("Built-By": System.getProperty('user.name'),
@@ -33,6 +39,7 @@ jar {
 artifacts {
     archives javadocJar
     archives examplesJar
+    archives sourcesJar
 }
 
 publishing {
@@ -42,6 +49,7 @@ publishing {
 
           artifact javadocJar { classifier "javadoc" }
           artifact examplesJar { classifier "examples" }
+          artifact sourcesJar { classifier "sources" }
           pom.withXml {
             asNode().appendNode("description", "Publishing to AWS SNS topics")
             asNode().appendNode("name", componentName)
@@ -63,5 +71,14 @@ publishing {
   }
 }
 
+
+delombok {
+  target = delombokTargetDir
+}
+
+task deleteGeneratedFiles(type: Delete) {
+  delete file(testResourcesDir() + "/unit-tests.properties"), file(testResourcesDir() + "/unit-tests.properties.resolved"), delombokTargetDir
+}
+
+clean.dependsOn deleteGeneratedFiles
 processTestResources.dependsOn copyUnitTestProperties
-javadoc.dependsOn offlinePackageList
