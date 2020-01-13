@@ -15,9 +15,11 @@
 */
 
 package com.adaptris.aws.s3;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyObject;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.Test;
 import org.mockito.Mockito;
 import com.adaptris.aws.DefaultAWSAuthentication;
 import com.adaptris.aws.StaticCredentialsBuilder;
@@ -90,7 +92,12 @@ public class S3ServiceTest extends ServiceCase {
 
   public S3ServiceTest() {
   }
-  
+  @Override
+  public boolean isAnnotatedForJunit4() {
+    return true;
+  }
+
+  @Test
   public void testLifecycle() throws Exception {
     S3Service service = new S3Service();
     try {
@@ -114,6 +121,7 @@ public class S3ServiceTest extends ServiceCase {
     LifecycleHelper.stopAndClose(service);
   }
   
+  @Test
   public void testDoService() throws Exception {
     AmazonS3Connection connection = Mockito.mock(AmazonS3Connection.class);
     S3Operation operation = Mockito.mock(S3Operation.class);
@@ -129,6 +137,7 @@ public class S3ServiceTest extends ServiceCase {
     execute(service, AdaptrisMessageFactory.getDefaultInstance().newMessage());
   }
   
+  @Test
   public void testDoService_Exception() throws Exception {
     AmazonS3Connection connection = Mockito.mock(AmazonS3Connection.class);
     S3Operation operation = Mockito.mock(S3Operation.class);

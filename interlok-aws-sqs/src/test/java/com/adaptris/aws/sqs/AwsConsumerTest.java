@@ -15,7 +15,7 @@
 */
 
 package com.adaptris.aws.sqs;
-
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.atLeast;
@@ -27,6 +27,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.ConfiguredConsumeDestination;
@@ -63,13 +66,13 @@ public class AwsConsumerTest extends ConsumerCase {
 
   private StandaloneConsumer standaloneConsumer;
   
-  public AwsConsumerTest(String params) {
-    super(params);
+  @Override
+  public boolean isAnnotatedForJunit4() {
+    return true;
   }
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
 
     sqsClientMock = mock(AmazonSQS.class);
     GetQueueUrlResult queueUrlResultMock = mock(GetQueueUrlResult.class);
@@ -81,24 +84,23 @@ public class AwsConsumerTest extends ConsumerCase {
     when(connectionMock.getSyncClient()).thenReturn(sqsClientMock);
   }
   
-  @Override
+  @After
   public void tearDown() throws Exception {
-    if (sqsConsumer != null){
-      LifecycleHelper.close(sqsConsumer);
-    }
-    
-    super.tearDown();
+    LifecycleHelper.stopAndClose(sqsConsumer);
   }
   
+  @Test
   public void testConsumerInitialisation() throws Exception {
     startConsumer();
   }
 
+  @Test
   public void testWithoutQueueOwnerAWSAccountId() throws Exception {
     startConsumer();
     verify(sqsClientMock, atLeast(1)).getQueueUrl(new GetQueueUrlRequest("queue"));
   }
 
+  @Test
   public void testWithQueueOwnerAWSAccountId() throws Exception {
     startConsumerWithAccountID();
     GetQueueUrlRequest getQueueUrlRequest = new GetQueueUrlRequest("queue");
@@ -106,6 +108,7 @@ public class AwsConsumerTest extends ConsumerCase {
     verify(sqsClientMock, atLeast(1)).getQueueUrl(getQueueUrlRequest);
   }
   
+  @Test
   public void testSingleConsume() throws Exception {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenReturn(
@@ -118,6 +121,7 @@ public class AwsConsumerTest extends ConsumerCase {
     verify(sqsClientMock, atLeast(1)).deleteMessage(any(DeleteMessageRequest.class));
   }
   
+  @Test
   public void testConsumeWithAmazonReceiveException() throws Exception {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenThrow(new AmazonServiceException("expected"));
@@ -127,6 +131,7 @@ public class AwsConsumerTest extends ConsumerCase {
     verify(sqsClientMock, atLeast(0)).deleteMessage(any(DeleteMessageRequest.class));
   }
   
+  @Test
   public void testConsumeWithAmazonDeleteException() throws Exception {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenReturn(
@@ -140,6 +145,7 @@ public class AwsConsumerTest extends ConsumerCase {
     verify(sqsClientMock, atLeast(1)).deleteMessage(any(DeleteMessageRequest.class));
   }
   
+  @Test
   public void testSingleConsumeWithAddAtts() throws Exception {
     HashMap<String, String> attributes = new HashMap<>();
     attributes.put("myKey", "myValue");
@@ -160,6 +166,7 @@ public class AwsConsumerTest extends ConsumerCase {
     assertEquals("myValue2", messageListener.getMessages().get(0).getMetadataValue("myKey2"));
   }
   
+  @Test
   public void testSingleConsumeWithSetReceieveAtts() throws Exception {
     HashMap<String, String> attributes = new HashMap<>();
     attributes.put("myKey", "myValue");
@@ -184,6 +191,7 @@ public class AwsConsumerTest extends ConsumerCase {
     assertEquals("myValue2", messageListener.getMessages().get(0).getMetadataValue("myKey2"));
   }
 
+  @Test
   public void testSingleConsumeWithMessageId() throws Exception {
     ReceiveMessageResult receiveMessageResult = createReceiveMessageResult(1);
     String expected = receiveMessageResult.getMessages().get(0).getMessageId();
@@ -200,6 +208,7 @@ public class AwsConsumerTest extends ConsumerCase {
   }
   
   
+  @Test
   public void testMultipleConsume() throws Exception {
     final int b1 = 5, b2 = 5, b3 = 5, b4 = 5, b5 = 3;
     final int numMsgs = b1 + b2 + b3 + b4 + b5;
@@ -220,6 +229,7 @@ public class AwsConsumerTest extends ConsumerCase {
     verify(sqsClientMock, atLeast(numMsgs)).deleteMessage(any(DeleteMessageRequest.class));
   }
 
+  @Test
   public void testMessagesRemaining() throws Exception {
     when(sqsClientMock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(
         new GetQueueAttributesResult().addAttributesEntry(QueueAttributeName.ApproximateNumberOfMessages.toString(), "10")
@@ -231,6 +241,7 @@ public class AwsConsumerTest extends ConsumerCase {
     verify(sqsClientMock, atLeast(1)).getQueueAttributes(any(GetQueueAttributesRequest.class));
   }
 
+  @Test
   public void testMessagesRemainingWithoutConsumerStart() throws Exception {
     when(sqsClientMock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(
         new GetQueueAttributesResult().addAttributesEntry(QueueAttributeName.ApproximateNumberOfMessages.toString(), "10")
