@@ -1,7 +1,7 @@
 package com.adaptris.aws.kinesis;
 
 import java.nio.ByteBuffer;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotBlank;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldHint;
