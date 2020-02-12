@@ -21,8 +21,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import javax.management.MalformedObjectNameException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -40,7 +38,6 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
-import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.QueueAttributeName;
@@ -80,7 +77,6 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
   @Setter
   private String ownerAwsAccountId;
 
-  private transient Log log = LogFactory.getLog(this.getClass().getName());
   private transient AmazonSQS sqs;
   private transient String queueUrl;
 
@@ -188,12 +184,8 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
   }
 
   private String getQueueUrl() throws CoreException {
-    if(queueUrl == null) {
-      GetQueueUrlRequest queueUrlRequest = new GetQueueUrlRequest(getDestination().getDestination());
-      if (!isEmpty(getOwnerAwsAccountId())) {
-        queueUrlRequest.withQueueOwnerAWSAccountId(getOwnerAwsAccountId());
-      }
-      queueUrl = getSynClient().getQueueUrl(queueUrlRequest).getQueueUrl();
+    if (queueUrl == null) {
+      queueUrl = AwsHelper.buildQueueUrl(getDestination().getDestination(), getOwnerAwsAccountId(), getSynClient());
     }
     return queueUrl;
   }
