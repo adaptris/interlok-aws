@@ -20,7 +20,7 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.google.protobuf", module: "protobuf-java"
   }
-  compile ("com.google.protobuf:protobuf-java:3.11.3")
+  compile ("com.google.protobuf:protobuf-java:3.11.4")
   compile ("com.fasterxml.jackson.core:jackson-databind:2.10.2")
   compile ("com.fasterxml.jackson.core:jackson-core:2.10.2")
   compile project(':interlok-aws-common')
