@@ -16,15 +16,19 @@
 
 package com.adaptris.aws.sqs;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import java.net.URI;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
+import lombok.NoArgsConstructor;
 
 /**
  * Adaptris helper class for Amazon SQS services.
  */
-final class AwsHelper {
+@NoArgsConstructor
+class AwsHelper {
 
-  private AwsHelper() {}
-  
   /**
    * Format the Amazon region string by removing the unnecessary prefix if it exists.
    * 
@@ -44,5 +48,33 @@ final class AwsHelper {
       }
     }
     return region;
+  }
+
+  // If it's RFC2396 then make the assumption that the configurator has been quite explicit
+  // about it all and we don't have to issue a GetQueueUrlRequest since that has "permissions"
+  // associated with it.
+  public static String buildQueueUrl(String queueName, String ownerAccount, AmazonSQS sqs) {
+    if (isValidURL(queueName)) {
+      return queueName;
+    }
+    GetQueueUrlRequest queueUrlRequest = new GetQueueUrlRequest(queueName);
+    if (!isEmpty(ownerAccount)) {
+      queueUrlRequest.withQueueOwnerAWSAccountId(ownerAccount);
+    }
+    return sqs.getQueueUrl(queueUrlRequest).getQueueUrl();
+  }
+
+  // while it isn't foolproof, it's probably enough...
+  // https://https://example.com will parse this check.
+  private static boolean isValidURL(String url) {
+    try {
+      URI uri = new URI(url).parseServerAuthority();
+      if (uri.getScheme() == null) {
+        throw new Exception();
+      }
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
   }
 }

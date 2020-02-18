@@ -5,24 +5,18 @@ import static com.adaptris.aws.sqs.LocalstackHelper.areTestsEnabled;
 import static com.adaptris.aws.sqs.LocalstackHelper.getProperty;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-
-import java.util.concurrent.TimeUnit;
-
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-
-import com.adaptris.aws.sqs.AmazonSQSConnection;
-import com.adaptris.aws.sqs.AmazonSQSConsumer;
 import com.adaptris.aws.sqs.LocalstackHelper;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.BaseCase;
 import com.adaptris.core.ConfiguredConsumeDestination;
 import com.adaptris.core.ConfiguredProduceDestination;
-import com.adaptris.core.FixedIntervalPoller;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.StandaloneConsumer;
 import com.adaptris.core.StandaloneProducer;
@@ -32,7 +26,6 @@ import com.adaptris.core.jms.PtpProducer;
 import com.adaptris.core.stubs.MockMessageListener;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.core.util.ManagedThreadFactory;
-import com.adaptris.util.TimeInterval;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.ListQueuesResult;
 
@@ -42,12 +35,12 @@ public class LocalstackJmsTest {
 
   private static final String MSG_CONTENTS = "hello world";
   private LocalstackHelper helper;
-  
+
   @Before
   public void setUp() throws Exception {
     helper = new LocalstackHelper();
   }
-  
+
   @After
   public void tearDown() throws Exception {
     helper.shutdown();
@@ -55,29 +48,22 @@ public class LocalstackJmsTest {
 
   @Test
   public void test_01_TestCreateQueue() throws Exception {
-    if (areTestsEnabled()) {
-      AmazonSQS sqs = helper.getSyncClient();
-      sqs.createQueue(getProperty(SQS_JMS_QUEUE));
-      ListQueuesResult result = sqs.listQueues();
-      System.err.println(result.getQueueUrls());
-    } else {
-      System.err.println("localstack disabled; not executing test_01_TestCreateQueue");
-    }
+    Assume.assumeTrue(areTestsEnabled());
+    AmazonSQS sqs = helper.getSyncClient();
+    sqs.createQueue(getProperty(SQS_JMS_QUEUE));
+    ListQueuesResult result = sqs.listQueues();
+    System.err.println(result.getQueueUrls());
   }
-  
+
   @Test
   public void test_02_TestPublish() throws Exception {
-    if (areTestsEnabled()) {
-      PtpProducer producer = new PtpProducer(new ConfiguredProduceDestination(getProperty(SQS_JMS_QUEUE)));      
-      JmsConnection conn = helper.createJmsConnection();
-      StandaloneProducer sp = new StandaloneProducer(conn, producer);
-      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS);
-      ServiceCase.execute(sp, msg);      
-      assertTrue(helper.messagesOnQueue(helper.toQueueURL(getProperty(SQS_JMS_QUEUE))) > 0);
-    }
-    else {
-      System.err.println("localstack disabled; not executing test_02_TestPublish");
-    }
+    Assume.assumeTrue(areTestsEnabled());
+    PtpProducer producer = new PtpProducer(new ConfiguredProduceDestination(getProperty(SQS_JMS_QUEUE)));
+    JmsConnection conn = helper.createJmsConnection();
+    StandaloneProducer sp = new StandaloneProducer(conn, producer);
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS);
+    ServiceCase.execute(sp, msg);
+    assertTrue(helper.messagesOnQueue(helper.toQueueURL(getProperty(SQS_JMS_QUEUE))) > 0);
   }
 
   @Test
@@ -85,44 +71,36 @@ public class LocalstackJmsTest {
     StandaloneConsumer standaloneConsumer = null;
     long start = System.currentTimeMillis();
     try {
-      if (areTestsEnabled()) {
-        PtpConsumer consumer = new PtpConsumer(new ConfiguredConsumeDestination(getProperty(SQS_JMS_QUEUE)));
-        JmsConnection conn = helper.createJmsConnection();
-        // System.err.println("Create Objects : " + (System.currentTimeMillis() - start));
-        standaloneConsumer = new StandaloneConsumer(conn, consumer);
-        MockMessageListener listener = new MockMessageListener();
-        standaloneConsumer.registerAdaptrisMessageListener(listener);
-        // there is already a message from test_02
-        // System.err.println("Create Consumer : " + (System.currentTimeMillis() - start));
-        LifecycleHelper.initAndStart(standaloneConsumer);
-        // System.err.println("Start Consumer : " + (System.currentTimeMillis() - start));
-        BaseCase.waitForMessages(listener, 1, 20000);
-        // System.err.println("Finish Consume : " + (System.currentTimeMillis() - start));
-        assertEquals(1, listener.getMessages().size());
-        assertEquals(MSG_CONTENTS, listener.getMessages().get(0).getContent());
-      }
-      else {
-        System.err.println("localstack disabled; not executing test_02_TestPublish");
-      }
-    }
-    finally {
+      Assume.assumeTrue(areTestsEnabled());
+      PtpConsumer consumer = new PtpConsumer(new ConfiguredConsumeDestination(getProperty(SQS_JMS_QUEUE)));
+      JmsConnection conn = helper.createJmsConnection();
+      // System.err.println("Create Objects : " + (System.currentTimeMillis() - start));
+      standaloneConsumer = new StandaloneConsumer(conn, consumer);
+      MockMessageListener listener = new MockMessageListener();
+      standaloneConsumer.registerAdaptrisMessageListener(listener);
+      // there is already a message from test_02
+      // System.err.println("Create Consumer : " + (System.currentTimeMillis() - start));
+      LifecycleHelper.initAndStart(standaloneConsumer);
+      // System.err.println("Start Consumer : " + (System.currentTimeMillis() - start));
+      BaseCase.waitForMessages(listener, 1, 20000);
+      // System.err.println("Finish Consume : " + (System.currentTimeMillis() - start));
+      assertEquals(1, listener.getMessages().size());
+      assertEquals(MSG_CONTENTS, listener.getMessages().get(0).getContent());
+    } finally {
       final StandaloneConsumer sc = standaloneConsumer;
       // Stop + Close seems to take 20 seconds or so, so let's spawn it off
       ManagedThreadFactory.createThread(() -> {
         LifecycleHelper.stopAndClose(sc);
-      }).start();     
+      }).start();
     }
   }
-  
-  
+
+
   @Test
   public void test_99_TestDeleteQueue() throws Exception {
-    if (areTestsEnabled()) {
-      AmazonSQS sqs = helper.getSyncClient();
-      sqs.deleteQueue(helper.toQueueURL(getProperty(SQS_JMS_QUEUE)));
-    } else {
-      System.err.println("localstack disabled; not executing test_99_TestDeleteQueue");
-    }
+    Assume.assumeTrue(areTestsEnabled());
+    AmazonSQS sqs = helper.getSyncClient();
+    sqs.deleteQueue(helper.toQueueURL(getProperty(SQS_JMS_QUEUE)));
   }
 
 }

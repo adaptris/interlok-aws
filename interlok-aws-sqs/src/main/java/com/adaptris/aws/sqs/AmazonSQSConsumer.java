@@ -21,11 +21,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import javax.management.MalformedObjectNameException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.commons.lang3.BooleanUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisComponent;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -40,7 +40,6 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
-import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.QueueAttributeName;
@@ -48,6 +47,7 @@ import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.SneakyThrows;
 
 /**
  * <p>
@@ -80,10 +80,24 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
   @Setter
   private String ownerAwsAccountId;
 
-  private transient Log log = LogFactory.getLog(this.getClass().getName());
-  private transient AmazonSQS sqs;
-  private transient String queueUrl;
+  /**
+   * Whether or not to always delete the message from the queue.
+   * 
+   * <p>
+   * Since the workflow can be configured weith complex behaviour on errors, we have traditionally deleted the message once
+   * submitted to the workflow. In the specific AWS instance, this means that any configured 'Dead Letter Queue' behaviour will
+   * since AWS will consider the message to have been successfully delivered.
+   * </p>
+   * If set to false, then messages will be deleted once they are successfully processed. The default value is 'true' to preserve
+   * backwards compatible behaviour
+   * </p>
+   */
+  @Getter
+  @Setter
+  @InputFieldDefault(value = "true")
+  private Boolean alwaysDelete;
 
+  private transient String queueUrl = null;
   private transient List<String> receiveAttributes = Collections.singletonList("All");
   private transient List<String> receiveMessageAttributes = Collections.singletonList("All");
 
@@ -102,7 +116,6 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
   @Override
   public void start() throws CoreException {
-    getSynClient();
     getQueueUrl();
     super.start();
   }
@@ -110,7 +123,7 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
   @Override
   public void stop() {
     super.stop();
-    // sqs = null;
+    queueUrl = null;
   }
 
   /**
@@ -123,24 +136,25 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
   @Override
   protected int processMessages() {
     int count = 0;
-
     try {
       List<Message> messages;
+      final String myQueueUrl = getQueueUrl();
 
       messageCountLoop:
       do{
-        ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(queueUrl);
+        ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(myQueueUrl);
         if(getPrefetchCount() != null) {
           receiveMessageRequest.setMaxNumberOfMessages(getPrefetchCount());
         }
         receiveMessageRequest.setAttributeNames(receiveAttributes);
         receiveMessageRequest.setMessageAttributeNames(receiveMessageAttributes);
-        messages = sqs.receiveMessage(receiveMessageRequest).getMessages();
+        messages = getSynClient().receiveMessage(receiveMessageRequest).getMessages();
         log.trace(messages.size() + " messages to process");
 
         for (Message message : messages) {
           try {
             AdaptrisMessage adpMsg = AdaptrisMessageFactory.defaultIfNull(getMessageFactory()).newMessage(message.getBody());
+            final String handle = message.getReceiptHandle();
             adpMsg.addMetadata("SQSMessageID", message.getMessageId());
             for (Entry<String, String> entry : message.getAttributes().entrySet()) {
               adpMsg.addMetadata(entry.getKey(), entry.getValue());
@@ -148,11 +162,14 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
             for (Entry<String, MessageAttributeValue> entry : message.getMessageAttributes().entrySet()) {
               adpMsg.addMetadata(entry.getKey(), entry.getValue().getStringValue());
             }
-
-            retrieveAdaptrisMessageListener().onAdaptrisMessage(adpMsg);
-            //
-            sqs.deleteMessage(new DeleteMessageRequest(queueUrl, message.getReceiptHandle()));
-
+            if (alwaysDelete()) {
+              retrieveAdaptrisMessageListener().onAdaptrisMessage(adpMsg);
+              getSynClient().deleteMessage(new DeleteMessageRequest(myQueueUrl, handle));
+            } else {
+              retrieveAdaptrisMessageListener().onAdaptrisMessage(adpMsg, (m) -> {
+                getSynClient().deleteMessage(new DeleteMessageRequest(myQueueUrl, handle));
+              });
+            }
             if (!continueProcessingMessages(++count)) {
                 break messageCountLoop;
             }
@@ -180,22 +197,20 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
     return Integer.parseInt(result.getAttributes().get(QueueAttributeName.ApproximateNumberOfMessages.toString()));
   }
 
-  private AmazonSQS getSynClient() throws CoreException {
-    if(sqs == null) {
-      sqs = retrieveConnection(AmazonSQSConnection.class).getSyncClient();
-    }
-    return sqs;
+  @SneakyThrows(CoreException.class)
+  private AmazonSQS getSynClient() {
+    return retrieveConnection(AmazonSQSConnection.class).getSyncClient();
   }
 
   private String getQueueUrl() throws CoreException {
-    if(queueUrl == null) {
-      GetQueueUrlRequest queueUrlRequest = new GetQueueUrlRequest(getDestination().getDestination());
-      if (!isEmpty(getOwnerAwsAccountId())) {
-        queueUrlRequest.withQueueOwnerAWSAccountId(getOwnerAwsAccountId());
-      }
-      queueUrl = getSynClient().getQueueUrl(queueUrlRequest).getQueueUrl();
+    if (queueUrl == null) {
+      queueUrl = AwsHelper.buildQueueUrl(getDestination().getDestination(), getOwnerAwsAccountId(), getSynClient());
     }
     return queueUrl;
+  }
+
+  private boolean alwaysDelete() {
+    return BooleanUtils.toBooleanDefaultIfNull(getAlwaysDelete(), true);
   }
 
   private static class JmxFactory extends RuntimeInfoComponentFactory {

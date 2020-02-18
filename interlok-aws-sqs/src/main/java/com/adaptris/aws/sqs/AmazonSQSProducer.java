@@ -43,7 +43,6 @@ import com.adaptris.util.TimeInterval;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
@@ -192,18 +191,10 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
     String queueURL = (String) cachedQueueURLs.get(queueName);
     // It's not in the cache. Look up the queue url from Amazon and cache it.
     if(queueURL == null) {
-      queueURL = retrieveQueueURLFromSQS(queueName);
+      queueURL = AwsHelper.buildQueueUrl(queueName, getOwnerAwsAccountId(), getSQS());
       cachedQueueURLs.put(queueName, queueURL);
     }
     return queueURL;
-  }
-  
-  private String retrieveQueueURLFromSQS(String queueName) throws AmazonServiceException, AmazonClientException, CoreException {
-    GetQueueUrlRequest getQueueUrlRequest = new GetQueueUrlRequest(queueName);
-    if (!StringUtils.isEmpty(getOwnerAwsAccountId())) {
-      getQueueUrlRequest.withQueueOwnerAWSAccountId(getOwnerAwsAccountId());
-    }
-    return getSQS().getQueueUrl(getQueueUrlRequest).getQueueUrl();
   }
 
   @Override
