@@ -37,7 +37,7 @@ If you need to override various ports and other things, then check the contents 
 
 # AWS Kinesis
 
-The AWS Kinesis component uses the simplified AWS kinesis producer; under the covers this spawns a ative executable. Note that your platform may not be always supported; so you may need to inspect `amazon-kinesis-producer.jar` manually to check that your OS is represented (sometimes the _Windows_ binary is missing).
+The AWS Kinesis component uses the simplified AWS kinesis producer; under the covers this spawns a native executable. Note that your platform may not be always supported; so you may need to inspect `amazon-kinesis-producer.jar` manually to check that your OS is represented (sometimes the _Windows_ binary is missing).
 
 Also please note that the native binary on Linux is compiled against `glibc` which means that you may get a stacktrace that looks like this (generally on alpine based images, since they use muslc as the standard C library rather than glibc). It's probably easier at this point to choose a docker image that isn't alpine based.
 
