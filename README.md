@@ -34,3 +34,25 @@ junit.localstack.tests.enabled=true
 ```
 
 If you need to override various ports and other things, then check the contents of unit-tests.properties.template in the appropriate `src/test/resources` directory.
+
+# AWS Kinesis
+
+The AWS Kinesis component uses the simplified AWS kinesis producer; under the covers this spawns a ative executable. Note that your platform may not be always supported; so you may need to inspect `amazon-kinesis-producer.jar` manually to check that your OS is represented (sometimes the _Windows_ binary is missing).
+
+Also please note that the native binary on Linux is compiled against `glibc` which means that you may get a stacktrace that looks like this (generally on alpine based images, since they use muslc as the standard C library rather than glibc). It's probably easier at this point to choose a docker image that isn't alpine based.
+
+```
+com.amazonaws.services.kinesis.producer.IrrecoverableError: Error starting child process
+        at com.amazonaws.services.kinesis.producer.Daemon.fatalError(Daemon.java:525) [amazon-kinesis-producer-0.12.8.jar:na]
+        at com.amazonaws.services.kinesis.producer.Daemon.startChildProcess(Daemon.java:456) [amazon-kinesis-producer-0.12.8.jar:na]
+        at com.amazonaws.services.kinesis.producer.Daemon.access$100(Daemon.java:63) [amazon-kinesis-producer-0.12.8.jar:na]
+        at com.amazonaws.services.kinesis.producer.Daemon$1.run(Daemon.java:133) [amazon-kinesis-producer-0.12.8.jar:na]
+        at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149) [na:1.8.0_151]
+        at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624) [na:1.8.0_151]
+        at java.lang.Thread.run(Thread.java:748) [na:1.8.0_151]
+Caused by: java.io.IOException: Cannot run program "/tmp/amazon-kinesis-producer-native-binaries/kinesis_producer_0529847a6647765630c02beeaf6a22c24858f873": error=2, No such file or directory
+        at java.lang.ProcessBuilder.start(ProcessBuilder.java:1048) ~[na:1.8.0_151]
+        at com.amazonaws.services.kinesis.producer.Daemon.startChildProcess(Daemon.java:454) [amazon-kinesis-producer-0.12.8.jar:na]
+        ... 5 common frames omitted
+Caused by: java.io.IOException: error=2, No such file or directory
+```
