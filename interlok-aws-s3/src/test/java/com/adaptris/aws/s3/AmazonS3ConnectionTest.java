@@ -16,6 +16,10 @@
 
 package com.adaptris.aws.s3;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+import org.junit.Test;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.BaseCase;
@@ -24,10 +28,13 @@ import com.adaptris.core.util.LifecycleHelper;
 
 public class AmazonS3ConnectionTest extends BaseCase {
 
-  public AmazonS3ConnectionTest(String name) {
-    super(name);
+  @Override
+  public boolean isAnnotatedForJunit4() {
+    return true;
   }
 
+
+  @Test
   public void testCreateBuilder() throws Exception {
     AmazonS3Connection c = new AmazonS3Connection();
     assertNotNull(c.createBuilder());
@@ -49,6 +56,7 @@ public class AmazonS3ConnectionTest extends BaseCase {
 
   }
 
+  @Test
   public void testLifecycle() throws Exception {
     AmazonS3Connection c = new AmazonS3Connection();
     try {

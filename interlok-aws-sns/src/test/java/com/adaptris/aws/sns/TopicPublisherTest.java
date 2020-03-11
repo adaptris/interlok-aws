@@ -16,7 +16,13 @@
 
 package com.adaptris.aws.sns;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyObject;
+import org.junit.Test;
 import org.mockito.Mockito;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.StaticCredentialsBuilder;
@@ -38,7 +44,10 @@ import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.PublishResult;
 
 public class TopicPublisherTest extends ProducerCase {
-
+  @Override
+  public boolean isAnnotatedForJunit4() {
+    return true;
+  }
   
   @Override
   protected StandaloneProducer retrieveObjectForSampleConfig() {
@@ -54,6 +63,7 @@ public class TopicPublisherTest extends ProducerCase {
     return result;
   }
 
+  @Test
   public void testSubject() throws Exception {
     PublishToTopic producer = new PublishToTopic(new ConfiguredProduceDestination("arn:aws:sns:us-east-1:123456789012:MyNewTopic"));
     assertNull(producer.getSubject());
@@ -64,6 +74,7 @@ public class TopicPublisherTest extends ProducerCase {
     assertEquals(MetadataDataInputParameter.class, producer.subject().getClass());
   }
   
+  @Test
   public void testSource() throws Exception {
     PublishToTopic producer = new PublishToTopic(new ConfiguredProduceDestination("arn:aws:sns:us-east-1:123456789012:MyNewTopic"));
     assertNull(producer.getSource());
@@ -74,6 +85,7 @@ public class TopicPublisherTest extends ProducerCase {
     assertEquals(MetadataDataInputParameter.class, producer.source().getClass());
   }
 
+  @Test
   public void testPublish() throws Exception {
     AmazonSNSClient mockClient = Mockito.mock(AmazonSNSClient.class);
     PublishResult mockResult = Mockito.mock(PublishResult.class);
@@ -91,6 +103,7 @@ public class TopicPublisherTest extends ProducerCase {
     assertEquals(resultId, msg.getMetadataValue(PublishToTopic.SNS_MSG_ID_KEY));
   }
   
+  @Test
   public void testPublish_NoSubject() throws Exception {
     AmazonSNSClient mockClient = Mockito.mock(AmazonSNSClient.class);
     PublishResult mockResult = Mockito.mock(PublishResult.class);
@@ -107,6 +120,7 @@ public class TopicPublisherTest extends ProducerCase {
     assertEquals(resultId, msg.getMetadataValue(PublishToTopic.SNS_MSG_ID_KEY));
   }
   
+  @Test
   public void testPublish_Failure() throws Exception {
     AmazonSNSClient mockClient = Mockito.mock(AmazonSNSClient.class);
     PublishResult mockResult = Mockito.mock(PublishResult.class);

@@ -15,24 +15,31 @@
 */
 
 package com.adaptris.aws.sqs;
-
+import static org.junit.Assert.assertEquals;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
+import org.junit.Before;
+import org.junit.Test;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.StaticCredentialsBuilder;
+import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ConfiguredConsumeDestination;
 import com.adaptris.core.ConsumerCase;
 import com.adaptris.core.QuartzCronPoller;
 import com.adaptris.core.StandaloneConsumer;
+import com.adaptris.core.stubs.MessageCounter;
 import com.adaptris.core.stubs.MockMessageListener;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.util.GuidGenerator;
@@ -46,6 +53,7 @@ import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import com.amazonaws.services.sqs.model.GetQueueUrlResult;
 import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.QueueAttributeName;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
@@ -54,22 +62,16 @@ public class AwsConsumerTest extends ConsumerCase {
 
   private static final String payload = "The quick brown fox jumps over the lazy dog.";
   
-  private MockMessageListener messageListener;
-  
   private AmazonSQS sqsClientMock;
   private AmazonSQSConnection connectionMock;
-
-  private AmazonSQSConsumer sqsConsumer;
-
-  private StandaloneConsumer standaloneConsumer;
   
-  public AwsConsumerTest(String params) {
-    super(params);
+  @Override
+  public boolean isAnnotatedForJunit4() {
+    return true;
   }
 
-  @Override
+  @Before
   public void setUp() throws Exception {
-    super.setUp();
 
     sqsClientMock = mock(AmazonSQS.class);
     GetQueueUrlResult queueUrlResultMock = mock(GetQueueUrlResult.class);
@@ -81,52 +83,94 @@ public class AwsConsumerTest extends ConsumerCase {
     when(connectionMock.getSyncClient()).thenReturn(sqsClientMock);
   }
   
-  @Override
-  public void tearDown() throws Exception {
-    if (sqsConsumer != null){
-      LifecycleHelper.close(sqsConsumer);
-    }
-    
-    super.tearDown();
-  }
-  
+  @Test
   public void testConsumerInitialisation() throws Exception {
-    startConsumer();
+    StandaloneConsumer consumer = startConsumer();
+    LifecycleHelper.stopAndClose(consumer);
   }
 
+  @Test
   public void testWithoutQueueOwnerAWSAccountId() throws Exception {
-    startConsumer();
+    StandaloneConsumer consumer = startConsumer();
     verify(sqsClientMock, atLeast(1)).getQueueUrl(new GetQueueUrlRequest("queue"));
+    LifecycleHelper.stopAndClose(consumer);
   }
 
+  @Test
   public void testWithQueueOwnerAWSAccountId() throws Exception {
-    startConsumerWithAccountID();
+    StandaloneConsumer consumer = startConsumerWithAccountID();
     GetQueueUrlRequest getQueueUrlRequest = new GetQueueUrlRequest("queue");
     getQueueUrlRequest.withQueueOwnerAWSAccountId("accountId");
     verify(sqsClientMock, atLeast(1)).getQueueUrl(getQueueUrlRequest);
+    LifecycleHelper.stopAndClose(consumer);
   }
   
-  public void testSingleConsume() throws Exception {
+  @Test
+  public void testSingleConsume_AlwaysDelete() throws Exception {
+    // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
+    when(sqsClientMock.receiveMessage((ReceiveMessageRequest) anyObject())).thenReturn(createReceiveMessageResult(1),
+        new ReceiveMessageResult());
+
+    StandaloneConsumer consumer = startConsumer();
+    AmazonSQSConsumer sqsConsumer = (AmazonSQSConsumer) consumer.getConsumer();
+    waitForConsumer((MessageCounter) sqsConsumer.retrieveAdaptrisMessageListener(), 1, 10000);
+
+    verify(sqsClientMock, atLeast(1)).deleteMessage(any(DeleteMessageRequest.class));
+    LifecycleHelper.stopAndClose(consumer);
+  }
+
+  @Test
+  public void testSingleConsume_DeleteOnSuccess() throws Exception {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenReturn(
         createReceiveMessageResult(1),
         new ReceiveMessageResult());
 
-    startConsumer();
-    waitForConsumer(1, 10000);
+    MockMessageListener messageListener = new MockMessageListener(10);
+    AmazonSQSConsumer sqsConsumer = createConsumer(connectionMock);
+    sqsConsumer.setAlwaysDelete(Boolean.FALSE);
+    StandaloneConsumer consumer = new StandaloneConsumer(connectionMock, sqsConsumer);
+    consumer.registerAdaptrisMessageListener(messageListener);
+    LifecycleHelper.initAndStart(consumer);
+
+    waitForConsumer((MessageCounter) sqsConsumer.retrieveAdaptrisMessageListener(), 1, 10000);
     
     verify(sqsClientMock, atLeast(1)).deleteMessage(any(DeleteMessageRequest.class));
+    LifecycleHelper.stopAndClose(consumer);
   }
-  
-  public void testConsumeWithAmazonReceiveException() throws Exception {
+
+  @Test
+  public void testSingleConsume_NoDeleteOnFailure() throws Exception {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
+    when(sqsClientMock.receiveMessage((ReceiveMessageRequest) anyObject())).thenReturn(createReceiveMessageResult(1),
+        new ReceiveMessageResult());
+
+    NoCallbackListener messageListener = new NoCallbackListener();
+    AmazonSQSConsumer sqsConsumer = createConsumer(connectionMock);
+    sqsConsumer.setAlwaysDelete(Boolean.FALSE);
+    StandaloneConsumer consumer = new StandaloneConsumer(connectionMock, sqsConsumer);
+    consumer.registerAdaptrisMessageListener(messageListener);
+    LifecycleHelper.initAndStart(consumer);
+
+    waitForConsumer((MessageCounter) sqsConsumer.retrieveAdaptrisMessageListener(), 1, 10000);
+
+    verify(sqsClientMock, never()).deleteMessage(any(DeleteMessageRequest.class));
+    LifecycleHelper.stopAndClose(consumer);
+  }
+
+  
+  @Test
+  public void testConsumeWithAmazonReceiveException() throws Exception {
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenThrow(new AmazonServiceException("expected"));
 
-    startConsumer();
-    waitForConsumer(0, 0);
+    StandaloneConsumer consumer = startConsumer();
+    AmazonSQSConsumer sqsConsumer = (AmazonSQSConsumer) consumer.getConsumer();
+    waitForConsumer((MessageCounter) sqsConsumer.retrieveAdaptrisMessageListener(), 0, 1100);
     verify(sqsClientMock, atLeast(0)).deleteMessage(any(DeleteMessageRequest.class));
+    LifecycleHelper.stopAndClose(consumer);
   }
   
+  @Test
   public void testConsumeWithAmazonDeleteException() throws Exception {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenReturn(
@@ -135,11 +179,14 @@ public class AwsConsumerTest extends ConsumerCase {
     
     doThrow(new AmazonServiceException("expected")).when(sqsClientMock).deleteMessage((DeleteMessageRequest)anyObject());
         
-    startConsumer();
-    waitForConsumer(1, 3000);
+    StandaloneConsumer consumer = startConsumer();
+    AmazonSQSConsumer sqsConsumer = (AmazonSQSConsumer) consumer.getConsumer();
+    waitForConsumer((MessageCounter) sqsConsumer.retrieveAdaptrisMessageListener(), 1, 3000);
     verify(sqsClientMock, atLeast(1)).deleteMessage(any(DeleteMessageRequest.class));
+    LifecycleHelper.stopAndClose(consumer);
   }
   
+  @Test
   public void testSingleConsumeWithAddAtts() throws Exception {
     HashMap<String, String> attributes = new HashMap<>();
     attributes.put("myKey", "myValue");
@@ -150,56 +197,74 @@ public class AwsConsumerTest extends ConsumerCase {
         createReceiveMessageResult(1, attributes),
         new ReceiveMessageResult());
 
-    startConsumer();
+    MockMessageListener messageListener = new MockMessageListener(10);
+    AmazonSQSConsumer sqsConsumer = createConsumer(connectionMock);
     sqsConsumer.setPrefetchCount(1);
-    waitForConsumer(1, 10000);
+    StandaloneConsumer consumer = new StandaloneConsumer(connectionMock, sqsConsumer);
+    consumer.registerAdaptrisMessageListener(messageListener);
+    LifecycleHelper.initAndStart(consumer);
+
+    waitForConsumer((MessageCounter) sqsConsumer.retrieveAdaptrisMessageListener(), 1, 10000);
     
     verify(sqsClientMock, atLeast(1)).deleteMessage(any(DeleteMessageRequest.class));
-    assertEquals(1, messageListener.getMessages().size());
     assertEquals("myValue", messageListener.getMessages().get(0).getMetadataValue("myKey"));
     assertEquals("myValue2", messageListener.getMessages().get(0).getMetadataValue("myKey2"));
+    LifecycleHelper.stopAndClose(consumer);
   }
   
-  public void testSingleConsumeWithSetReceieveAtts() throws Exception {
+  @Test
+  public void testSingleConsumeWithMessageAttributes() throws Exception {
     HashMap<String, String> attributes = new HashMap<>();
     attributes.put("myKey", "myValue");
     attributes.put("myKey2", "myValue2");
+    HashMap<String, String> msgAttributes = new HashMap<>();
+    msgAttributes.put("myMsgAttribute", "myMsgAttributeValue");
+    msgAttributes.put("myMsgAttribute2", "myMsgAttributeValue2");
+
     
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenReturn(
-        createReceiveMessageResult(1, attributes),
+        createReceiveMessageResult(1, attributes, convertToMessageAttributes(msgAttributes)),
         new ReceiveMessageResult());
     
-    List<String> receiveAttributes = new ArrayList<>();
-    receiveAttributes.add("myReceiveKey");
-    receiveAttributes.add("myReceiveKey2");
-
-    startConsumer();
+    MockMessageListener messageListener = new MockMessageListener(10);
+    AmazonSQSConsumer sqsConsumer = createConsumer(connectionMock);
     sqsConsumer.setPrefetchCount(1);
-    waitForConsumer(1, 10000);
+    StandaloneConsumer consumer = new StandaloneConsumer(connectionMock, sqsConsumer);
+    consumer.registerAdaptrisMessageListener(messageListener);
+    LifecycleHelper.initAndStart(consumer);
+
+    waitForConsumer((MessageCounter) sqsConsumer.retrieveAdaptrisMessageListener(), 1, 10000);
     
-    verify(sqsClientMock, atLeast(1)).deleteMessage(any(DeleteMessageRequest.class));
     assertEquals(1, messageListener.getMessages().size());
     assertEquals("myValue", messageListener.getMessages().get(0).getMetadataValue("myKey"));
     assertEquals("myValue2", messageListener.getMessages().get(0).getMetadataValue("myKey2"));
+    assertEquals("myMsgAttributeValue", messageListener.getMessages().get(0).getMetadataValue("myMsgAttribute"));
+    assertEquals("myMsgAttributeValue2", messageListener.getMessages().get(0).getMetadataValue("myMsgAttribute2"));
   }
 
+  @Test
   public void testSingleConsumeWithMessageId() throws Exception {
     ReceiveMessageResult receiveMessageResult = createReceiveMessageResult(1);
     String expected = receiveMessageResult.getMessages().get(0).getMessageId();
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenReturn(
         receiveMessageResult, new ReceiveMessageResult());
 
-    startConsumer();
+    MockMessageListener messageListener = new MockMessageListener(10);
+    AmazonSQSConsumer sqsConsumer = createConsumer(connectionMock);
     sqsConsumer.setPrefetchCount(1);
-    waitForConsumer(1, 10000);
+    StandaloneConsumer consumer = new StandaloneConsumer(connectionMock, sqsConsumer);
+    consumer.registerAdaptrisMessageListener(messageListener);
+    LifecycleHelper.initAndStart(consumer);
 
-    verify(sqsClientMock, atLeast(1)).deleteMessage(any(DeleteMessageRequest.class));
+    waitForConsumer((MessageCounter) sqsConsumer.retrieveAdaptrisMessageListener(), 1, 10000);
+
     assertEquals(1, messageListener.getMessages().size());
     assertEquals(expected, messageListener.getMessages().get(0).getMetadataValue("SQSMessageID"));
   }
   
   
+  @Test
   public void testMultipleConsume() throws Exception {
     final int b1 = 5, b2 = 5, b3 = 5, b4 = 5, b5 = 3;
     final int numMsgs = b1 + b2 + b3 + b4 + b5;
@@ -213,38 +278,38 @@ public class AwsConsumerTest extends ConsumerCase {
         createReceiveMessageResult(b5),
         new ReceiveMessageResult());
     
-    startConsumer();
-    waitForConsumer(numMsgs, 30000);
+    StandaloneConsumer consumer = startConsumer();
+    AmazonSQSConsumer sqsConsumer = (AmazonSQSConsumer) consumer.getConsumer();
+    waitForConsumer((MessageCounter) sqsConsumer.retrieveAdaptrisMessageListener(), numMsgs, 30000);
     Thread.sleep(500);
     
     verify(sqsClientMock, atLeast(numMsgs)).deleteMessage(any(DeleteMessageRequest.class));
   }
 
+  @Test
   public void testMessagesRemaining() throws Exception {
     when(sqsClientMock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(
         new GetQueueAttributesResult().addAttributesEntry(QueueAttributeName.ApproximateNumberOfMessages.toString(), "10")
     );
-    startConsumer();
+    StandaloneConsumer consumer = startConsumer();
+    AmazonSQSConsumer sqsConsumer = (AmazonSQSConsumer) consumer.getConsumer();
     int messages = sqsConsumer.messagesRemaining();
 
     assertEquals(10, messages);
     verify(sqsClientMock, atLeast(1)).getQueueAttributes(any(GetQueueAttributesRequest.class));
   }
 
+  @Test
   public void testMessagesRemainingWithoutConsumerStart() throws Exception {
     when(sqsClientMock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(
         new GetQueueAttributesResult().addAttributesEntry(QueueAttributeName.ApproximateNumberOfMessages.toString(), "10")
     );
-    messageListener = new MockMessageListener(10);
+    MockMessageListener messageListener = new MockMessageListener(10);
 
-    sqsConsumer = new AmazonSQSConsumer();
-    sqsConsumer.registerConnection(connectionMock);
-    sqsConsumer.setDestination(new ConfiguredConsumeDestination("queue"));
-    sqsConsumer.setPoller(new QuartzCronPoller("*/1 * * * * ?"));
-    sqsConsumer.setReacquireLockBetweenMessages(true);
+    AmazonSQSConsumer sqsConsumer = createConsumer(connectionMock);
 
-    standaloneConsumer = new StandaloneConsumer(sqsConsumer);
-    standaloneConsumer.registerAdaptrisMessageListener(messageListener);
+    StandaloneConsumer consumer = new StandaloneConsumer(connectionMock, sqsConsumer);
+    consumer.registerAdaptrisMessageListener(messageListener);
     int messages = sqsConsumer.messagesRemaining();
 
     assertEquals(10, messages);
@@ -265,6 +330,30 @@ public class AwsConsumerTest extends ConsumerCase {
     
     return result;
   }
+
+  private ReceiveMessageResult createReceiveMessageResult(int numMsgs, Map<String, String> attributes,
+      Map<String, MessageAttributeValue> msgAttributes) {
+    // Create the messages to be received
+    GuidGenerator guidGenerator = new GuidGenerator();
+    List<Message> msgs = new ArrayList<Message>();
+    for (int i = 0; i < numMsgs; i++) {
+      msgs.add(new Message().withBody(payload).withAttributes(attributes)
+          .withMessageAttributes(msgAttributes)
+          .withMessageId(guidGenerator.getUUID()));
+    }
+    // Set up the connection mock to return a message list when called
+    ReceiveMessageResult result = new ReceiveMessageResult();
+    result.setMessages(msgs);
+    return result;
+  }
+
+  private Map<String, MessageAttributeValue> convertToMessageAttributes(Map<String,String> map) {
+    Map<String, MessageAttributeValue> result = new HashMap<>();
+    for (Entry<String, String> e : map.entrySet()) {
+      result.put(e.getKey(), new MessageAttributeValue().withDataType("String").withStringValue(e.getValue()));
+    }
+    return result;
+  }
   
   private ReceiveMessageResult createReceiveMessageResult(int numMsgs, Map<String, String> attributes) {
     // Create the messages to be received
@@ -281,49 +370,45 @@ public class AwsConsumerTest extends ConsumerCase {
     return result;
   }
 
-  private void waitForConsumer(final int numMsgs, final int maxWaitTime) throws Exception{
+  private void waitForConsumer(MessageCounter counter, final int numMsgs, final int maxWaitTime) throws Exception {
     final int waitInc = 100;
     int waitTime = 0;
     do {
       Thread.sleep(waitInc);
       waitTime += waitInc;
-    } while(messageListener.messageCount() < numMsgs && waitTime < maxWaitTime);
+    } while (counter.messageCount() < numMsgs && waitTime < maxWaitTime);
 
-    LifecycleHelper.stop(sqsConsumer);    
-    assertEquals(numMsgs, messageListener.messageCount());
+    assertEquals(numMsgs, counter.messageCount());
   }
-  
-  private void startConsumer() throws Exception {
-    messageListener = new MockMessageListener(10);
-    
-    sqsConsumer = new AmazonSQSConsumer();
-    sqsConsumer.registerConnection(connectionMock);
+
+  private static AmazonSQSConsumer createConsumer(AmazonSQSConnection conn) {
+    AmazonSQSConsumer sqsConsumer = new AmazonSQSConsumer();
     sqsConsumer.setDestination(new ConfiguredConsumeDestination("queue"));
     sqsConsumer.setPoller(new QuartzCronPoller("*/1 * * * * ?"));
     sqsConsumer.setReacquireLockBetweenMessages(true);
-    
-    standaloneConsumer = new StandaloneConsumer(sqsConsumer);
+    sqsConsumer.registerConnection(conn);
+    return sqsConsumer;
+  }
+
+  private StandaloneConsumer startConsumer() throws Exception {
+    MockMessageListener messageListener = new MockMessageListener(10);
+    AmazonSQSConsumer sqsConsumer = createConsumer(connectionMock);
+    StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connectionMock, sqsConsumer);
     standaloneConsumer.registerAdaptrisMessageListener(messageListener);
-    
-    LifecycleHelper.init(sqsConsumer);
-    LifecycleHelper.start(sqsConsumer);
+    LifecycleHelper.initAndStart(standaloneConsumer);
+    return standaloneConsumer;
   }
 
-  private void startConsumerWithAccountID() throws Exception {
-    messageListener = new MockMessageListener(10);
-
-    sqsConsumer = new AmazonSQSConsumer();
-    sqsConsumer.registerConnection(connectionMock);
-    sqsConsumer.setDestination(new ConfiguredConsumeDestination("queue"));
-    sqsConsumer.setPoller(new QuartzCronPoller("*/1 * * * * ?"));
-    sqsConsumer.setReacquireLockBetweenMessages(true);
+  private StandaloneConsumer startConsumerWithAccountID() throws Exception {
+    MockMessageListener messageListener = new MockMessageListener(10);
+    AmazonSQSConsumer sqsConsumer = createConsumer(connectionMock);
     sqsConsumer.setOwnerAwsAccountId("accountId");
 
-    standaloneConsumer = new StandaloneConsumer(sqsConsumer);
+    StandaloneConsumer standaloneConsumer = new StandaloneConsumer(connectionMock, sqsConsumer);
     standaloneConsumer.registerAdaptrisMessageListener(messageListener);
 
-    LifecycleHelper.init(sqsConsumer);
-    LifecycleHelper.start(sqsConsumer);
+    LifecycleHelper.initAndStart(standaloneConsumer);
+    return standaloneConsumer;
   }
   
   @Override
@@ -341,5 +426,18 @@ public class AwsConsumerTest extends ConsumerCase {
     sqsConsumer.setOwnerAwsAccountId("owner-account-id");
     StandaloneConsumer result = new StandaloneConsumer(conn, sqsConsumer);
     return result;
+  }
+
+  private class NoCallbackListener extends MockMessageListener {
+    public NoCallbackListener() {
+    }
+
+    // Fudge it so that we never trigger the callback, which "implies" an error
+    @Override
+    public void onAdaptrisMessage(AdaptrisMessage msg, Consumer<AdaptrisMessage> success) {
+      super.onAdaptrisMessage(msg, (m) -> {
+      });
+    }
+
   }
 }

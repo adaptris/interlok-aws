@@ -16,7 +16,12 @@
 
 package com.adaptris.aws.sns;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyObject;
+import org.junit.Test;
 import org.mockito.Mockito;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.CustomEndpoint;
@@ -27,7 +32,11 @@ import com.adaptris.core.util.LifecycleHelper;
 import com.amazonaws.services.sns.AmazonSNSClient;
 
 public class AmazonSNSConnectionTest extends BaseCase {
-
+  @Override
+  public boolean isAnnotatedForJunit4() {
+    return true;
+  }
+  @Test
   public void testRegion() {
     AmazonSNSConnection c = new AmazonSNSConnection();
     assertNull(c.getRegion());
@@ -35,6 +44,7 @@ public class AmazonSNSConnectionTest extends BaseCase {
     assertEquals("eu-central-1", c.getRegion());
   }
 
+  @Test
   public void testLifecycle() throws Exception {
     AmazonSNSConnection conn = new AmazonSNSConnection().withCredentialsProviderBuilder(
         new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("access", "secret")));
@@ -74,6 +84,7 @@ public class AmazonSNSConnectionTest extends BaseCase {
 
   }
   
+  @Test
   public void testCloseQuietly() throws Exception {
     AmazonSNSClient mockClient= Mockito.mock(AmazonSNSClient.class);
     AmazonSNSConnection.closeQuietly(null);

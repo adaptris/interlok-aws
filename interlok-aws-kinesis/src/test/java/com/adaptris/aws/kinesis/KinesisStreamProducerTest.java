@@ -1,10 +1,10 @@
 package com.adaptris.aws.kinesis;
 
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
-
+import org.junit.Test;
 import org.mockito.Mockito;
-
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ConfiguredProduceDestination;
@@ -17,6 +17,10 @@ import com.amazonaws.services.kinesis.producer.UserRecordResult;
 import com.google.common.util.concurrent.ListenableFutureTask;
 
 public class KinesisStreamProducerTest extends ProducerCase {
+  @Override
+  public boolean isAnnotatedForJunit4() {
+    return true;
+  }
 
   @Override
   protected StandaloneProducer retrieveObjectForSampleConfig() {
@@ -26,6 +30,7 @@ public class KinesisStreamProducerTest extends ProducerCase {
     return new StandaloneProducer(conn, producer);
   }
 
+  @Test
   public void testProduce() throws Exception {
     KinesisStreamProducer producer =
         new KinesisStreamProducer().withPartitionKey("myPartitionKey");
@@ -41,6 +46,7 @@ public class KinesisStreamProducerTest extends ProducerCase {
     ServiceCase.execute(standalone, msg);
   }
 
+  @Test
   public void testProduce_NoDestination() throws Exception {
     KinesisStreamProducer producer = new KinesisStreamProducer().withStream("myStreamName").withPartitionKey("myPartitionKey");
     KinesisProducer mock = Mockito.mock(KinesisProducer.class);
@@ -54,6 +60,7 @@ public class KinesisStreamProducerTest extends ProducerCase {
     ServiceCase.execute(standalone, msg);
   }
 
+  @Test
   public void testProduce_Exception() throws Exception {
     KinesisStreamProducer producer =
         new KinesisStreamProducer().withStream("%message{does not exist}").withPartitionKey("%message{does not exist}");
