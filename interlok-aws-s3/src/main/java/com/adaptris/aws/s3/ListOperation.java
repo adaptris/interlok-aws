@@ -97,7 +97,7 @@ public class ListOperation extends S3OperationImpl {
   /**
    * Specify max number of keys to be returned.
    */
-  @AdvancedConfig
+  @AdvancedConfig(rare=true)
   @Getter
   @Setter
   private Integer maxKeys;
