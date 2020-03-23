@@ -3,6 +3,7 @@ package com.adaptris.aws.s3;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Matchers.anyString;
 import java.io.ByteArrayInputStream;
@@ -28,7 +29,8 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CopyObjectResult;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.GetObjectTaggingResult;
-import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.ListObjectsV2Request;
+import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
@@ -281,13 +283,13 @@ public class MockedOperationTest {
   public void testListOperationNoFilter() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
     TransferManager transferManager = Mockito.mock(TransferManager.class);
-    ObjectListing result = Mockito.mock(ObjectListing.class);
+    ListObjectsV2Result result = Mockito.mock(ListObjectsV2Result.class);
     S3ObjectSummary sbase = createSummary("srcBucket", "srcKeyPrefix/");
     S3ObjectSummary s1 = createSummary("srcBucket", "srcKeyPrefix/file.json");
     S3ObjectSummary s2 = createSummary("srcBucket", "srcKeyPrefix/file2.csv");
     List<S3ObjectSummary> list = new ArrayList<>(Arrays.asList(sbase, s1, s2));
     Mockito.when(result.getObjectSummaries()).thenReturn(list);
-    Mockito.when(client.listObjects(anyString(), anyString())).thenReturn(result);
+    Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
     ListOperation ls = new ListOperation()
         .withBucketName(new ConstantDataInputParameter("srcBucket")).withKey(new ConstantDataInputParameter("srcKeyPrefix/"));
 
@@ -305,14 +307,14 @@ public class MockedOperationTest {
   public void testListOperation_LegacyFilter() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
     TransferManager transferManager = Mockito.mock(TransferManager.class);
-    ObjectListing result = Mockito.mock(ObjectListing.class);
+    ListObjectsV2Result result = Mockito.mock(ListObjectsV2Result.class);
     S3ObjectSummary sbase = createSummary("srcBucket", "srcKeyPrefix/");
     S3ObjectSummary s1 = createSummary("srcBucket", "srcKeyPrefix/file.json");
     S3ObjectSummary s2 = createSummary("srcBucket", "srcKeyPrefix/file2.csv");
 
     List<S3ObjectSummary> list = new ArrayList<>(Arrays.asList(sbase, s1, s2));
     Mockito.when(result.getObjectSummaries()).thenReturn(list);
-    Mockito.when(client.listObjects(anyString(), anyString())).thenReturn(result);
+    Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
     ListOperation ls = new ListOperation()
         .withFilterSuffix(new ConstantDataInputParameter(".json"))
         .withBucketName(new ConstantDataInputParameter("srcBucket")).withKey(new ConstantDataInputParameter("srcKeyPrefix/"));
@@ -327,14 +329,14 @@ public class MockedOperationTest {
   public void testListOperation_RemoteBlobFilter() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
     TransferManager transferManager = Mockito.mock(TransferManager.class);
-    ObjectListing result = Mockito.mock(ObjectListing.class);
+    ListObjectsV2Result result = Mockito.mock(ListObjectsV2Result.class);
     S3ObjectSummary sbase = createSummary("srcBucket", "srcKeyPrefix/");
     S3ObjectSummary s1 = createSummary("srcBucket", "srcKeyPrefix/file.json");
     S3ObjectSummary s2 = createSummary("srcBucket", "srcKeyPrefix/file2.csv");
 
     List<S3ObjectSummary> list = new ArrayList<>(Arrays.asList(sbase, s1, s2));
     Mockito.when(result.getObjectSummaries()).thenReturn(list);
-    Mockito.when(client.listObjects(anyString(), anyString())).thenReturn(result);
+    Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
     RemoteBlobFilterWrapper filter =
         new RemoteBlobFilterWrapper().withFilterExpression(".*\\.json").withFilterImp(RegexFileFilter.class.getCanonicalName());
     ListOperation ls = new ListOperation().withFilter(filter)
