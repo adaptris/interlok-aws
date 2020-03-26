@@ -25,7 +25,7 @@ public abstract class SignatureService extends AWSKMSServiceImpl {
   @Getter
   @Setter
   @InputFieldDefault(value = "RSASSA_PSS_SHA_256")
-  @InputFieldHint(expression = true, ofType = "com.amazonaws.services.kms.model.SigningAlgorithmSpec")
+  @InputFieldHint(expression = true, style = "com.amazonaws.services.kms.model.SigningAlgorithmSpec")
   @NotBlank
   private String signingAlgorithm;
 
@@ -40,7 +40,7 @@ public abstract class SignatureService extends AWSKMSServiceImpl {
   @Getter
   @Setter
   @InputFieldDefault(value = "RAW")
-  @InputFieldHint(expression = true, ofType = "com.amazonaws.services.kms.model.MessageType")
+  @InputFieldHint(expression = true, style = "com.amazonaws.services.kms.model.MessageType")
   @Valid
   @AdvancedConfig
   private String messageType;
