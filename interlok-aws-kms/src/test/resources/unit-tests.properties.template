@@ -3,3 +3,7 @@ junit.ServiceCase.baseDir=@BUILD_DIR@/examples/services
 junit.ProducerCase.baseDir=@BUILD_DIR@/examples/producers
 junit.WorkflowCase.baseDir=@BUILD_DIR@/examples/workflows
 junit.localstack.tests.enabled=false
+
+junit.localstack.kms.signingRegion=us-east-1
+junit.localstack.kms.url=http://localhost:4599
+

@@ -15,12 +15,24 @@ import lombok.Getter;
 import lombok.Setter;
 
 public abstract class AWSKMSServiceImpl extends ServiceImp implements ConnectedService {
+
+  /**
+   * The connection to AWS KMS.
+   * 
+   */
   @Valid
   @Getter
   @Setter
   @NotNull
   private AdaptrisConnection connection;
 
+  /**
+   * The ID of the key that you will be using.
+   * 
+   * <p>
+   * Note that this is not the alias that you assigned when creating the key; it's the UUID associated with it
+   * </p>
+   */
   @Getter
   @Setter
   @InputFieldHint(expression = true)
