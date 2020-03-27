@@ -5,6 +5,8 @@ import static com.adaptris.aws.kms.LocalstackServiceTest.MSG_CONTENTS;
 import static com.adaptris.aws.kms.LocalstackServiceTest.SIG_METADATA_KEY;
 import static com.adaptris.aws.kms.LocalstackServiceTest.hash;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import java.util.Base64;
 import java.util.EnumSet;
 import org.junit.Test;
@@ -50,10 +52,15 @@ public class VerifyServiceTest extends ServiceCase {
         .withSigningAlgorithm(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256)
         .withSignatureValid(true);
     Mockito.when(client.verify(any())).thenReturn(result);
+
+    AWSKMSConnection connectionMock = mock(AWSKMSConnection.class);
+    Mockito.when(connectionMock.retrieveConnection(AWSKMSConnection.class)).thenReturn(connectionMock);
+    when(connectionMock.awsClient()).thenReturn(client);
+
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMessageHeader(HASH_METADATA_KEY, Base64.getEncoder().encodeToString(hash(MSG_CONTENTS)));
 
-    VerifySignatureService service = retrieveObjectForSampleConfig().withConnection(new MockKmsConnection(client));
+    VerifySignatureService service = retrieveObjectForSampleConfig().withConnection(connectionMock);
 
     execute(service, msg);
 
@@ -66,20 +73,31 @@ public class VerifyServiceTest extends ServiceCase {
         .withSigningAlgorithm(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256)
         .withSignatureValid(false);
     Mockito.when(client.verify(any())).thenReturn(result);
+
+    AWSKMSConnection connectionMock = mock(AWSKMSConnection.class);
+    Mockito.when(connectionMock.retrieveConnection(AWSKMSConnection.class)).thenReturn(connectionMock);
+    when(connectionMock.awsClient()).thenReturn(client);
+
+
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMessageHeader(HASH_METADATA_KEY, Base64.getEncoder().encodeToString(hash(MSG_CONTENTS)));
 
-    VerifySignatureService service = retrieveObjectForSampleConfig().withConnection(new MockKmsConnection(client));
+    VerifySignatureService service = retrieveObjectForSampleConfig().withConnection(connectionMock);
     execute(service, msg);
   }
 
   @Test(expected = ServiceException.class)
   public void testSign_Broken() throws Exception {
     AWSKMSClient client = Mockito.mock(AWSKMSClient.class);
+
+    AWSKMSConnection connectionMock = mock(AWSKMSConnection.class);
+    Mockito.when(connectionMock.retrieveConnection(AWSKMSConnection.class)).thenReturn(connectionMock);
+    when(connectionMock.awsClient()).thenReturn(client);
+
     AdaptrisMessage msg = new DefectiveMessageFactory(EnumSet.of(WhenToBreak.METADATA_GET)).newMessage(MSG_CONTENTS);
     msg.addMessageHeader(HASH_METADATA_KEY, Base64.getEncoder().encodeToString(hash(MSG_CONTENTS)));
 
-    VerifySignatureService service = retrieveObjectForSampleConfig().withConnection(new MockKmsConnection(client));
+    VerifySignatureService service = retrieveObjectForSampleConfig().withConnection(connectionMock);
     execute(service, msg);
   }
 
