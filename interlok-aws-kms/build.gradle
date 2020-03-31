@@ -56,7 +56,7 @@ publishing {
           artifact sourcesJar { classifier "sources" }
           pom.withXml {
             asNode().appendNode("name", componentName)
-            asNode().appendNode("description", "Components that interact AWS KMS to perform sign/encrypt/decrypt/verify operations")
+            asNode().appendNode("description", "Components that interact with AWS KMS to perform sign/encrypt/decrypt/verify operations")
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.10.1+")
             properties.appendNode("tags", "aws,kms")
