@@ -7,11 +7,14 @@ import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.services.metadata.PayloadHashingService;
 import com.amazonaws.services.kms.model.MessageType;
 import com.amazonaws.services.kms.model.SigningAlgorithmSpec;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@NoArgsConstructor
 public abstract class SignatureService extends AWSKMSServiceImpl {
 
   /**
@@ -33,8 +36,10 @@ public abstract class SignatureService extends AWSKMSServiceImpl {
    * Specify the message type for this operation.
    * 
    * <p>
-   * Use {@code RAW} if the message to be signed is less than 4096 bytes, or use {@code DIGEST} and make sure it is a digest using
-   * (@link PayloadHashingService} or similar. The default is {@code RAW} if not specified.
+   * The default is {@code RAW} if not specified and generally this is what you should use. Bear in mind that the message to be
+   * signed needs to be less than 4096 bytes; so you may well be using {@code RAW} even if you're intending to sign a digest of the
+   * payload (e.g. created via {@link PayloadHashingService} or similar). Use of {@code DIGEST} can mean that when you attempt to
+   * verify a signature outside of AWS KMS, then it can fail, since {@code DIGEST} appears to have a special meaning to KMS.
    * </p>
    */
   @Getter

@@ -1,16 +1,15 @@
 package com.adaptris.aws.kms;
 
+import static com.adaptris.aws.kms.LocalstackHelper.CONFIG;
+import static com.adaptris.aws.kms.LocalstackHelper.HASH_METADATA_KEY;
+import static com.adaptris.aws.kms.LocalstackHelper.KMS_SIGNING_REGION;
+import static com.adaptris.aws.kms.LocalstackHelper.KMS_URL;
+import static com.adaptris.aws.kms.LocalstackHelper.MSG_CONTENTS;
+import static com.adaptris.aws.kms.LocalstackHelper.SIG_METADATA_KEY;
+import static com.adaptris.aws.kms.LocalstackHelper.hash;
 import static org.junit.Assert.assertTrue;
-import java.io.InputStream;
-import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
-import java.security.DigestOutputStream;
-import java.security.MessageDigest;
 import java.util.Base64;
-import java.util.Properties;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.ReaderInputStream;
-import org.apache.commons.lang3.BooleanUtils;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -25,8 +24,6 @@ import com.adaptris.core.ServiceCase;
 import com.adaptris.core.common.ByteArrayFromMetadata;
 import com.adaptris.core.common.MetadataStreamOutput;
 import com.adaptris.core.util.LifecycleHelper;
-import com.adaptris.core.util.PropertyHelper;
-import com.adaptris.util.stream.DevNullOutputStream;
 import com.adaptris.util.text.Base64ByteTranslator;
 import com.amazonaws.services.kms.AWSKMSClient;
 import com.amazonaws.services.kms.model.CreateKeyRequest;
@@ -41,22 +38,12 @@ import com.amazonaws.services.kms.model.SigningAlgorithmSpec;
 // https://github.com/nsmithuk/local-kms explicitly states that asymmetric operations are not supported.
 // So this conceptually is correct; but it won't work.
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class LocalstackServiceTest {
-
-  private static final String TESTS_ENABLED = "localstack.tests.enabled";
-  private static final String PROPERTIES_RESOURCE = "unit-tests.properties";
-  private static final String KMS_SIGNING_REGION = "localstack.kms.signingRegion";
-  private static final String KMS_URL = "localstack.kms.url";
-
-  private static Properties config = PropertyHelper.loadQuietly(PROPERTIES_RESOURCE);
-
-  public static final String MSG_CONTENTS = "hello world";
-  public static final String HASH_METADATA_KEY = "payload-hash";
-  public static final String SIG_METADATA_KEY = "payload-signature";
+public class LocalstackSigningTest {
 
   @Before
   public void setUp() throws Exception {
-    Assume.assumeTrue(areTestsEnabled());
+    Assume.assumeTrue(false);
+    // Assume.assumeTrue(areTestsEnabled());
   }
 
   @Test
@@ -84,11 +71,6 @@ public class LocalstackServiceTest {
     }
   }
 
-
-  protected static boolean areTestsEnabled() {
-    return BooleanUtils.toBoolean(config.getProperty(TESTS_ENABLED, "false"));
-  }
-
   protected GenerateSignatureService generateSignatureService(String keyId) {
     return new GenerateSignatureService()
     .withInput(new ByteArrayFromMetadata().withKey(HASH_METADATA_KEY).withTranslator(new Base64ByteTranslator()))
@@ -109,8 +91,8 @@ public class LocalstackServiceTest {
   }
 
   protected AWSKMSConnection buildConnection() {
-    String serviceEndpoint = config.getProperty(KMS_URL);
-    String signingRegion = config.getProperty(KMS_SIGNING_REGION);
+    String serviceEndpoint = CONFIG.getProperty(KMS_URL);
+    String signingRegion = CONFIG.getProperty(KMS_SIGNING_REGION);
     AWSKMSConnection connection = new AWSKMSConnection()
         .withCredentialsProviderBuilder(
             new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("TEST", "TEST")))
@@ -129,12 +111,4 @@ public class LocalstackServiceTest {
     return result.getKeyMetadata().getKeyId();
   }
 
-  public static byte[] hash(String s) throws Exception {
-    MessageDigest digest = MessageDigest.getInstance("SHA-256");
-    try (InputStream in = new ReaderInputStream(new StringReader(s), StandardCharsets.UTF_8);
-        DigestOutputStream out = new DigestOutputStream(new DevNullOutputStream(), digest)) {
-      IOUtils.copy(in, out);
-    }
-    return digest.digest();
-  }
 }

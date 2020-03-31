@@ -1,6 +1,5 @@
 package com.adaptris.aws.kms;
 
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import javax.validation.Valid;
@@ -22,6 +21,7 @@ import com.amazonaws.services.kms.model.SignResult;
 import com.amazonaws.services.kms.model.SigningAlgorithmSpec;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -29,9 +29,10 @@ import lombok.Setter;
  * @config aws-kms-signing
  */
 @AdapterComponent
-@ComponentProfile(summary = "Signing via AWS KMS", recommended = {AWSKMSConnection.class})
+@ComponentProfile(summary = "Signing via AWS KMS", recommended = {AWSKMSConnection.class}, since = "3.10.1")
 @XStreamAlias("aws-kms-generate-signature")
-@DisplayOrder(order = {"connection", "id", "signatureAlgorithm"})
+@DisplayOrder(order = {"connection", "keyId", "signatureAlgorithm", "input", "output"})
+@NoArgsConstructor
 public class GenerateSignatureService extends SignatureService {
 
   @Getter
@@ -61,7 +62,7 @@ public class GenerateSignatureService extends SignatureService {
       String key = msg.resolve(getKeyId());
       SigningAlgorithmSpec signingAlg = signingAlgorithm(msg);
       MessageType type = messageType(msg);      
-      ByteBuffer toBeSigned = ByteBuffer.wrap(input.wrap(msg));
+      ByteBuffer toBeSigned = ByteBuffer.wrap(getInput().wrap(msg));
       SignRequest request =  new SignRequest()
           .withKeyId(key)
           .withSigningAlgorithm(signingAlg)
@@ -88,30 +89,4 @@ public class GenerateSignatureService extends SignatureService {
     return this;
   }
 
-
-  public static class ByteBufferInputStream extends InputStream {
-    private final ByteBuffer wrappedBuffer;
-
-    public ByteBufferInputStream(ByteBuffer buf) {
-      wrappedBuffer = buf;
-    }
-
-    @Override
-    public int read() {
-      if (!wrappedBuffer.hasRemaining()) {
-        return -1;
-      }
-      return wrappedBuffer.get() & 0xFF;
-    }
-
-    @Override
-    public int read(byte[] bytes, int off, int len) {
-      if (!wrappedBuffer.hasRemaining()) {
-        return -1;
-      }
-      len = Math.min(len, wrappedBuffer.remaining());
-      wrappedBuffer.get(bytes, off, len);
-      return len;
-    }
-  }
 }

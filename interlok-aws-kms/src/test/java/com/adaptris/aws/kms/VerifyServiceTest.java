@@ -1,9 +1,9 @@
 package com.adaptris.aws.kms;
 
-import static com.adaptris.aws.kms.LocalstackServiceTest.HASH_METADATA_KEY;
-import static com.adaptris.aws.kms.LocalstackServiceTest.MSG_CONTENTS;
-import static com.adaptris.aws.kms.LocalstackServiceTest.SIG_METADATA_KEY;
-import static com.adaptris.aws.kms.LocalstackServiceTest.hash;
+import static com.adaptris.aws.kms.LocalstackHelper.HASH_METADATA_KEY;
+import static com.adaptris.aws.kms.LocalstackHelper.MSG_CONTENTS;
+import static com.adaptris.aws.kms.LocalstackHelper.SIG_METADATA_KEY;
+import static com.adaptris.aws.kms.LocalstackHelper.hash;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

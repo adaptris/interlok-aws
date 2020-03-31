@@ -28,6 +28,7 @@ import com.amazonaws.ClientConfiguration;
 import com.amazonaws.services.kms.AWSKMSClient;
 import com.amazonaws.services.kms.AWSKMSClientBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.NoArgsConstructor;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon KMS
@@ -57,15 +58,14 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  */
 @XStreamAlias("aws-kms-connection")
 @AdapterComponent
-@ComponentProfile(summary = "Connection for supporting connectivity to Amazon KMS", tag = "connections,amazon,aws,kms")
+@ComponentProfile(summary = "Connection for supporting connectivity to Amazon KMS", tag = "connections,amazon,aws,kms",
+    since = "3.10.1")
 @DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy",
     "customEndpoint"})
+@NoArgsConstructor
 public class AWSKMSConnection extends AWSConnection implements ClientWrapper<AWSKMSClient> {
 
   private transient AWSKMSClient kms;
-
-  public AWSKMSConnection() {
-  }
 
   @Override
   protected void prepareConnection() throws CoreException {

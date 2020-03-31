@@ -20,6 +20,7 @@ import com.amazonaws.services.kms.model.VerifyRequest;
 import com.amazonaws.services.kms.model.VerifyResult;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -28,9 +29,10 @@ import lombok.Setter;
  * @config aws-kms-verify-signature
  */
 @AdapterComponent
-@ComponentProfile(summary = "Verify a signature using AWS KMS", recommended = {AWSKMSConnection.class})
+@ComponentProfile(summary = "Verify a signature using AWS KMS", recommended = {AWSKMSConnection.class}, since = "3.10.1")
 @XStreamAlias("aws-kms-verify-signature")
-@DisplayOrder(order = {"connection", "id", "signatureAlgorithm", "signature", "dataToBeVerified"})
+@DisplayOrder(order = {"connection", "keyId", "signingAlgorithm", "signature", "dataToBeVerified"})
+@NoArgsConstructor
 public class VerifySignatureService extends SignatureService {
 
   /**

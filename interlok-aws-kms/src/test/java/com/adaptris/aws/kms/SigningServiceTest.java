@@ -1,21 +1,18 @@
 package com.adaptris.aws.kms;
 
-import static com.adaptris.aws.kms.LocalstackServiceTest.HASH_METADATA_KEY;
-import static com.adaptris.aws.kms.LocalstackServiceTest.MSG_CONTENTS;
-import static com.adaptris.aws.kms.LocalstackServiceTest.SIG_METADATA_KEY;
-import static com.adaptris.aws.kms.LocalstackServiceTest.hash;
+import static com.adaptris.aws.kms.LocalstackHelper.HASH_METADATA_KEY;
+import static com.adaptris.aws.kms.LocalstackHelper.MSG_CONTENTS;
+import static com.adaptris.aws.kms.LocalstackHelper.SIG_METADATA_KEY;
+import static com.adaptris.aws.kms.LocalstackHelper.hash;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.EnumSet;
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.mockito.Mockito;
-import com.adaptris.aws.kms.GenerateSignatureService.ByteBufferInputStream;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ServiceCase;
@@ -89,17 +86,4 @@ public class SigningServiceTest extends ServiceCase {
     execute(service, msg);
   }
 
-  @Test
-  public void testByteBufferInputStream() throws Exception {
-    ByteBuffer buf = ByteBuffer.wrap(MSG_CONTENTS.getBytes(StandardCharsets.UTF_8));
-    try (ByteBufferInputStream in = new ByteBufferInputStream(buf)) {
-      int i = in.read();
-      while (i != -1) {
-        i = in.read();
-      }
-    }
-    try (ByteBufferInputStream in = new ByteBufferInputStream(buf)) {
-      byte[] bytes = IOUtils.toByteArray(in);
-    }
-  }
 }
