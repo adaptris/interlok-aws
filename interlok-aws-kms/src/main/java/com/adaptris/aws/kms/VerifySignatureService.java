@@ -13,6 +13,7 @@ import com.adaptris.core.common.ByteArrayFromMetadata;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.interlok.types.MessageWrapper;
 import com.adaptris.interlok.util.Args;
+import com.adaptris.util.text.HexDump;
 import com.amazonaws.services.kms.AWSKMSClient;
 import com.amazonaws.services.kms.model.MessageType;
 import com.amazonaws.services.kms.model.SigningAlgorithmSpec;
@@ -26,12 +27,16 @@ import lombok.Setter;
 /**
  * Verify a signature using AWS KMS.
  * 
+ * <p>
+ * If the signature does not verify for any reason then a normal {@link ServiceException} will be thrown.
+ * </p>
+ * 
  * @config aws-kms-verify-signature
  */
 @AdapterComponent
 @ComponentProfile(summary = "Verify a signature using AWS KMS", recommended = {AWSKMSConnection.class}, since = "3.10.1")
 @XStreamAlias("aws-kms-verify-signature")
-@DisplayOrder(order = {"connection", "keyId", "signingAlgorithm", "signature", "dataToBeVerified"})
+@DisplayOrder(order = {"connection", "keyId", "signingAlgorithm", "messageType", "signature", "dataToBeVerified"})
 @NoArgsConstructor
 public class VerifySignatureService extends SignatureService {
 
@@ -75,11 +80,18 @@ public class VerifySignatureService extends SignatureService {
       String key = msg.resolve(getKeyId());
       SigningAlgorithmSpec signingAlg = signingAlgorithm(msg);
       MessageType type = messageType(msg);
+      byte[] signature = getSignature().wrap(msg);
+      byte[] toVerify = getDataToBeVerified().wrap(msg);
+
+      if (extendedLogging()) {
+        log.trace("Data:\n{}", HexDump.parse(toVerify));
+        log.trace("Signature:\n{}", HexDump.parse(signature));
+      }
       VerifyRequest request = new VerifyRequest()
               .withKeyId(key)
-              .withSignature(ByteBuffer.wrap(getSignature().wrap(msg)))
+              .withSignature(ByteBuffer.wrap(signature))
               .withMessageType(messageType(msg))
-              .withMessage(ByteBuffer.wrap(getDataToBeVerified().wrap(msg)))
+              .withMessage(ByteBuffer.wrap(toVerify))
               .withSigningAlgorithm(signingAlgorithm(msg));
       
       VerifyResult response = client.verify(request);

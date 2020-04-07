@@ -71,6 +71,30 @@ public class SigningServiceTest extends ServiceCase {
 
   }
 
+  @Test
+  public void testSignExtendedLogging() throws Exception {
+
+    AWSKMSClient client = Mockito.mock(AWSKMSClient.class);
+    SignResult result = new SignResult().withKeyId("keyId").withSignature(ByteBuffer.wrap(hash(MSG_CONTENTS)))
+        .withSigningAlgorithm(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256);
+    Mockito.when(client.sign(any())).thenReturn(result);
+
+    AWSKMSConnection connectionMock = mock(AWSKMSConnection.class);
+    Mockito.when(connectionMock.retrieveConnection(AWSKMSConnection.class)).thenReturn(connectionMock);
+    when(connectionMock.awsClient()).thenReturn(client);
+
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
+    msg.addMessageHeader(HASH_METADATA_KEY, Base64.getEncoder().encodeToString(hash(MSG_CONTENTS)));
+
+    GenerateSignatureService service = retrieveObjectForSampleConfig().withConnection(connectionMock);
+    service.setExtendedLogging(true);
+
+    execute(service, msg);
+
+    assertTrue(msg.headersContainsKey(SIG_METADATA_KEY));
+
+  }
+
   @Test(expected = ServiceException.class)
   public void testSign_Broken() throws Exception {
     AWSKMSClient client = Mockito.mock(AWSKMSClient.class);

@@ -46,7 +46,7 @@ public class VerifyServiceTest extends ServiceCase {
 
 
   @Test
-  public void testSign() throws Exception {
+  public void testVerify() throws Exception {
     AWSKMSClient client = Mockito.mock(AWSKMSClient.class);
     VerifyResult result = new VerifyResult().withKeyId("keyId")
         .withSigningAlgorithm(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256)
@@ -62,6 +62,26 @@ public class VerifyServiceTest extends ServiceCase {
 
     VerifySignatureService service = retrieveObjectForSampleConfig().withConnection(connectionMock);
 
+    execute(service, msg);
+
+  }
+
+  @Test
+  public void testVerifyExtendedLogging() throws Exception {
+    AWSKMSClient client = Mockito.mock(AWSKMSClient.class);
+    VerifyResult result = new VerifyResult().withKeyId("keyId").withSigningAlgorithm(SigningAlgorithmSpec.RSASSA_PKCS1_V1_5_SHA_256)
+        .withSignatureValid(true);
+    Mockito.when(client.verify(any())).thenReturn(result);
+
+    AWSKMSConnection connectionMock = mock(AWSKMSConnection.class);
+    Mockito.when(connectionMock.retrieveConnection(AWSKMSConnection.class)).thenReturn(connectionMock);
+    when(connectionMock.awsClient()).thenReturn(client);
+
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
+    msg.addMessageHeader(HASH_METADATA_KEY, Base64.getEncoder().encodeToString(hash(MSG_CONTENTS)));
+
+    VerifySignatureService service = retrieveObjectForSampleConfig().withConnection(connectionMock);
+    service.setExtendedLogging(true);
     execute(service, msg);
 
   }
@@ -87,7 +107,7 @@ public class VerifyServiceTest extends ServiceCase {
   }
 
   @Test(expected = ServiceException.class)
-  public void testSign_Broken() throws Exception {
+  public void testVerify_Broken() throws Exception {
     AWSKMSClient client = Mockito.mock(AWSKMSClient.class);
 
     AWSKMSConnection connectionMock = mock(AWSKMSConnection.class);
