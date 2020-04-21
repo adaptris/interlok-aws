@@ -3,7 +3,7 @@ import org.apache.tools.ant.filters.*
 
 plugins {
   id 'com.github.spotbugs' version '3.0.0' apply false
-  id "io.freefair.lombok" version "4.1.6" apply false
+  id "io.freefair.lombok" version "5.0.0" apply false
 }
 
 ext {
