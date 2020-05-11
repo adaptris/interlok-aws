@@ -4,6 +4,7 @@ import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ConnectedService;
@@ -75,6 +76,28 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
   @AdvancedConfig
   private RemoteBlobFilter filter;
 
+  /**
+   * Specify whether to page over results.
+   *
+   * <p>
+   *   If set to true will return all results, as oppose to the first n, where n is max-keys (AWS default: 1000).
+   *   Default is false for backwards compatibility reasons.
+   * </p>
+   */
+  @AdvancedConfig
+  @Getter
+  @Setter
+  @InputFieldDefault(value = "false")
+  private Boolean pageResults;
+
+  /**
+   * Specify max number of keys to be returned.
+   */
+  @AdvancedConfig(rare=true)
+  @Getter
+  @Setter
+  private Integer maxKeys;
+
   @Override
   public void prepare() throws CoreException {}
 
@@ -117,6 +140,15 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
     return this;
   }
 
+  public S3BucketList withPageResults(Boolean pageResults){
+    setPageResults(pageResults);
+    return this;
+  }
+
+  public S3BucketList withMaxKeys(Integer maxKeys){
+    setMaxKeys(maxKeys);
+    return this;
+  }
 
   public S3BucketList withOutputStyle(BlobListRenderer outputStyle) {
     setOutputStyle(outputStyle);
@@ -125,6 +157,8 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
 
   private S3Service buildService() {
     ListOperation op = new ListOperation().withFilter(getFilter()).withOutputStyle(getOutputStyle())
+        .withMaxKeys(getMaxKeys())
+        .withPageResults(getPageResults())
         .withBucketName(new ConstantDataInputParameter(getBucket()))
         .withKey(new ConstantDataInputParameter(getKey()));
     return new S3Service(getConnection(), op);

@@ -2,8 +2,8 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
 plugins {
-  id 'com.github.spotbugs' version '3.0.0' apply false
-  id "io.freefair.lombok" version "4.1.6" apply false
+  id 'com.github.spotbugs' version '4.0.5' apply false
+  id "io.freefair.lombok" version "5.0.0" apply false
 }
 
 ext {
@@ -22,8 +22,8 @@ ext {
   organizationName = "Adaptris Ltd"
 
   slf4jVersion = '1.7.30'
-  awsSDKVersion = '1.11.724'
-  log4j2Version = '2.13.0'
+  awsSDKVersion = '1.11.765'
+  log4j2Version = '2.13.2'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
@@ -118,6 +118,11 @@ subprojects {
     all*.exclude group: 'net.sf.saxon', module: 'saxon'
     all*.exclude group: 'org.codehaus.woodstox'
     all*.exclude group: 'org.eclipse.jetty.orbit', module: 'javax.mail.glassfish'
+    // INTERLOK-3197 exclude old javax.mail
+    all*.exclude group: 'com.sun.mail', module: 'javax.mail'
+    all*.exclude group: 'javax.validation', module: 'validation-api'
+    all*.exclude group: 'javax.activation', module: 'activation'
+    all*.exclude group: 'javax.activation', module: 'javax.activation-api'
   }
 
   configurations.all {
@@ -264,27 +269,26 @@ subprojects {
     filter(ReplaceTokens, tokens: [BUILD_DIR: project.buildDir.getCanonicalPath().replaceAll("\\\\", "/")])
   }
 
-  spotbugs {
+  spotbugsMain {
+    effort = "max"
+    reportLevel = "high"
     // showProgress = "true"
     effort = "max"
     // Ignore failures?
     // ignoreFailures = false
-
-    // We only care about "high priority" issues...
-    reportLevel = "high"
+    reports {
+      xml {
+        enabled = false
+      }
+      html {
+        enabled = true
+      }
+    }
   }
 
   // disable spotbugsTests which checks our test code..
   spotbugsTest.enabled = false
 
-  tasks.withType(com.github.spotbugs.SpotBugsTask) {
-    reports {
-      xml.enabled = false
-      html.enabled = true
-    }
-    // includeFilter = new File("$rootDir/gradle/spotbugs-filter.xml")
-    // excludeFilter = new File("$rootDir/gradle/spotbugs-exclude.xml")
-  }
 
   task lgtmCompile(type: JavaCompile, dependsOn: delombok) {
     group 'Build'

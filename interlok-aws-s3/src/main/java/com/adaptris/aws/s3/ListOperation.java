@@ -18,12 +18,14 @@ package com.adaptris.aws.s3;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.Removal;
+import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.interlok.cloud.BlobListRenderer;
@@ -31,7 +33,8 @@ import com.adaptris.interlok.cloud.RemoteBlob;
 import com.adaptris.interlok.cloud.RemoteBlobFilter;
 import com.adaptris.interlok.config.DataInputParameter;
 import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.ListObjectsV2Request;
+import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
@@ -46,7 +49,7 @@ import lombok.Setter;
 @ComponentProfile(summary = "List of files based on S3 key",
     since = "3.9.1")
 @XStreamAlias("amazon-s3-list")
-@DisplayOrder(order = {"bucketName", "key", "filter", "filterSuffix"})
+@DisplayOrder(order = {"bucketName", "key", "pageResults", "maxKeys", "filter", "filterSuffix"})
 public class ListOperation extends S3OperationImpl {
   private transient boolean warningLogged;
 
@@ -77,6 +80,28 @@ public class ListOperation extends S3OperationImpl {
   @Setter
   private BlobListRenderer outputStyle;
 
+  /**
+   * Specify whether to page over results.
+   *
+   * <p>
+   *   If set to true will return all results, as oppose to the first n, where n is max-keys (AWS default: 1000).
+   *   Default is false for backwards compatibility reasons.
+   * </p>
+   */
+  @AdvancedConfig
+  @Getter
+  @Setter
+  @InputFieldDefault(value = "false")
+  private Boolean pageResults;
+
+  /**
+   * Specify max number of keys to be returned.
+   */
+  @AdvancedConfig(rare=true)
+  @Getter
+  @Setter
+  private Integer maxKeys;
+
   public ListOperation() {
   }
 
@@ -85,21 +110,31 @@ public class ListOperation extends S3OperationImpl {
     AmazonS3Client s3 = wrapper.amazonClient();
     String bucket = getBucketName().extract(msg);
     String key = getKey().extract(msg);
-    ObjectListing listing =  s3.listObjects(bucket, key);
-    filter(listing, msg);
-    outputStyle().render(filter(listing, msg), msg);
+    ListObjectsV2Request request = new ListObjectsV2Request()
+            .withBucketName(bucket)
+            .withPrefix(key);
+    if(getMaxKeys() != null){
+      request.setMaxKeys(getMaxKeys());
+    }
+    outputStyle().render(filter(s3, request, msg), msg);
   }
 
-  private Collection<RemoteBlob> filter(ObjectListing listing, AdaptrisMessage msg) throws Exception {
+  private Collection<RemoteBlob> filter(AmazonS3Client s3, ListObjectsV2Request request, AdaptrisMessage msg) throws Exception {
     Collection<RemoteBlob> list = new ArrayList<>();
     RemoteBlobFilter filterToUse = blobFilter(msg);
-    for (S3ObjectSummary summary : listing.getObjectSummaries()) {
-      RemoteBlob blob = new RemoteBlob.Builder().setBucket(summary.getBucketName()).setLastModified(summary.getLastModified().getTime())
-          .setName(summary.getKey()).setSize(summary.getSize()).build();
-      if (filterToUse.accept(blob)) {
-        list.add(blob);
+    ListObjectsV2Result listing;
+    do {
+      listing = s3.listObjectsV2(request);
+      for (S3ObjectSummary summary : listing.getObjectSummaries()) {
+        RemoteBlob blob = new RemoteBlob.Builder().setBucket(summary.getBucketName()).setLastModified(summary.getLastModified().getTime())
+                .setName(summary.getKey()).setSize(summary.getSize()).build();
+        if (filterToUse.accept(blob)) {
+          list.add(blob);
+        }
       }
-    }
+      String token = listing.getNextContinuationToken();
+      request.setContinuationToken(token);
+    } while (pageResults() && listing.isTruncated());
     return list;
   }
 
@@ -123,6 +158,20 @@ public class ListOperation extends S3OperationImpl {
 
   public ListOperation withFilter(RemoteBlobFilter filter) {
     setFilter(filter);
+    return this;
+  }
+
+  private boolean pageResults(){
+    return BooleanUtils.toBooleanDefaultIfNull(getPageResults(),false);
+  }
+
+  public ListOperation withPageResults(Boolean paging){
+    setPageResults(paging);
+    return this;
+  }
+
+  public ListOperation withMaxKeys(Integer maxKeys){
+    setMaxKeys(maxKeys);
     return this;
   }
 

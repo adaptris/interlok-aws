@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import java.net.URL;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import com.adaptris.aws.ClientConfigurationBuilder.ClientConfigurationProperties;
 import com.amazonaws.ClientConfiguration;
@@ -81,7 +83,7 @@ public class ClientConfigurationPropertiesTest {
         ClientConfigurationProperties.ProxyHost.configure(new ClientConfiguration(), "localhost");
     assertEquals("localhost", cc.getProxyHost());
     cc = ClientConfigurationProperties.ProxyHost.configure(new ClientConfiguration(), "");
-    assertNull(cc.getProxyHost());
+    assertEquals(expectedProxyHost(), cc.getProxyHost());
   }
 
   @Test
@@ -97,7 +99,7 @@ public class ClientConfigurationPropertiesTest {
         ClientConfigurationProperties.ProxyPort.configure(new ClientConfiguration(), "3128");
     assertEquals(3128, cc.getProxyPort());
     cc = ClientConfigurationProperties.ProxyPort.configure(new ClientConfiguration(), "");
-    assertEquals(-1, cc.getProxyPort());
+    assertEquals(expectedProxyPort(), cc.getProxyPort());
   }
 
   @Test
@@ -124,32 +126,29 @@ public class ClientConfigurationPropertiesTest {
   @Test
   public void testReaper() throws Exception {
     ClientConfiguration cc =
-        ClientConfigurationProperties.Reaper
-            .configure(new ClientConfiguration(), "yes");
+        ClientConfigurationProperties.Reaper.configure(new ClientConfiguration(), "yes");
     assertEquals(true, cc.useReaper());
   }
 
   @Test
   public void testSignerOverride() throws Exception {
     ClientConfiguration cc =
-        ClientConfigurationProperties.SignerOverride.configure(new ClientConfiguration(),
-            "MD5");
+        ClientConfigurationProperties.SignerOverride.configure(new ClientConfiguration(), "MD5");
     assertEquals("MD5", cc.getSignerOverride());
   }
 
   @Test
   public void testSocketBufferSizeHints() throws Exception {
-    ClientConfiguration cc =
-        ClientConfigurationProperties.SocketBufferSizeHints.configure(new ClientConfiguration(),
-            "8192,8192");
+    ClientConfiguration cc = ClientConfigurationProperties.SocketBufferSizeHints
+        .configure(new ClientConfiguration(), "8192,8192");
     assertNotNull(cc.getSocketBufferSizeHints());
   }
 
 
   @Test
   public void testSocketTimeout() throws Exception {
-    ClientConfiguration cc = ClientConfigurationProperties.SocketTimeout
-        .configure(new ClientConfiguration(), "8192");
+    ClientConfiguration cc =
+        ClientConfigurationProperties.SocketTimeout.configure(new ClientConfiguration(), "8192");
     assertEquals(8192, cc.getSocketTimeout());
   }
 
@@ -168,4 +167,49 @@ public class ClientConfigurationPropertiesTest {
         ClientConfigurationProperties.UserAgent.configure(new ClientConfiguration(), "java");
     assertEquals("java", cc.getUserAgent());
   }
+
+  // Since we might be running in an environment that has a proxy set either via -Dhttps.proxyPort
+  // etc
+  // or via https_proxy; then we need to capture those.
+  // We can copy the code out of
+  private static int expectedProxyPort() throws Exception {
+    int port = Integer.parseInt(System.getProperty("https.proxyPort", "-1"));
+    if (port == -1) {
+      // try and get it from the environment...
+      port = getProxyPortFromEnv();
+    }
+    return port;
+  }
+
+  private static String expectedProxyHost() throws Exception {
+    String proxyHost = System.getProperty("https.proxyHost", null);
+    if (StringUtils.isBlank(proxyHost)) {
+      proxyHost  = getProxyHostFromEnv();
+    }
+    return proxyHost;
+  }
+
+
+  private static int getProxyPortFromEnv() throws Exception {
+    String value = getEnvVar("HTTPS_PROXY");
+    if (value != null) {
+      return new URL(value).getPort();
+    }
+    return -1;
+  }
+  
+
+  private static String getProxyHostFromEnv() throws Exception {
+    String value = getEnvVar("HTTPS_PROXY");
+    if (value != null) {
+      return new URL(value).getHost();
+    }
+    return null;
+  }
+
+  private static String getEnvVar(String varName) {
+    String result = System.getenv(varName);
+    return result != null ? result : System.getenv(varName.toLowerCase());
+  }
+  
 }

@@ -29,6 +29,7 @@ import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.lms.FileBackedMessage;
+import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.core.util.ManagedThreadFactory;
 import com.adaptris.interlok.InterlokException;
@@ -37,6 +38,8 @@ import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.util.IOUtils;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.apache.commons.io.FileCleaningTracker;
+import org.apache.commons.io.FileDeleteStrategy;
 
 /**
  * Download an object from S3 using {@link TransferManager}.
@@ -55,6 +58,8 @@ public class DownloadOperation extends TransferOperation {
 
   private transient ManagedThreadFactory threadFactory = new ManagedThreadFactory();
 
+  private static FileCleaningTracker cleaner = new FileCleaningTracker();
+
   public DownloadOperation() {
 
   }
@@ -68,7 +73,7 @@ public class DownloadOperation extends TransferOperation {
     }
     GetObjectRequest request = new GetObjectRequest(getBucketName().extract(msg), getKey().extract(msg));
     log.debug("Getting {} from bucket {}", request.getKey(), request.getBucketName());
-    File destFile = File.createTempFile(this.getClass().getSimpleName(), "", tempDir);
+    File destFile = createTempFile(tempDir, msg);
     Download download = tm.download(request, destFile);
     threadFactory.newThread(new MyProgressListener(Thread.currentThread().getName(), download)).start();
     download.waitForCompletion();
@@ -108,6 +113,12 @@ public class DownloadOperation extends TransferOperation {
   public DownloadOperation withTempDirectory(String s) {
     setTempDirectory(s);
     return this;
+  }
+
+  private File createTempFile(File tempDir, Object marker) throws IOException {
+    File f = File.createTempFile(this.getClass().getSimpleName(), "", tempDir);
+    cleaner.track(f, Args.notNull(marker, "marker"), FileDeleteStrategy.FORCE);
+    return f;
   }
 
   private class MyProgressListener implements Runnable {
