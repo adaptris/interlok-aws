@@ -5,11 +5,15 @@ ext {
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
-    compile "com.amazonaws:aws-java-sdk-sns:$awsSDKVersion"
+  compile ("com.amazonaws:aws-java-sdk-sns:$awsSDKVersion") {
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+  }
+  compile ("com.amazonaws:aws-java-sdk-core:$awsSDKVersion") {
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+  }
+  compile project(':interlok-aws-common')
 
-    compile project(':interlok-aws-common')
-
-    testCompile 'org.mockito:mockito-all:1.10.19'
+  testCompile 'org.mockito:mockito-all:1.10.19'
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {

@@ -4,6 +4,7 @@ import org.apache.tools.ant.filters.*
 plugins {
   id 'com.github.spotbugs' version '4.2.0' apply false
   id "io.freefair.lombok" version "5.1.0" apply false
+  id 'org.owasp.dependencycheck' version '5.3.2.1' apply false
 }
 
 ext {
@@ -90,6 +91,7 @@ subprojects {
   apply plugin: "jacoco"
   apply plugin: "io.freefair.lombok"
   apply plugin: 'com.github.spotbugs'
+  apply plugin: 'org.owasp.dependencycheck'
 
   sourceCompatibility = 1.8
   group   = 'com.adaptris'
@@ -292,6 +294,16 @@ subprojects {
   // disable spotbugsTests which checks our test code..
   spotbugsTest.enabled = false
 
+  dependencyCheck  {
+    suppressionFiles= [ "https://raw.githubusercontent.com/adaptris/interlok/develop/gradle/owasp-exclude.xml" ]
+    skipConfigurations = [ "antSql", "spotbugs", "umlDoclet", "offlineJavadocPackages", "javadoc" ]
+    formats = [ "HTML", "JUNIT" ]
+    junitFailOnCVSS = 7.0
+    failBuildOnCVSS = 7.0
+    analyzers {
+      assemblyEnabled=false
+    }
+  }
 
   task lgtmCompile(type: JavaCompile, dependsOn: delombok) {
     group 'Build'

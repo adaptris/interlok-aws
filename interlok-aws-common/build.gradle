@@ -4,7 +4,10 @@ ext {
 }
 
 dependencies {
-  compile "com.amazonaws:aws-java-sdk-core:$awsSDKVersion"
+  compile ("com.amazonaws:aws-java-sdk-core:$awsSDKVersion") {
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+  }
+  compile ("com.fasterxml.jackson.core:jackson-databind:2.11.0")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
