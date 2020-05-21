@@ -10,7 +10,6 @@ ext {
 dependencies {
   compile project(':interlok-aws-common')
   compile ("com.adaptris:interlok-apache-http:$interlokCoreVersion") { changing=true }
-  compile ("com.amazonaws:aws-java-sdk-elasticsearch:$awsSDKVersion")
   compile ("com.amazonaws:aws-java-sdk-kms:$awsSDKVersion")
   testCompile ("org.mockito:mockito-core:$mockitoVersion")
   testCompile ("org.mockito:mockito-inline:$mockitoVersion")
