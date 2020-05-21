@@ -34,3 +34,4 @@ interlok-aws-s3/src/main/generated
 interlok-aws-sns/src/main/generated
 interlok-aws-sqs/src/main/generated
 interlok-aws-kms/src/main/generated
+interlok-aws-elastic/src/main/generated
