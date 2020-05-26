@@ -25,7 +25,7 @@ import lombok.SneakyThrows;
 
 /**
  * {@code RequestInterceptorBuilder} implementation that creates an interceptor to sign requests
- * sent to AWS Elasticsearch Service
+ * made to AWS using AWS4Signer
  * 
  * <p>
  * Note that this uses the interceptor from
@@ -39,7 +39,7 @@ import lombok.SneakyThrows;
 @XStreamAlias("aws-apache-signing-interceptor")
 @AdapterComponent
 @ComponentProfile(
-    summary = "Supplies an Apache HTTP Request Interceptor used to sign requests made an AWS managed Elasticsearch instance",
+    summary = "Supplies an Apache HTTP Request Interceptor used to sign requests made to AWS using AWS4Signer",
     tag = "amazon,aws,elastic,elasticsearch", since = "3.10.2")
 @DisplayOrder(order = {"serviceName", "region", "credentials"})
 @NoArgsConstructor
