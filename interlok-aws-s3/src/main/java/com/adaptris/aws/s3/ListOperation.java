@@ -24,8 +24,8 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
-import com.adaptris.annotation.Removal;
 import com.adaptris.annotation.InputFieldDefault;
+import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.interlok.cloud.BlobListRenderer;
@@ -38,6 +38,7 @@ import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -50,6 +51,7 @@ import lombok.Setter;
     since = "3.9.1")
 @XStreamAlias("amazon-s3-list")
 @DisplayOrder(order = {"bucketName", "key", "pageResults", "maxKeys", "filter", "filterSuffix"})
+@NoArgsConstructor
 public class ListOperation extends S3OperationImpl {
   private transient boolean warningLogged;
 
@@ -87,11 +89,14 @@ public class ListOperation extends S3OperationImpl {
    *   If set to true will return all results, as oppose to the first n, where n is max-keys (AWS default: 1000).
    *   Default is false for backwards compatibility reasons.
    * </p>
+   * @deprecated since 3.10.2 due to interface changes; paging results is not explicitly configurable and will be ignored.
    */
   @AdvancedConfig
   @Getter
   @Setter
   @InputFieldDefault(value = "false")
+  @Deprecated
+  @Removal(version = "3.11.0", message="due to interface changes; paging results is not explicitly configurable and will be ignored")
   private Boolean pageResults;
 
   /**
@@ -101,9 +106,6 @@ public class ListOperation extends S3OperationImpl {
   @Getter
   @Setter
   private Integer maxKeys;
-
-  public ListOperation() {
-  }
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
@@ -115,29 +117,9 @@ public class ListOperation extends S3OperationImpl {
             .withPrefix(key);
     if(getMaxKeys() != null){
       request.setMaxKeys(getMaxKeys());
-    }
-    outputStyle().render(filter(s3, request, msg), msg);
+    }    
+    outputStyle().render(new RemoteBlobIterable(s3, request, blobFilter(msg)), msg);
   }
-
-  private Collection<RemoteBlob> filter(AmazonS3Client s3, ListObjectsV2Request request, AdaptrisMessage msg) throws Exception {
-    Collection<RemoteBlob> list = new ArrayList<>();
-    RemoteBlobFilter filterToUse = blobFilter(msg);
-    ListObjectsV2Result listing;
-    do {
-      listing = s3.listObjectsV2(request);
-      for (S3ObjectSummary summary : listing.getObjectSummaries()) {
-        RemoteBlob blob = new RemoteBlob.Builder().setBucket(summary.getBucketName()).setLastModified(summary.getLastModified().getTime())
-                .setName(summary.getKey()).setSize(summary.getSize()).build();
-        if (filterToUse.accept(blob)) {
-          list.add(blob);
-        }
-      }
-      String token = listing.getNextContinuationToken();
-      request.setContinuationToken(token);
-    } while (pageResults() && listing.isTruncated());
-    return list;
-  }
-
 
   @Deprecated
   @Removal(version = "3.11.0")
@@ -161,10 +143,8 @@ public class ListOperation extends S3OperationImpl {
     return this;
   }
 
-  private boolean pageResults(){
-    return BooleanUtils.toBooleanDefaultIfNull(getPageResults(),false);
-  }
-
+  @Deprecated
+  @Removal(version = "3.11.0", message="due to interface changes; paging results is not explicitly configurable and will be ignored")
   public ListOperation withPageResults(Boolean paging){
     setPageResults(paging);
     return this;
