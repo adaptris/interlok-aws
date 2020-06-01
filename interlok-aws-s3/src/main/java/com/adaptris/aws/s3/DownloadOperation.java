@@ -17,12 +17,12 @@
 package com.adaptris.aws.s3;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-
+import org.apache.commons.io.FileCleaningTracker;
+import org.apache.commons.io.FileDeleteStrategy;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -30,16 +30,13 @@ import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.lms.FileBackedMessage;
 import com.adaptris.core.util.Args;
-import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.core.util.ManagedThreadFactory;
-import com.adaptris.interlok.InterlokException;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.util.IOUtils;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import org.apache.commons.io.FileCleaningTracker;
-import org.apache.commons.io.FileDeleteStrategy;
+import lombok.NoArgsConstructor;
 
 /**
  * Download an object from S3 using {@link TransferManager}.
@@ -50,7 +47,8 @@ import org.apache.commons.io.FileDeleteStrategy;
 @AdapterComponent
 @ComponentProfile(summary = "Amazon S3 Download using Transfer Manager")
 @XStreamAlias("amazon-s3-download")
-@DisplayOrder(order = {"bucketName","key","tempDirectory", "userMetadataFilter"})
+@DisplayOrder(order = {"bucket", "objectName", "bucketName","key","tempDirectory", "userMetadataFilter"})
+@NoArgsConstructor
 public class DownloadOperation extends TransferOperation {
 
   @AdvancedConfig
@@ -60,10 +58,6 @@ public class DownloadOperation extends TransferOperation {
 
   private static FileCleaningTracker cleaner = new FileCleaningTracker();
 
-  public DownloadOperation() {
-
-  }
-
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     TransferManager tm = wrapper.transferManager();
@@ -71,7 +65,7 @@ public class DownloadOperation extends TransferOperation {
     if (!isEmpty(getTempDirectory())) {
       tempDir = new File(getTempDirectory());
     }
-    GetObjectRequest request = new GetObjectRequest(getBucketName().extract(msg), getKey().extract(msg));
+    GetObjectRequest request = new GetObjectRequest(s3Bucket(msg), s3ObjectKey(msg));
     log.debug("Getting {} from bucket {}", request.getKey(), request.getBucketName());
     File destFile = createTempFile(tempDir, msg);
     Download download = tm.download(request, destFile);
@@ -130,6 +124,7 @@ public class DownloadOperation extends TransferOperation {
       this.name = name;
     }
 
+    @Override
     public void run() {
       Thread.currentThread().setName(name);
       while (!download.isDone()) {

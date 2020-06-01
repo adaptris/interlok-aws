@@ -28,6 +28,7 @@ import com.adaptris.core.ServiceException;
 import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.NoArgsConstructor;
 
 /**
  * 
@@ -38,13 +39,12 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @ComponentProfile(summary = "Amazon S3 Service", recommended={AmazonS3Connection.class})
 @XStreamAlias("amazon-s3-service")
 @DisplayOrder(order = {"connection", "operation"})
+@NoArgsConstructor
 public class S3Service extends S3ServiceImpl {
 
   @NotNull
   @Valid
   private S3Operation operation;
-
-  public S3Service() {}
 
   public S3Service(AdaptrisConnection c, S3Operation op) {
     this();
@@ -62,14 +62,12 @@ public class S3Service extends S3ServiceImpl {
   }
 
   @Override
-  protected void initService() throws CoreException {
-    try {
-      Args.notNull(getOperation(), "operation");
-      super.initService();
-    } catch (Exception e) {
-      throw ExceptionHelper.wrapCoreException(e);
-    }
+  public void prepare() throws CoreException {
+    Args.notNull(getOperation(), "operation");
+    super.prepare();
+    getOperation().prepare();
   }
+ 
 
   public S3Operation getOperation() {
     return operation;

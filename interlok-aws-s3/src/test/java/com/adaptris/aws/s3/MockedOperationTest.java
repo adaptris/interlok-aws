@@ -3,9 +3,9 @@ package com.adaptris.aws.s3;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyObject;
+import static org.mockito.ArgumentMatchers.anyString;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -42,10 +42,11 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferProgress;
 import com.amazonaws.services.s3.transfer.Upload;
 
+@SuppressWarnings("deprecation")
 public class MockedOperationTest {
 
   @Test
-  public void testCopy_NoDestinationBucket() throws Exception {
+  public void testCopy_NoDestinationBucket_Legacy() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
     CopyObjectResult result = new CopyObjectResult();
     Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString())).thenReturn(result);    
@@ -55,22 +56,50 @@ public class MockedOperationTest {
         .withBucketName(new ConstantDataInputParameter("bucketName"))
         .withKey(new ConstantDataInputParameter("key"));
     ClientWrapper wrapper = new ClientWrapperImpl(client);    
-    op.execute(wrapper, msg);
+    execute(op, wrapper, msg);
+  }
+
+  @Test
+  public void testCopy_NoDestinationBucket() throws Exception {
+    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    CopyObjectResult result = new CopyObjectResult();
+    Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString()))
+        .thenReturn(result);
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
+    CopyOperation op =
+        new CopyOperation().withDestinationObjectName("destKey")
+            .withObjectName("key")
+            .withBucket("bucketName");
+    ClientWrapper wrapper = new ClientWrapperImpl(client);
+    execute(op, wrapper, msg);
+  }
+
+  @Test
+  public void testCopy_Legacy() throws Exception {
+    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    CopyObjectResult result = new CopyObjectResult();
+    Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString())).thenReturn(result);    
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
+    CopyOperation op =
+    new CopyOperation().withDestinationBucketName(new ConstantDataInputParameter("destBucket"))
+        .withDestinationKey(new ConstantDataInputParameter("destKey"))
+        .withBucketName(new ConstantDataInputParameter("srcBucket"))
+        .withKey(new ConstantDataInputParameter("srcKey"));
+    ClientWrapper wrapper = new ClientWrapperImpl(client);    
+    execute(op, wrapper, msg);
   }
 
   @Test
   public void testCopy() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
     CopyObjectResult result = new CopyObjectResult();
-    Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString())).thenReturn(result);    
+    Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString()))
+        .thenReturn(result);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    CopyOperation op = new CopyOperation()
-        .withDestinationBucketName(new ConstantDataInputParameter("destBucket"))
-        .withDestinationKey(new ConstantDataInputParameter("destKey"))
-        .withBucketName(new ConstantDataInputParameter("srcBucket"))
-        .withKey(new ConstantDataInputParameter("srcKey"));
-    ClientWrapper wrapper = new ClientWrapperImpl(client);    
-    op.execute(wrapper, msg);
+    CopyOperation op = new CopyOperation().withDestinationBucket("destBucket")
+        .withDestinationObjectName("destKey").withObjectName("key").withBucket("bucketName");
+    ClientWrapper wrapper = new ClientWrapperImpl(client);
+    execute(op, wrapper, msg);
   }
 
   @Test
@@ -82,7 +111,7 @@ public class MockedOperationTest {
         .withBucketName(new ConstantDataInputParameter("bucketName"))
         .withKey(new ConstantDataInputParameter("key"));
     ClientWrapper wrapper = new ClientWrapperImpl(client);    
-    op.execute(wrapper, msg);
+    execute(op, wrapper, msg);
   }
   
   
@@ -102,7 +131,7 @@ public class MockedOperationTest {
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
     ClientWrapper wrapper = new ClientWrapperImpl(client);    
-    op.execute(wrapper, msg);
+    execute(op, wrapper, msg);
   }
   
   @Test
@@ -117,7 +146,7 @@ public class MockedOperationTest {
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
     ClientWrapper wrapper = new ClientWrapperImpl(client);    
-    tag.execute(wrapper, msg);    
+    execute(tag, wrapper, msg);
   }
 
   @Test
@@ -131,7 +160,7 @@ public class MockedOperationTest {
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
     ClientWrapper wrapper = new ClientWrapperImpl(client);    
-    tag.execute(wrapper, msg);    
+    execute(tag, wrapper, msg);
   }
   
   @Test
@@ -160,7 +189,7 @@ public class MockedOperationTest {
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);    
-    downloader.execute(wrapper, msg);
+    execute(downloader, wrapper, msg);
   }
 
   @Test
@@ -188,7 +217,7 @@ public class MockedOperationTest {
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);    
-    downloader.execute(wrapper, msg);
+    execute(downloader, wrapper, msg);
   }
   
   @Test
@@ -213,7 +242,7 @@ public class MockedOperationTest {
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);    
-    uploader.execute(wrapper, msg);
+    execute(uploader, wrapper, msg);
   }
   
   @Test
@@ -238,7 +267,7 @@ public class MockedOperationTest {
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);    
-    uploader.execute(wrapper, msg);
+    execute(uploader, wrapper, msg);
   }
 
   @Test
@@ -252,13 +281,13 @@ public class MockedOperationTest {
         .withKey(new ConstantDataInputParameter("srcKey"));
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
     try {
-      checker.execute(wrapper, msg);
+      execute(checker, wrapper, msg);
       fail();
     }
     catch (Exception expcted) {
 
     }
-    checker.execute(wrapper, msg);
+    execute(checker, wrapper, msg);
   }
 
   @Test
@@ -274,7 +303,7 @@ public class MockedOperationTest {
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("");
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
-    getTags.execute(wrapper, msg);
+    execute(getTags, wrapper, msg);
     assertTrue(msg.headersContainsKey("hello"));
     assertEquals("world", msg.getMetadataValue("hello"));
   }
@@ -344,8 +373,14 @@ public class MockedOperationTest {
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("");
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
-    ls.execute(wrapper, msg);
+    execute(ls, wrapper, msg);
     assertEquals("srcKeyPrefix/file.json" + System.lineSeparator(), msg.getContent());
+  }
+
+  private void execute(S3Operation op, ClientWrapper wrapper, AdaptrisMessage msg)
+      throws Exception {
+    op.prepare();
+    op.execute(wrapper, msg);
   }
 
   public static S3ObjectSummary createSummary(String bucket, String key) {

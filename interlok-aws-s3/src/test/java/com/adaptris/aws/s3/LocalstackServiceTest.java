@@ -23,7 +23,6 @@ import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RegexMetadataFilter;
 import com.adaptris.core.util.PropertyHelper;
 import com.adaptris.interlok.cloud.RemoteBlobFilterWrapper;
-import com.adaptris.interlok.config.DataInputParameter;
 
 // A new local stack instance; we're going upload, copy, tag, download, get, delete in that order
 // So, sadly we are being really lame, and forcing the ordering...
@@ -50,7 +49,8 @@ public class LocalstackServiceTest {
 
   @Test
   public void test_01_CreateBucket() throws Exception {
-    CreateBucketOperation create = new CreateBucketOperation().withBucketName(getInputParameter(S3_BUCKETNAME));
+    CreateBucketOperation create =
+        new CreateBucketOperation().withBucket(getConfig(S3_BUCKETNAME));
     S3Service service = build(create);
     ServiceCase.execute(service, AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS));
   }
@@ -58,7 +58,8 @@ public class LocalstackServiceTest {
   @Test
   public void test_02_Upload() throws Exception {
     UploadOperation upload =
-        new UploadOperation().withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter(S3_UPLOAD_FILENAME));
+        new UploadOperation().withObjectName(getConfig(S3_UPLOAD_FILENAME))
+            .withBucket(getConfig(S3_BUCKETNAME));
     S3Service service = build(upload);
     ServiceCase.execute(service, AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS));
   }
@@ -66,7 +67,9 @@ public class LocalstackServiceTest {
   @Test
   public void test_03_Download() throws Exception {
     DownloadOperation download =
-        new DownloadOperation().withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter(S3_UPLOAD_FILENAME));
+        new DownloadOperation()
+        .withObjectName(getConfig(S3_UPLOAD_FILENAME))
+        .withBucket(getConfig(S3_BUCKETNAME));
     S3Service service = build(download);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ServiceCase.execute(service, msg);
@@ -76,7 +79,9 @@ public class LocalstackServiceTest {
   @Test
   public void test_04_Get() throws Exception {
     S3GetOperation download =
-        new S3GetOperation().withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter(S3_UPLOAD_FILENAME));
+        new S3GetOperation().withObjectName(getConfig(S3_UPLOAD_FILENAME))
+            .withBucket(getConfig(S3_BUCKETNAME));
+
     S3Service service = build(download);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ServiceCase.execute(service, msg);
@@ -86,15 +91,18 @@ public class LocalstackServiceTest {
 
   @Test
   public void test_05_Copy_WithDestinationBucket() throws Exception {
-    CopyOperation copy = new CopyOperation().withDestinationBucketName(getInputParameter(S3_BUCKETNAME))
-        .withDestinationKey(getInputParameter(S3_COPY_TO_FILENAME)).withBucketName(getInputParameter(S3_BUCKETNAME))
-        .withKey(getInputParameter(S3_UPLOAD_FILENAME));
+    CopyOperation copy =
+        new CopyOperation().withDestinationBucket(getConfig(S3_BUCKETNAME))
+            .withDestinationObjectName(getConfig(S3_COPY_TO_FILENAME))
+            .withObjectName(getConfig(S3_UPLOAD_FILENAME))
+            .withBucket(getConfig(S3_BUCKETNAME));
     S3Service copyService = build(copy);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ServiceCase.execute(copyService, msg);
 
     S3GetOperation download =
-        new S3GetOperation().withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter(S3_COPY_TO_FILENAME));
+        new S3GetOperation().withObjectName(getConfig(S3_COPY_TO_FILENAME))
+            .withBucket(getConfig(S3_BUCKETNAME));
     S3Service downloadService = build(download);
     ServiceCase.execute(downloadService, msg);
     assertEquals(MSG_CONTENTS, msg.getContent());
@@ -104,14 +112,16 @@ public class LocalstackServiceTest {
   @Test
   public void test_06_Tag() throws Exception {
     TagOperation tag = new TagOperation().withTagMetadataFilter(new RegexMetadataFilter().withIncludePatterns("MyTag"))
-        .withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter(S3_COPY_TO_FILENAME));
+        .withObjectName(getConfig(S3_COPY_TO_FILENAME))
+        .withBucket(getConfig(S3_BUCKETNAME));
     S3Service tagger = build(tag);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMessageHeader("MyTag", "text");
     ServiceCase.execute(tagger, msg);
 
     GetTagOperation getTags = new GetTagOperation().withTagMetadataFilter(new NoOpMetadataFilter())
-        .withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter(S3_COPY_TO_FILENAME));
+        .withObjectName(getConfig(S3_COPY_TO_FILENAME))
+        .withBucket(getConfig(S3_BUCKETNAME));
     S3Service retrieveTags = build(getTags);
     AdaptrisMessage msgWithTags = AdaptrisMessageFactory.getDefaultInstance().newMessage();
 
@@ -123,16 +133,20 @@ public class LocalstackServiceTest {
   @Test
   public void test_07_DeleteCopy() throws Exception {
     DeleteOperation delete =
-        new DeleteOperation().withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter(S3_COPY_TO_FILENAME));
+        new DeleteOperation().withObjectName(getConfig(S3_COPY_TO_FILENAME))
+            .withBucket(getConfig(S3_BUCKETNAME));
     S3Service s1 = build(delete);
     ServiceCase.execute(s1, AdaptrisMessageFactory.getDefaultInstance().newMessage());
   }
 
 
   @Test
+  @SuppressWarnings("deprecation")
   public void test_08_List_Legacy() throws Exception {
-    ListOperation ls = new ListOperation().withFilterSuffix(getInputParameter(S3_FILTER_SUFFIX))
-        .withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter("/"));
+    ListOperation ls = new ListOperation()
+        .withFilterSuffix(new ConstantDataInputParameter(getConfig(S3_FILTER_SUFFIX)))
+        .withPrefix(null)
+        .withBucket(getConfig(S3_BUCKETNAME));
     S3Service service = build(ls);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ServiceCase.execute(service, msg);
@@ -147,38 +161,43 @@ public class LocalstackServiceTest {
 
     ListOperation ls =
         new ListOperation().withFilter(filter)
-        .withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter("/"));
+            .withPrefix(null).withBucket(getConfig(S3_BUCKETNAME));
     S3Service service = build(ls);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ServiceCase.execute(service, msg);
     assertEquals(config.getProperty(S3_UPLOAD_FILENAME) + System.lineSeparator(), msg.getContent());
   }
 
+
   @Test
   public void test_10_Copy_WithoutDestinationBucket() throws Exception {
-    CopyOperation copy = new CopyOperation().withDestinationKey(getInputParameter(S3_COPY_TO_FILENAME))
-        .withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter(S3_UPLOAD_FILENAME));
+    CopyOperation copy =
+        new CopyOperation().withDestinationObjectName(getConfig(S3_COPY_TO_FILENAME))
+            .withObjectName(getConfig(S3_UPLOAD_FILENAME))
+            .withBucket(getConfig(S3_BUCKETNAME));
     S3Service copyService = build(copy);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ServiceCase.execute(copyService, msg);
 
     S3GetOperation download =
-        new S3GetOperation().withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter(S3_COPY_TO_FILENAME));
+        new S3GetOperation().withObjectName(getConfig(S3_COPY_TO_FILENAME))
+            .withBucket(getConfig(S3_BUCKETNAME));
     S3Service downloadService = build(download);
     ServiceCase.execute(downloadService, msg);
     assertEquals(MSG_CONTENTS, msg.getContent());
-
   }
 
   @Test
   public void test_11_DeleteCopy() throws Exception {
     DeleteOperation delete =
-        new DeleteOperation().withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter(S3_COPY_TO_FILENAME));
+        new DeleteOperation().withObjectName(getConfig(S3_COPY_TO_FILENAME))
+            .withBucket(getConfig(S3_BUCKETNAME));
     S3Service service = build(delete);
     ServiceCase.execute(service, AdaptrisMessageFactory.getDefaultInstance().newMessage());
 
-    CheckFileExistsOperation check = new CheckFileExistsOperation().withBucketName(getInputParameter(S3_BUCKETNAME))
-        .withKey(getInputParameter(S3_COPY_TO_FILENAME));
+    CheckFileExistsOperation check =
+        new CheckFileExistsOperation().withObjectName(getConfig(S3_COPY_TO_FILENAME))
+            .withBucket(getConfig(S3_BUCKETNAME));
     S3Service checker = build(check);
     try {
       ServiceCase.execute(checker, AdaptrisMessageFactory.getDefaultInstance().newMessage());
@@ -189,14 +208,16 @@ public class LocalstackServiceTest {
   }
 
   @Test
-  public void test_12_DeleteUploaded() throws Exception {
+  public void test_14_DeleteUploaded() throws Exception {
     DeleteOperation delete =
-        new DeleteOperation().withBucketName(getInputParameter(S3_BUCKETNAME)).withKey(getInputParameter(S3_UPLOAD_FILENAME));
+        new DeleteOperation().withObjectName(getConfig(S3_UPLOAD_FILENAME))
+            .withBucket(getConfig(S3_BUCKETNAME));
     S3Service service = build(delete);
     ServiceCase.execute(service, AdaptrisMessageFactory.getDefaultInstance().newMessage());
 
-    CheckFileExistsOperation check = new CheckFileExistsOperation().withBucketName(getInputParameter(S3_BUCKETNAME))
-        .withKey(getInputParameter(S3_UPLOAD_FILENAME));
+    CheckFileExistsOperation check =
+        new CheckFileExistsOperation().withObjectName(getConfig(S3_UPLOAD_FILENAME))
+            .withBucket(getConfig(S3_BUCKETNAME));
     S3Service checker = build(check);
     try {
       ServiceCase.execute(checker, AdaptrisMessageFactory.getDefaultInstance().newMessage());
@@ -209,7 +230,8 @@ public class LocalstackServiceTest {
 
   @Test
   public void test_99_DeleteBucket() throws Exception {
-    DeleteBucketOperation delete = new DeleteBucketOperation().withBucketName(getInputParameter(S3_BUCKETNAME));
+    DeleteBucketOperation delete =
+        new DeleteBucketOperation().withBucket(getConfig(S3_BUCKETNAME));
     S3Service service = build(delete);
     ServiceCase.execute(service, AdaptrisMessageFactory.getDefaultInstance().newMessage());
   }
@@ -228,9 +250,8 @@ public class LocalstackServiceTest {
     return new S3Service(connection, operation);
   }
 
-  protected DataInputParameter<String> getInputParameter(String cfgKey) {
-    String name = config.getProperty(cfgKey);
-    return new ConstantDataInputParameter(name);
+  protected String getConfig(String cfgKey) {
+    return config.getProperty(cfgKey);
   }
 
 }

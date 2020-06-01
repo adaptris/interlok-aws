@@ -16,20 +16,12 @@
 
 package com.adaptris.aws.s3;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
-import org.apache.http.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.util.ExceptionHelper;
-import com.adaptris.interlok.InterlokException;
-import com.adaptris.interlok.config.DataInputParameter;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -41,14 +33,10 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Create a bucket in S3")
 @XStreamAlias("amazon-s3-create-bucket")
-@DisplayOrder(order ={ "bucketName"})
-public class CreateBucketOperation implements S3Operation {
+@DisplayOrder(order = {"bucket", "bucketName"})
+public class CreateBucketOperation extends S3OperationImpl {
 
   protected transient Logger log = LoggerFactory.getLogger(this.getClass().getName());
-
-  @NotNull
-  @Valid
-  private DataInputParameter<String> bucketName;
   
   public CreateBucketOperation() {
   }
@@ -56,23 +44,8 @@ public class CreateBucketOperation implements S3Operation {
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     AmazonS3Client s3 = wrapper.amazonClient();
-    String bucket = getBucketName().extract(msg);
+    String bucket = s3Bucket(msg);
     log.trace("Creating Bucket [{}]", bucket);
     s3.createBucket(bucket);
   }
-
-  
-  public DataInputParameter<String> getBucketName() {
-    return bucketName;
-  }
-
-  public void setBucketName(DataInputParameter<String> bucketName) {
-    this.bucketName = Args.notNull(bucketName, "bucketName");
-  }
-
-  public <T extends CreateBucketOperation> T withBucketName(DataInputParameter<String> key) {
-    setBucketName(key);
-    return (T) this;
-  }
-  
 }

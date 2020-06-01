@@ -17,9 +17,10 @@
 package com.adaptris.aws.s3;
 
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.interlok.InterlokException;
+import com.adaptris.core.ComponentLifecycle;
+import com.adaptris.core.ComponentLifecycleExtension;
 
-public interface S3Operation {
+public interface S3Operation extends ComponentLifecycleExtension {
 
   void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception;
   

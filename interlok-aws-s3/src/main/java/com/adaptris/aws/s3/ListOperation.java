@@ -16,26 +16,21 @@
 
 package com.adaptris.aws.s3;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
-import com.adaptris.annotation.InputFieldDefault;
+import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.interlok.cloud.BlobListRenderer;
-import com.adaptris.interlok.cloud.RemoteBlob;
 import com.adaptris.interlok.cloud.RemoteBlobFilter;
 import com.adaptris.interlok.config.DataInputParameter;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
-import com.amazonaws.services.s3.model.ListObjectsV2Result;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -50,14 +45,26 @@ import lombok.Setter;
 @ComponentProfile(summary = "List of files based on S3 key",
     since = "3.9.1")
 @XStreamAlias("amazon-s3-list")
-@DisplayOrder(order = {"bucketName", "key", "pageResults", "maxKeys", "filter", "filterSuffix"})
+@DisplayOrder(order = {"bucket", "prefix", "bucketName", "key", "pageResults", "maxKeys", "filter",
+    "filterSuffix"})
 @NoArgsConstructor
 public class ListOperation extends S3OperationImpl {
-  private transient boolean warningLogged;
+  private transient boolean suffixWarningLogged;
+  private transient boolean pageWarningLogged;
+
+  /**
+   * Specific the prefix for use with the List operation.
+   * 
+   */
+  @Getter
+  @Setter
+  @InputFieldHint(expression = true)
+  private String prefix;
 
   @Getter
   @Setter
   @Deprecated
+  @AdvancedConfig
   @Removal(version = "3.11.0", message = "Use a RemoteBlobFilter instead")
   private DataInputParameter<String> filterSuffix;
 
@@ -91,33 +98,48 @@ public class ListOperation extends S3OperationImpl {
    * </p>
    * @deprecated since 3.10.2 due to interface changes; paging results is not explicitly configurable and will be ignored.
    */
-  @AdvancedConfig
+  @AdvancedConfig(rare = true)
   @Getter
   @Setter
-  @InputFieldDefault(value = "false")
   @Deprecated
-  @Removal(version = "3.11.0", message="due to interface changes; paging results is not explicitly configurable and will be ignored")
+  @Removal(version = "3.11.0",
+      message = "due to interface changes; paging results is not explicitly configurable and will be ignored")
   private Boolean pageResults;
 
   /**
-   * Specify max number of keys to be returned.
+   * Specify max number of keys to be returned per page when paging through results.
    */
   @AdvancedConfig(rare=true)
   @Getter
   @Setter
   private Integer maxKeys;
 
+
   @Override
+  public void prepare() throws CoreException {
+    super.prepare();
+    if (getFilterSuffix() != null) {
+      LoggingHelper.logWarning(suffixWarningLogged, () -> {
+        suffixWarningLogged = true;
+      }, "[{}] uses filter-suffix; use a filter instead");
+    }
+    if (getPageResults() != null) {
+      LoggingHelper.logWarning(pageWarningLogged, () -> pageWarningLogged = true,
+          "[{}] uses [page-results], this is ignored",
+          this.getClass().getSimpleName());
+    }
+  }
+
+  @Override
+  @SuppressWarnings("deprecation")
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     AmazonS3Client s3 = wrapper.amazonClient();
-    String bucket = getBucketName().extract(msg);
-    String key = getKey().extract(msg);
-    ListObjectsV2Request request = new ListObjectsV2Request()
-            .withBucketName(bucket)
-            .withPrefix(key);
-    if(getMaxKeys() != null){
+    String _bucket = s3Bucket(msg);
+    String _prefix = resolve(getKey(), getPrefix(), msg);
+    ListObjectsV2Request request = new ListObjectsV2Request().withBucketName(_bucket).withPrefix(_prefix);
+    if (getMaxKeys() != null) {
       request.setMaxKeys(getMaxKeys());
-    }    
+    }
     outputStyle().render(new RemoteBlobIterable(s3, request, blobFilter(msg)), msg);
   }
 
@@ -155,11 +177,13 @@ public class ListOperation extends S3OperationImpl {
     return this;
   }
 
+  public ListOperation withPrefix(String prefix) {
+    setPrefix(prefix);
+    return this;
+  }
+
   private RemoteBlobFilter blobFilter(AdaptrisMessage msg) throws Exception {
     if (getFilterSuffix() != null) {
-      LoggingHelper.logWarning(warningLogged, () -> {
-        warningLogged = true;
-      }, "Use of filter-suffix is deprecated; use a filter instead");
       final String suffix = getFilterSuffix().extract(msg);
       return (blob) -> blob.getName().endsWith(suffix);
     }

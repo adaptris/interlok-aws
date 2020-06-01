@@ -8,11 +8,11 @@ ext {
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
-    compile "com.amazonaws:aws-java-sdk-s3:$awsSDKVersion"
+  compile ("com.amazonaws:aws-java-sdk-s3:$awsSDKVersion")
+  compile project(':interlok-aws-common')
 
-    compile project(':interlok-aws-common')
-
-    testCompile 'org.mockito:mockito-all:1.10.19'
+  testCompile ("org.mockito:mockito-core:$mockitoVersion")
+  testCompile ("org.mockito:mockito-inline:$mockitoVersion")
 }
 
 

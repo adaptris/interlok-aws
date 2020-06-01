@@ -40,7 +40,7 @@ public class DeleteBucketOperation extends CreateBucketOperation {
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     AmazonS3Client s3 = wrapper.amazonClient();
-    String bucket = getBucketName().extract(msg);
+    String bucket = s3Bucket(msg);
     log.trace("Deleting Bucket [{}]", bucket);
     s3.deleteBucket(bucket);
   }

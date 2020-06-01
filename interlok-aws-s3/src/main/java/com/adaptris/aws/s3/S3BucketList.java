@@ -4,7 +4,7 @@ import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
-import com.adaptris.annotation.InputFieldDefault;
+import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ConnectedService;
@@ -15,6 +15,7 @@ import com.adaptris.core.ServiceImp;
 import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.interlok.cloud.BlobListRenderer;
 import com.adaptris.interlok.cloud.RemoteBlobFilter;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -84,11 +85,16 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
    *   Default is false for backwards compatibility reasons.
    * </p>
    */
-  @AdvancedConfig
+  @AdvancedConfig(rare = true)
   @Getter
   @Setter
-  @InputFieldDefault(value = "false")
+  @Deprecated
+  @Removal(version = "3.11.0",
+      message = "due to interface changes; paging results is not explicitly configurable and will be ignored")
   private Boolean pageResults;
+
+  private transient boolean pageWarningLogged;
+
 
   /**
    * Specify max number of keys to be returned.
@@ -99,7 +105,12 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
   private Integer maxKeys;
 
   @Override
-  public void prepare() throws CoreException {}
+  public void prepare() throws CoreException {
+    if (getPageResults() != null) {
+      LoggingHelper.logWarning(pageWarningLogged, () -> pageWarningLogged = true,
+          "[{}] uses [page-results], this is ignored", LoggingHelper.friendlyName(this));
+    }
+  }
 
   @Override
   protected void initService() throws CoreException {}
@@ -140,11 +151,6 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
     return this;
   }
 
-  public S3BucketList withPageResults(Boolean pageResults){
-    setPageResults(pageResults);
-    return this;
-  }
-
   public S3BucketList withMaxKeys(Integer maxKeys){
     setMaxKeys(maxKeys);
     return this;
@@ -158,7 +164,6 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
   private S3Service buildService() {
     ListOperation op = new ListOperation().withFilter(getFilter()).withOutputStyle(getOutputStyle())
         .withMaxKeys(getMaxKeys())
-        .withPageResults(getPageResults())
         .withBucketName(new ConstantDataInputParameter(getBucket()))
         .withKey(new ConstantDataInputParameter(getKey()));
     return new S3Service(getConnection(), op);

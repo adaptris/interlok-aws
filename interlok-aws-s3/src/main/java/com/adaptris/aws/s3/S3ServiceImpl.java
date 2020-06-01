@@ -17,11 +17,16 @@
 package com.adaptris.aws.s3;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.ConnectedService;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceImp;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.util.Args;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * Abstract implemention of {@link S3Service}
@@ -29,7 +34,15 @@ import com.adaptris.core.util.LifecycleHelper;
  */
 public abstract class S3ServiceImpl extends ServiceImp implements ConnectedService {
 
+  /**
+   * Set the connection to use to connect to S3.
+   * 
+   */
   @Valid
+  @Getter
+  @Setter
+  @NotNull
+  @NonNull
   private AdaptrisConnection connection;
   
   public S3ServiceImpl() {
@@ -37,6 +50,7 @@ public abstract class S3ServiceImpl extends ServiceImp implements ConnectedServi
 
   @Override
   public void prepare() throws CoreException {
+    Args.notNull(getConnection(), "connection");
     LifecycleHelper.prepare(getConnection());
   }
   
@@ -60,20 +74,5 @@ public abstract class S3ServiceImpl extends ServiceImp implements ConnectedServi
   @Override
   protected void closeService() {
     LifecycleHelper.close(getConnection());
-  }
-
-  @Override
-  public AdaptrisConnection getConnection() {
-    return connection;
-  }
-
-  /**
-   * Set the connection to use to connect to S3.
-   * 
-   * @param connection the connection.
-   */
-  @Override
-  public void setConnection(AdaptrisConnection connection) {
-    this.connection = connection;
   }
 }

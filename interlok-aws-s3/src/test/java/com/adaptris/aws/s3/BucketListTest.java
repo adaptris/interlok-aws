@@ -4,7 +4,7 @@ import static com.adaptris.aws.s3.MockedOperationTest.createSummary;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -165,7 +165,7 @@ public class BucketListTest {
 
     S3BucketList bucket =
         new S3BucketList().withConnection(mockConnection).withBucket("srcBucket").withKey("srcKeyPrefix").withMaxKeys(2)
-            .withPageResults(true).withOutputStyle(null);
+            .withOutputStyle(null);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ServiceCase.execute(bucket, msg);
 
