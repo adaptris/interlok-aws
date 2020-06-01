@@ -320,11 +320,11 @@ public class MockedOperationTest {
     Mockito.when(result.getObjectSummaries()).thenReturn(list);
     Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
     ListOperation ls = new ListOperation()
-        .withBucketName(new ConstantDataInputParameter("srcBucket")).withKey(new ConstantDataInputParameter("srcKeyPrefix/"));
-
+        .withPrefix("srcKeyPrefix/")
+        .withBucket("srcBucket");
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("");
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
-    ls.execute(wrapper, msg);
+    execute(ls, wrapper, msg);
     assertEquals(
         "srcKeyPrefix/" + System.lineSeparator() +
         "srcKeyPrefix/file.json" + System.lineSeparator() +
@@ -346,11 +346,12 @@ public class MockedOperationTest {
     Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
     ListOperation ls = new ListOperation()
         .withFilterSuffix(new ConstantDataInputParameter(".json"))
+        .withPageResults(true)
         .withBucketName(new ConstantDataInputParameter("srcBucket")).withKey(new ConstantDataInputParameter("srcKeyPrefix/"));
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("");
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
-    ls.execute(wrapper, msg);
+    execute(ls, wrapper, msg);
     assertEquals("srcKeyPrefix/file.json" + System.lineSeparator(), msg.getContent());
   }
 
@@ -369,7 +370,8 @@ public class MockedOperationTest {
     RemoteBlobFilterWrapper filter =
         new RemoteBlobFilterWrapper().withFilterExpression(".*\\.json").withFilterImp(RegexFileFilter.class.getCanonicalName());
     ListOperation ls = new ListOperation().withFilter(filter)
-        .withBucketName(new ConstantDataInputParameter("srcBucket")).withKey(new ConstantDataInputParameter("srcKeyPrefix/"));
+        .withPrefix("srcKeyPrefix/")
+        .withBucket("srcBucket");
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("");
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);

@@ -27,6 +27,7 @@ import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
+@SuppressWarnings("deprecation")
 public class BucketListTest {
 
   @Test
@@ -43,8 +44,10 @@ public class BucketListTest {
     ArgumentCaptor<ListObjectsV2Request> argument = ArgumentCaptor.forClass(ListObjectsV2Request.class);
     Mockito.when(client.listObjectsV2(argument.capture())).thenReturn(listing);
 
+    // for coverage, we should use withPrefix().
     S3BucketList bucket =
-        new S3BucketList().withConnection(mockConnection).withBucket("srcBucket").withKey("srcKeyPrefix").withOutputStyle(null);
+        new S3BucketList().withConnection(mockConnection).withBucket("srcBucket")
+            .withKey("srcKeyPrefix").withOutputStyle(null);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ServiceCase.execute(bucket, msg);
 
@@ -74,7 +77,8 @@ public class BucketListTest {
         new RemoteBlobFilterWrapper().withFilterExpression(".*\\.json").withFilterImp(RegexFileFilter.class.getCanonicalName());
 
     S3BucketList bucket =
-        new S3BucketList().withConnection(mockConnection).withBucket("srcBucket").withKey("srcKeyPrefix").withFilter(filter);
+        new S3BucketList().withConnection(mockConnection).withBucket("srcBucket")
+            .withPrefix("srcKeyPrefix").withFilter(filter);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ServiceCase.execute(bucket, msg);
 
@@ -96,7 +100,8 @@ public class BucketListTest {
     BlobListRenderer brokenRender = Mockito.mock(BlobListRenderer.class);
     Mockito.doThrow(new RuntimeException()).when(brokenRender).render(any(), any());
     S3BucketList bucket =
-        new S3BucketList().withConnection(mockConnection).withBucket("srcBucket").withKey("srcKeyPrefix")
+        new S3BucketList().withConnection(mockConnection).withBucket("srcBucket")
+            .withPrefix("srcKeyPrefix")
             .withOutputStyle(brokenRender);
 
     ListObjectsV2Result listing = Mockito.mock(ListObjectsV2Result.class);
@@ -124,7 +129,8 @@ public class BucketListTest {
     Mockito.when(client.listObjectsV2(argument.capture())).thenReturn(listing);
 
     S3BucketList bucket =
-        new S3BucketList().withConnection(mockConnection).withBucket("srcBucket").withKey("srcKeyPrefix").withMaxKeys(2).withOutputStyle(null);
+        new S3BucketList().withConnection(mockConnection).withBucket("srcBucket")
+            .withPrefix("srcKeyPrefix").withMaxKeys(2).withOutputStyle(null);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ServiceCase.execute(bucket, msg);
 
@@ -164,8 +170,9 @@ public class BucketListTest {
     Mockito.when(client.listObjectsV2(argument.capture())).thenReturn(listing, listing2);
 
     S3BucketList bucket =
-        new S3BucketList().withConnection(mockConnection).withBucket("srcBucket").withKey("srcKeyPrefix").withMaxKeys(2)
-            .withOutputStyle(null);
+        new S3BucketList().withConnection(mockConnection).withPageResults(true)
+            .withPrefix("srcKeyPrefix").withMaxKeys(2)
+            .withOutputStyle(null).withBucket("srcBucket");
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ServiceCase.execute(bucket, msg);
 
