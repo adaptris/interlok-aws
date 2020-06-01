@@ -120,7 +120,7 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
           "[{}] uses [page-results], this is ignored", LoggingHelper.friendlyName(this));
     }
     if (getKey() != null) {
-      LoggingHelper.logWarning(keyWarningLogged, () -> pageWarningLogged = true,
+      LoggingHelper.logWarning(keyWarningLogged, () -> keyWarningLogged = true,
           "[{}] uses [key], use [use prefix] instead", LoggingHelper.friendlyName(this));
     }
   }
