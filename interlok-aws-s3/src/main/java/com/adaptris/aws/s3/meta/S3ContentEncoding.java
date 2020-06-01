@@ -16,14 +16,13 @@
 
 package com.adaptris.aws.s3.meta;
 
+import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
+import com.adaptris.interlok.util.Args;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.validation.constraints.NotNull;
 
 @XStreamAlias("s3-content-encoding")
 // @XStreamConverter(value = ToAttributedValueConverter.class, strings = { "contentEncoding" })
@@ -35,9 +34,7 @@ public class S3ContentEncoding extends S3ObjectMetadata {
 
   @Override
   public void apply(AdaptrisMessage msg, ObjectMetadata meta) throws ServiceException {
-    if(StringUtils.isEmpty(getContentEncoding())) {
-      throw new ServiceException("Content Encoding must be specified");
-    }
+    Args.notNull(getContentEncoding(), "content-encoding");
     meta.setContentEncoding(msg.resolve(getContentEncoding()));
   }
 

@@ -17,12 +17,10 @@
 package com.adaptris.aws.s3.meta;
 
 import javax.validation.constraints.NotNull;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
+import com.adaptris.interlok.util.Args;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -36,9 +34,7 @@ public class S3ContentDisposition extends S3ObjectMetadata {
 
   @Override
   public void apply(AdaptrisMessage msg, ObjectMetadata meta) throws ServiceException {
-    if(StringUtils.isEmpty(getContentDisposition())) {
-      throw new ServiceException("Content Disposition must be specified");
-    }
+    Args.notNull(getContentDisposition(), "content-disposition");
     meta.setContentDisposition(msg.resolve(getContentDisposition()));
   }
 

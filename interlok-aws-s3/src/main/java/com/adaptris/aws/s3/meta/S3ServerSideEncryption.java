@@ -17,13 +17,15 @@
 package com.adaptris.aws.s3.meta;
 
 import javax.validation.constraints.NotNull;
-
+import org.apache.commons.lang3.BooleanUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisMessage;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Enable S3 Server Side Encryption with AWS managed keys
@@ -46,21 +48,23 @@ public class S3ServerSideEncryption extends S3ObjectMetadata {
   }
 
   @AdvancedConfig
-  @InputFieldDefault("true")
-  private boolean enabled = true;
+  @InputFieldDefault(value = "true")
+  @Getter
+  @Setter
+  private Boolean enabled;
   
   @NotNull
   @AutoPopulated
+  @AdvancedConfig
   private Algorithm algorithm;
   
   public S3ServerSideEncryption() {
-    setEnabled(true);
     setAlgorithm(Algorithm.AES_256);
   }
 
   @Override
   public void apply(AdaptrisMessage msg, ObjectMetadata meta) {
-    if(getEnabled()) {
+    if (enabled()) {
       getAlgorithm().apply(meta);
     }
   }
@@ -78,12 +82,8 @@ public class S3ServerSideEncryption extends S3ObjectMetadata {
     this.algorithm = algorithm;
   }
 
-  public boolean getEnabled() {
-    return enabled;
-  }
-
-  public void setEnabled(boolean enabled) {
-    this.enabled = enabled;
+  private boolean enabled() {
+    return BooleanUtils.toBooleanDefaultIfNull(getEnabled(), true);
   }
 
 }

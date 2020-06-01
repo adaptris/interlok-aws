@@ -17,12 +17,10 @@
 package com.adaptris.aws.s3.meta;
 
 import javax.validation.constraints.NotNull;
-
-import org.apache.commons.lang3.StringUtils;
-
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
+import com.adaptris.interlok.util.Args;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -36,9 +34,7 @@ public class S3ContentLanguage extends S3ObjectMetadata {
   
   @Override
   public void apply(AdaptrisMessage msg, ObjectMetadata meta) throws ServiceException {
-    if(StringUtils.isEmpty(getContentLanguage())) {
-      throw new ServiceException("Content Language must be specified");
-    }
+    Args.notNull(getContentLanguage(), "content-language");
     meta.setContentLanguage(msg.resolve(getContentLanguage()));
   }
 
