@@ -1,10 +1,11 @@
 package com.adaptris.aws.s3;
 
 import javax.validation.constraints.NotBlank;
+import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
-import com.adaptris.annotation.InputFieldDefault;
+import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ConnectedService;
@@ -12,9 +13,9 @@ import com.adaptris.core.CoreException;
 import com.adaptris.core.DynamicPollingTemplate;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.ServiceImp;
-import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.interlok.cloud.BlobListRenderer;
 import com.adaptris.interlok.cloud.RemoteBlobFilter;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -36,7 +37,7 @@ import lombok.Setter;
  */
 @XStreamAlias("s3-bucket-list")
 @ComponentProfile(summary = "List contents of an S3 bucket as part of a polling-trigger", since = "3.9.2", tag = "aws,s3,polling")
-@DisplayOrder(order = {"connection", "bucket", "key", "filter"})
+@DisplayOrder(order = {"connection", "bucket", "prefix", "key", "filter"})
 public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.TemplateProvider, ConnectedService {
 
   @Setter
@@ -61,11 +62,20 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
    * The S3 key to perform a list operation on.
    * 
    */
-  @NotBlank
+  @AdvancedConfig(rare = true)
   @Setter
   @Getter
-  @NonNull
+  @Deprecated
+  @Removal(version = "3.12.0", message = "use prefix instead")
   private String key;
+
+  /**
+   * The prefix to use when issuing the listOperation
+   * 
+   */
+  @Setter
+  @Getter
+  private String prefix;
 
   /**
    * Specify any additional filtering you wish to perform on the list.
@@ -84,11 +94,16 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
    *   Default is false for backwards compatibility reasons.
    * </p>
    */
-  @AdvancedConfig
+  @AdvancedConfig(rare = true)
   @Getter
   @Setter
-  @InputFieldDefault(value = "false")
+  @Deprecated
+  @Removal(version = "3.11.0",
+      message = "due to interface changes; paging results is not explicitly configurable and will be ignored")
   private Boolean pageResults;
+
+  private transient boolean pageWarningLogged;
+  private transient boolean keyWarningLogged;
 
   /**
    * Specify max number of keys to be returned.
@@ -99,7 +114,16 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
   private Integer maxKeys;
 
   @Override
-  public void prepare() throws CoreException {}
+  public void prepare() throws CoreException {
+    if (getPageResults() != null) {
+      LoggingHelper.logWarning(pageWarningLogged, () -> pageWarningLogged = true,
+          "[{}] uses [page-results], this is ignored", LoggingHelper.friendlyName(this));
+    }
+    if (getKey() != null) {
+      LoggingHelper.logWarning(keyWarningLogged, () -> keyWarningLogged = true,
+          "[{}] uses [key], use [use prefix] instead", LoggingHelper.friendlyName(this));
+    }
+  }
 
   @Override
   protected void initService() throws CoreException {}
@@ -125,8 +149,23 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
     return this;
   }
 
+  @Deprecated
+  @Removal(version = "3.11.0",
+      message = "due to interface changes; paging results is not explicitly configurable and will be ignored")
+  public S3BucketList withPageResults(Boolean b) {
+    setPageResults(b);
+    return this;
+  }
+
+  @Deprecated
+  @Removal(version = "3.12.0", message = "Use prefix instead")
   public S3BucketList withKey(String key) {
     setKey(key);
+    return this;
+  }
+
+  public S3BucketList withPrefix(String key) {
+    setPrefix(key);
     return this;
   }
 
@@ -137,11 +176,6 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
 
   public S3BucketList withFilter(RemoteBlobFilter f) {
     setFilter(f);
-    return this;
-  }
-
-  public S3BucketList withPageResults(Boolean pageResults){
-    setPageResults(pageResults);
     return this;
   }
 
@@ -158,10 +192,12 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
   private S3Service buildService() {
     ListOperation op = new ListOperation().withFilter(getFilter()).withOutputStyle(getOutputStyle())
         .withMaxKeys(getMaxKeys())
-        .withPageResults(getPageResults())
-        .withBucketName(new ConstantDataInputParameter(getBucket()))
-        .withKey(new ConstantDataInputParameter(getKey()));
+        .withPrefix(keyOrPrefix())
+        .withBucket(getBucket());
     return new S3Service(getConnection(), op);
   }
 
+  private String keyOrPrefix() {
+    return ObjectUtils.defaultIfNull(getKey(), getPrefix());
+  }
 }

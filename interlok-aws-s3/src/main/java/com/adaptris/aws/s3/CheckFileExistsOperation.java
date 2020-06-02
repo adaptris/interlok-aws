@@ -23,6 +23,7 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.services.exception.ExceptionHandlingServiceWrapper;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.NoArgsConstructor;
 
 /**
  * Check an exists in S3 and throw an exception if it doesn't.
@@ -39,17 +40,16 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @ComponentProfile(summary = "Check a file exists in S3, throws exception if it doesn't",
     since = "3.8.4")
 @XStreamAlias("amazon-s3-check-file-exists")
-@DisplayOrder(order ={ "bucketName", "key"})
-public class CheckFileExistsOperation extends S3OperationImpl {
+@DisplayOrder(order ={ "bucket", "objectName", "bucketName", "key"})
+@NoArgsConstructor
+public class CheckFileExistsOperation extends ObjectOperationImpl {
 
-  public CheckFileExistsOperation() {
-  }
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     AmazonS3Client s3 = wrapper.amazonClient();
-    String bucket = getBucketName().extract(msg);
-    String key = getKey().extract(msg);
+    String bucket = s3Bucket(msg);
+    String key = s3ObjectKey(msg);
     if (!s3.doesObjectExist(bucket, key)) {      
       throw new Exception(String.format("[%s:%s] does not exist", bucket, key));
     } else {

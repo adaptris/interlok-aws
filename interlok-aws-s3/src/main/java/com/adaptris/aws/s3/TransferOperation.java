@@ -36,7 +36,7 @@ import com.adaptris.core.metadata.RemoveAllMetadataFilter;
  * 
  *
  */
-public abstract class TransferOperation extends S3OperationImpl {
+public abstract class TransferOperation extends ObjectOperationImpl {
 
   @Valid
   @AdvancedConfig

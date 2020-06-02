@@ -48,7 +48,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Amazon S3 Upload using Transfer Manager")
 @XStreamAlias("amazon-s3-upload")
-@DisplayOrder(order = {"bucketName", "key", "userMetadataFilter", "objectMetadata"})
+@DisplayOrder(order = {"bucket", "objectName", "bucketName", "key", "userMetadataFilter", "objectMetadata"})
 public class UploadOperation extends TransferOperation {
 
   private transient ManagedThreadFactory threadFactory = new ManagedThreadFactory();
@@ -60,8 +60,8 @@ public class UploadOperation extends TransferOperation {
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     TransferManager tm = wrapper.transferManager();
-    String bucketName = getBucketName().extract(msg);
-    String key = getKey().extract(msg);
+    String bucketName = s3Bucket(msg);
+    String key = s3ObjectKey(msg);
     ObjectMetadata s3meta = new ObjectMetadata();
     s3meta.setContentLength(msg.getSize());
     if(StringUtils.isNotEmpty(msg.getContentEncoding())) {

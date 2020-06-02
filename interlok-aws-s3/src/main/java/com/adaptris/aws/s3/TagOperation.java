@@ -31,7 +31,7 @@ import com.amazonaws.services.s3.model.ObjectTagging;
 import com.amazonaws.services.s3.model.SetObjectTaggingRequest;
 import com.amazonaws.services.s3.model.Tag;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-
+import lombok.NoArgsConstructor;
 import javax.validation.Valid;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -51,20 +51,18 @@ import java.util.List;
 @AdapterComponent
 @ComponentProfile(summary = "Tag an object in S3")
 @XStreamAlias("amazon-s3-tag")
-@DisplayOrder(order ={ "bucketName", "key", "tagMetadataFilter"})
-public class TagOperation extends S3OperationImpl {
+@DisplayOrder(order ={ "bucket", "objectName", "bucketName", "key", "tagMetadataFilter"})
+@NoArgsConstructor
+public class TagOperation extends ObjectOperationImpl {
 
   @Valid
   private MetadataFilter tagMetadataFilter;
 
-  public TagOperation() {
-  }
-
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     AmazonS3Client s3 = wrapper.amazonClient();
-    String srcBucket = getBucketName().extract(msg);
-    String srcKey = getKey().extract(msg);
+    String srcBucket = s3Bucket(msg);
+    String srcKey = s3ObjectKey(msg);
     List<Tag> tags = filterTagMetadata(msg);
     if (!tags.isEmpty()) {
       log.trace("Tagging [{}:{}]", srcBucket, srcKey);

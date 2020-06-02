@@ -20,10 +20,9 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.util.ExceptionHelper;
-import com.adaptris.interlok.InterlokException;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.NoArgsConstructor;
 
 /**
  * Delete an object from S3.
@@ -34,17 +33,15 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Delete an object from S3")
 @XStreamAlias("amazon-s3-delete")
-@DisplayOrder(order ={ "bucketName", "key"})
-public class DeleteOperation extends S3OperationImpl {
-
-  public DeleteOperation() {
-  }
+@DisplayOrder(order ={ "bucket", "objectName", "bucketName", "key"})
+@NoArgsConstructor
+public class DeleteOperation extends ObjectOperationImpl {
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     AmazonS3Client s3 = wrapper.amazonClient();
-    String bucket = getBucketName().extract(msg);
-    String key = getKey().extract(msg);
+    String bucket = s3Bucket(msg);
+    String key = s3ObjectKey(msg);
     log.trace("Deleting [{}:{}]", bucket, key);
     s3.deleteObject(bucket, key);
   }

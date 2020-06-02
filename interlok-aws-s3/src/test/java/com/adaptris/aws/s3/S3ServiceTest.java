@@ -16,7 +16,7 @@
 
 package com.adaptris.aws.s3;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
@@ -30,7 +30,6 @@ import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.ServiceException;
-import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.common.PayloadStreamOutputParameter;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
@@ -47,8 +46,8 @@ public class S3ServiceTest extends ServiceCase {
       @Override
       S3Operation build() {
         DownloadOperation op = new DownloadOperation();
-        op.setKey(new ConstantDataInputParameter("s3-key"));
-        op.setBucketName(new ConstantDataInputParameter("s3-bucket"));
+        op.setObjectName("s3-key");
+        op.setBucket("%message{s3-bucket-key}");
         op.setTempDirectory("/path/to/temp/dir/if/required");
         return op;
       }
@@ -58,8 +57,8 @@ public class S3ServiceTest extends ServiceCase {
       @Override
       S3Operation build() {
         S3GetOperation op = new S3GetOperation();
-        op.setKey(new ConstantDataInputParameter("s3-key"));
-        op.setBucketName(new ConstantDataInputParameter("s3-bucket"));
+        op.setObjectName("s3-key");
+        op.setBucket("%message{s3-bucket-key}");
         op.setResponseBody(new PayloadStreamOutputParameter());
         return op;
       }
@@ -68,8 +67,8 @@ public class S3ServiceTest extends ServiceCase {
       @Override
       S3Operation build() {
         UploadOperation op = new UploadOperation();
-        op.setKey(new ConstantDataInputParameter("s3-key"));
-        op.setBucketName(new ConstantDataInputParameter("s3-bucket"));
+        op.setObjectName("s3-key");
+        op.setBucket("%message{s3-bucket-key}");
         op.setUserMetadataFilter(new RemoveAllMetadataFilter());
         S3ContentLanguage type = new S3ContentLanguage();
         type.setContentLanguage("english");
@@ -81,8 +80,8 @@ public class S3ServiceTest extends ServiceCase {
       @Override
       S3Operation build() {
         TagOperation op = new TagOperation();
-        op.setKey(new ConstantDataInputParameter("s3-key"));
-        op.setBucketName(new ConstantDataInputParameter("s3-bucket"));
+        op.setObjectName("s3-key");
+        op.setBucket("%message{s3-bucket-key}");
         op.setTagMetadataFilter(new NoOpMetadataFilter());
         return op;
       }
@@ -104,7 +103,7 @@ public class S3ServiceTest extends ServiceCase {
       LifecycleHelper.prepare(service);
       LifecycleHelper.init(service);
       fail();
-    } catch (CoreException expected) {
+    } catch (CoreException | IllegalArgumentException expected) {
       
     } finally {
       LifecycleHelper.stopAndClose(service);
@@ -131,7 +130,9 @@ public class S3ServiceTest extends ServiceCase {
     Mockito.doAnswer((i)-> {return null;}).when(connection).stopConnection();
     Mockito.doAnswer((i)-> {return null;}).when(connection).closeConnection();
     Mockito.doAnswer((i)-> {return null;}).when(connection).initConnection();
-    Mockito.doAnswer((i)-> {return null;}).when(operation).execute((ClientWrapper) anyObject(), (AdaptrisMessage) anyObject());
+    Mockito.doAnswer((i) -> {
+      return null;
+    }).when(operation).execute((ClientWrapper) any(), (AdaptrisMessage) any());
     S3Service service = new S3Service(connection, operation);
 
     execute(service, AdaptrisMessageFactory.getDefaultInstance().newMessage());
@@ -147,7 +148,8 @@ public class S3ServiceTest extends ServiceCase {
     Mockito.doAnswer((i)-> {return null;}).when(connection).stopConnection();
     Mockito.doAnswer((i)-> {return null;}).when(connection).closeConnection();
     Mockito.doAnswer((i)-> {return null;}).when(connection).initConnection();
-    Mockito.doThrow(new Exception()).when(operation).execute((ClientWrapper) anyObject(), (AdaptrisMessage) anyObject());
+    Mockito.doThrow(new Exception()).when(operation).execute((ClientWrapper) any(),
+        (AdaptrisMessage) any());
     S3Service service = new S3Service(connection, operation);
 
     try {

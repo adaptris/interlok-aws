@@ -17,12 +17,11 @@
 package com.adaptris.aws.s3.meta;
 
 import java.util.Calendar;
-
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
+import com.adaptris.interlok.util.Args;
 import com.adaptris.util.TimeInterval;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -36,9 +35,7 @@ public class S3HttpExpiresDate extends S3ObjectMetadata {
   
   @Override
   public void apply(AdaptrisMessage msg, ObjectMetadata meta) throws ServiceException {
-    if(getTimeToLive() == null) {
-      throw new ServiceException("Time to Live must be specified");
-    }
+    Args.notNull(getTimeToLive(), "time-to-live");
     Calendar cal = Calendar.getInstance();
     cal.add(Calendar.MILLISECOND, (int)getTimeToLive().toMilliseconds());
     meta.setHttpExpiresDate(cal.getTime());
