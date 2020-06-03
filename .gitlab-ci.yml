@@ -19,13 +19,16 @@ publish:
     - ./gradlew -PverboseTests=true clean check dependencyCheckAnalyze publish
 
 .base-gradle-ci:
-  image: azul/zulu-openjdk:8u252
+  image: azul/zulu-openjdk:8
   before_script:
+    - apt-get -y update
+    - apt-get -y install git
     - export GRADLE_USER_HOME=`pwd`/.gradle
     - mkdir -p ${GRADLE_USER_HOME}
     - rm -f  .gradle/caches/modules-2/modules-2.lock
     - rm -fr .gradle/caches/*/plugin-resolution/
     - chmod +x ./gradlew
+    - java -version
 
   cache:
     key: gradle
