@@ -19,5 +19,6 @@ path_classifiers:
     - ".dependabot"
     - ".github"
     - ".lgtm.yml"
+    - ".gitlab-ci.yml"
   generated:
     exclude: "**/*.java"
