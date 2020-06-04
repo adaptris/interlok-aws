@@ -21,8 +21,8 @@ publish:
 .base-gradle-ci:
   image: azul/zulu-openjdk:8
   before_script:
-    - apt-get -y update
-    - apt-get -y install git
+    - apt-get -qq -y update
+    - apt-get -qq -y install git graphviz
     - export GRADLE_USER_HOME=`pwd`/.gradle
     - mkdir -p ${GRADLE_USER_HOME}
     - rm -f  .gradle/caches/modules-2/modules-2.lock
