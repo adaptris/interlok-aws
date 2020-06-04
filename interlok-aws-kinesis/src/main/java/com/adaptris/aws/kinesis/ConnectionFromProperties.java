@@ -18,6 +18,8 @@ package com.adaptris.aws.kinesis;
 
 import java.io.InputStream;
 import java.util.Properties;
+
+import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.NotBlank;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
@@ -51,6 +53,7 @@ import lombok.Setter;
 @AdapterComponent
 @ComponentProfile(summary = "Connection for supporting connectivity to AWS Kinesis", tag = "connections,amazon,aws,kinesis")
 @DisplayOrder(order = {"configLocation"})
+@NoArgsConstructor
 public class ConnectionFromProperties extends ProducerLibraryConnection implements KinesisProducerWrapper {
 
   /**
@@ -65,10 +68,6 @@ public class ConnectionFromProperties extends ProducerLibraryConnection implemen
   @Setter
   @NonNull
   private String configLocation;
-
-
-  public ConnectionFromProperties() {
-  }
 
   @Override
   protected void initConnection() throws CoreException {
