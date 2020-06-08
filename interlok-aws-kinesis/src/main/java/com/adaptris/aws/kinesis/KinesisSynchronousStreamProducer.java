@@ -12,6 +12,8 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.NoArgsConstructor;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * Producer to amazon kinesis using the Kinesis Producer Library.
  *
@@ -60,15 +62,16 @@ public class KinesisSynchronousStreamProducer extends KinesisStreamProducer {
       result.getShardId(),
       result.getAttempts().size()
     );
-    int i = 1;
-    for(Attempt attempt : result.getAttempts()){
+    AtomicInteger counter = new AtomicInteger(1);
+    result.getAttempts().forEach((attempt) -> {
+      int i =  counter.incrementAndGet();
       log.trace("Attempt [{}]: delay [{}], duration [{}], error code [{}], error message [{}]",
-        i++,
+        i,
         attempt.getDelay(),
         attempt.getDuration(),
         attempt.getErrorCode(),
         attempt.getErrorMessage());
-    }
+    });
   }
 
   public KinesisSynchronousStreamProducer withStream(String s) {
