@@ -20,17 +20,17 @@ import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AdaptrisConnectionImp;
 import com.adaptris.core.CoreException;
 import com.amazonaws.services.kinesis.producer.KinesisProducer;
+import lombok.NoArgsConstructor;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon Kinesis using the Kinesis Producer Library.
  * 
  * 
  */
+@NoArgsConstructor
 public abstract class ProducerLibraryConnection extends AdaptrisConnectionImp implements KinesisProducerWrapper {
 
   protected transient KinesisProducer producer = null;
-
-  public ProducerLibraryConnection() {}
 
   @Override
   protected void prepareConnection() throws CoreException {}

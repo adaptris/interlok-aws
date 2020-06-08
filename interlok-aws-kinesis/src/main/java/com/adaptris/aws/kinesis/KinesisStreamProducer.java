@@ -1,6 +1,12 @@
 package com.adaptris.aws.kinesis;
 
 import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.concurrent.Future;
+
+import com.amazonaws.services.kinesis.producer.UserRecordResult;
+import com.google.common.util.concurrent.ListenableFuture;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.validator.constraints.NotBlank;
 import com.adaptris.annotation.ComponentProfile;
@@ -35,6 +41,7 @@ import lombok.Setter;
 @ComponentProfile(summary = "Produce to Amazon Kinesis using the Kinesis Producer Library", tag = "amazon,aws,kinesis,producer",
     recommended = {ProducerLibraryConnection.class})
 @XStreamAlias("aws-kinesis-stream-producer")
+@NoArgsConstructor
 public class KinesisStreamProducer extends ProduceOnlyProducerImp {
 
   /**
@@ -54,10 +61,6 @@ public class KinesisStreamProducer extends ProduceOnlyProducerImp {
   @Getter
   private String partitionKey;
 
-  public KinesisStreamProducer() {
-
-  }
-
   @Override
   public void prepare() throws CoreException {
   }
@@ -65,16 +68,20 @@ public class KinesisStreamProducer extends ProduceOnlyProducerImp {
   @Override
   public void produce(AdaptrisMessage msg, ProduceDestination destination) throws ProduceException {
     try {
-      KinesisProducer producer = retrieveConnection(KinesisProducerWrapper.class).kinesisProducer();
-      String myStream = getStream(msg, destination);
-      String myPartitionKey = msg.resolve(getPartitionKey());
-      producer.addUserRecord(myStream, myPartitionKey, ByteBuffer.wrap(msg.getPayload()));
+      addUserRecord(msg, destination);
     } catch (Exception e) {
       throw ExceptionHelper.wrapProduceException(e);
     }
   }
 
-  private String getStream(AdaptrisMessage msg, ProduceDestination destination) throws CoreException {
+  ListenableFuture<UserRecordResult> addUserRecord(AdaptrisMessage msg, ProduceDestination destination) throws Exception {
+    KinesisProducer producer = retrieveConnection(KinesisProducerWrapper.class).kinesisProducer();
+    String myStream = getStream(msg, destination);
+    String myPartitionKey = msg.resolve(getPartitionKey());
+    return producer.addUserRecord(myStream, myPartitionKey, ByteBuffer.wrap(msg.getPayload()));
+  }
+
+  String getStream(AdaptrisMessage msg, ProduceDestination destination) throws CoreException {
     if (destination != null) {
       return StringUtils.defaultIfBlank(msg.resolve(getStream()), destination.getDestination(msg));
     }
