@@ -15,6 +15,7 @@
 package com.adaptris.aws.s3;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import javax.validation.Valid;
@@ -123,10 +124,19 @@ public class ExtendedCopyOperation extends CopyOperationImpl {
     return this;
   }
 
+  public ExtendedCopyOperation withObjectMetadata(S3ObjectMetadata... meta) {
+    return withObjectMetadata(new ArrayList(Arrays.asList(meta)));
+  }
+
   public ExtendedCopyOperation withObjectTags(KeyValuePairSet tags) {
     setObjectTags(tags);
     return this;
   }
+
+  public ExtendedCopyOperation withObjectTags(KeyValuePair... tags) {
+    return withObjectTags(new KeyValuePairSet(Arrays.asList(tags)));
+  }
+
 
   private List<S3ObjectMetadata> overrideMetadata() {
     return ObjectUtils.defaultIfNull(getObjectMetadata(), Collections.EMPTY_LIST);

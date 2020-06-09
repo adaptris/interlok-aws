@@ -18,7 +18,6 @@ import java.util.Map;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.junit.Test;
 import org.mockito.Mockito;
-import com.adaptris.aws.s3.meta.S3ObjectMetadata;
 import com.adaptris.aws.s3.meta.S3ServerSideEncryption;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -27,7 +26,6 @@ import com.adaptris.core.lms.FileBackedMessageFactory;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.interlok.cloud.RemoteBlobFilterWrapper;
 import com.adaptris.util.KeyValuePair;
-import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CopyObjectResult;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -128,11 +126,10 @@ public class MockedOperationTest {
     Mockito.when(client.copyObject(any())).thenReturn(result);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
 
-    KeyValuePairSet tags =
-        new KeyValuePairSet(Arrays.asList(new KeyValuePair("goodbye", "cruel world")));
-    List<S3ObjectMetadata> newMetadata = new ArrayList(Arrays.asList(new S3ServerSideEncryption()));
-    ExtendedCopyOperation op = new ExtendedCopyOperation().withObjectMetadata(newMetadata)
-        .withObjectTags(tags).withDestinationBucket("destBucket")
+    ExtendedCopyOperation op =
+        new ExtendedCopyOperation().withObjectMetadata(new S3ServerSideEncryption())
+            .withObjectTags(new KeyValuePair("goodbye", "cruel world"))
+            .withDestinationBucket("destBucket")
         .withDestinationObjectName("destKey").withObjectName("key").withBucket("bucketName");
     ClientWrapper wrapper = new ClientWrapperImpl(client);
     execute(op, wrapper, msg);
