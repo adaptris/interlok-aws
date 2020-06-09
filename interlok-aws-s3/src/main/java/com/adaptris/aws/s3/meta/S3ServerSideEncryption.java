@@ -25,6 +25,7 @@ import com.adaptris.core.AdaptrisMessage;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 
 /**
@@ -37,27 +38,43 @@ public class S3ServerSideEncryption extends S3ObjectMetadata {
     AES_256(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
 
     private final String name;
-    
+
     private Algorithm(String name) {
       this.name = name;
     }
-    
+
     public void apply(ObjectMetadata meta) {
       meta.setSSEAlgorithm(name);
     }
   }
 
-  @AdvancedConfig
+  /**
+   * Whether or not to actually enable server side encryption.
+   *
+   * <p>
+   * This is arguably meaningless since why would you want to define s3-serverside-encryption if you
+   * didn't want it, however, it can be useful as a variable substitution flag where some
+   * environments might not need it.
+   * </p>
+   */
+  @AdvancedConfig(rare = true)
   @InputFieldDefault(value = "true")
   @Getter
   @Setter
   private Boolean enabled;
-  
+
+  /**
+   * Set the algorithm for server side encryption
+   *
+   */
   @NotNull
   @AutoPopulated
   @AdvancedConfig
+  @Getter
+  @Setter
+  @NonNull
   private Algorithm algorithm;
-  
+
   public S3ServerSideEncryption() {
     setAlgorithm(Algorithm.AES_256);
   }
@@ -67,19 +84,6 @@ public class S3ServerSideEncryption extends S3ObjectMetadata {
     if (enabled()) {
       getAlgorithm().apply(meta);
     }
-  }
-
-  public Algorithm getAlgorithm() {
-    return algorithm;
-  }
-
-  /**
-   * Set the algorithm for server side encryption
-   * 
-   * @param algorithm
-   */
-  public void setAlgorithm(Algorithm algorithm) {
-    this.algorithm = algorithm;
   }
 
   private boolean enabled() {
