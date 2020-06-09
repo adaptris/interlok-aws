@@ -18,6 +18,7 @@ import java.util.Map;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.junit.Test;
 import org.mockito.Mockito;
+import com.adaptris.aws.s3.meta.S3ObjectMetadata;
 import com.adaptris.aws.s3.meta.S3ServerSideEncryption;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -25,6 +26,8 @@ import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.lms.FileBackedMessageFactory;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.interlok.cloud.RemoteBlobFilterWrapper;
+import com.adaptris.util.KeyValuePair;
+import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CopyObjectResult;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -49,13 +52,13 @@ public class MockedOperationTest {
   public void testCopy_NoDestinationBucket_Legacy() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
     CopyObjectResult result = new CopyObjectResult();
-    Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString())).thenReturn(result);    
+    Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString())).thenReturn(result);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     CopyOperation op = new CopyOperation()
         .withDestinationKey(new ConstantDataInputParameter("destKey"))
         .withBucketName(new ConstantDataInputParameter("bucketName"))
         .withKey(new ConstantDataInputParameter("key"));
-    ClientWrapper wrapper = new ClientWrapperImpl(client);    
+    ClientWrapper wrapper = new ClientWrapperImpl(client);
     execute(op, wrapper, msg);
   }
 
@@ -65,6 +68,7 @@ public class MockedOperationTest {
     CopyObjectResult result = new CopyObjectResult();
     Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString()))
         .thenReturn(result);
+    Mockito.when(client.copyObject(any())).thenReturn(result);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     CopyOperation op =
         new CopyOperation().withDestinationObjectName("destKey")
@@ -78,14 +82,15 @@ public class MockedOperationTest {
   public void testCopy_Legacy() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
     CopyObjectResult result = new CopyObjectResult();
-    Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString())).thenReturn(result);    
+    Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString())).thenReturn(result);
+    Mockito.when(client.copyObject(any())).thenReturn(result);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     CopyOperation op =
     new CopyOperation().withDestinationBucketName(new ConstantDataInputParameter("destBucket"))
         .withDestinationKey(new ConstantDataInputParameter("destKey"))
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
-    ClientWrapper wrapper = new ClientWrapperImpl(client);    
+    ClientWrapper wrapper = new ClientWrapperImpl(client);
     execute(op, wrapper, msg);
   }
 
@@ -95,6 +100,7 @@ public class MockedOperationTest {
     CopyObjectResult result = new CopyObjectResult();
     Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString()))
         .thenReturn(result);
+    Mockito.when(client.copyObject(any())).thenReturn(result);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     CopyOperation op = new CopyOperation().withDestinationBucket("destBucket")
         .withDestinationObjectName("destKey").withObjectName("key").withBucket("bucketName");
@@ -103,18 +109,48 @@ public class MockedOperationTest {
   }
 
   @Test
+  public void testExtendedCopy() throws Exception {
+    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+
+    ObjectMetadata objectMetadata = new ObjectMetadata();
+    objectMetadata.setContentType("text/plain");
+    Mockito.when(client.getObjectMetadata(anyString(), anyString())).thenReturn(objectMetadata);
+
+    GetObjectTaggingResult mockTagResult = Mockito.mock(GetObjectTaggingResult.class);
+    List<Tag> mockTags = new ArrayList<Tag>(Arrays.asList(new Tag("hello", "world")));
+    Mockito.when(mockTagResult.getTagSet()).thenReturn(mockTags);
+    Mockito.when(client.getObjectTagging(any())).thenReturn(mockTagResult);
+
+
+    CopyObjectResult result = new CopyObjectResult();
+    Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString()))
+        .thenReturn(result);
+    Mockito.when(client.copyObject(any())).thenReturn(result);
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
+
+    KeyValuePairSet tags =
+        new KeyValuePairSet(Arrays.asList(new KeyValuePair("goodbye", "cruel world")));
+    List<S3ObjectMetadata> newMetadata = new ArrayList(Arrays.asList(new S3ServerSideEncryption()));
+    ExtendedCopyOperation op = new ExtendedCopyOperation().withObjectMetadata(newMetadata)
+        .withObjectTags(tags).withDestinationBucket("destBucket")
+        .withDestinationObjectName("destKey").withObjectName("key").withBucket("bucketName");
+    ClientWrapper wrapper = new ClientWrapperImpl(client);
+    execute(op, wrapper, msg);
+  }
+
+  @Test
   public void testDelete() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
-    Mockito.doAnswer((i)-> {return null;}).when(client).deleteObject(anyString(), anyString());    
+    Mockito.doAnswer((i)-> {return null;}).when(client).deleteObject(anyString(), anyString());
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     DeleteOperation op = new DeleteOperation()
         .withBucketName(new ConstantDataInputParameter("bucketName"))
         .withKey(new ConstantDataInputParameter("key"));
-    ClientWrapper wrapper = new ClientWrapperImpl(client);    
+    ClientWrapper wrapper = new ClientWrapperImpl(client);
     execute(op, wrapper, msg);
   }
-  
-  
+
+
   @Test
   public void testGet() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
@@ -125,19 +161,21 @@ public class MockedOperationTest {
     Mockito.when(result.getObjectMetadata()).thenReturn(metadata);
     Mockito.when(result.getObjectContent()).thenReturn(resultStream);
     Mockito.when(client.getObject((GetObjectRequest) anyObject())).thenReturn(result);
-     
+
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     S3GetOperation op = new S3GetOperation()
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
-    ClientWrapper wrapper = new ClientWrapperImpl(client);    
+    ClientWrapper wrapper = new ClientWrapperImpl(client);
     execute(op, wrapper, msg);
   }
-  
+
   @Test
   public void testTag_WithFilter() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
-    Mockito.doAnswer((i)-> {return null;}).when(client).setObjectTagging((SetObjectTaggingRequest) anyObject());
+    Mockito.doAnswer((i) -> {
+      return null;
+    }).when(client).setObjectTagging((SetObjectTaggingRequest) anyObject());
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMessageHeader("hello", "world");
 
@@ -145,7 +183,7 @@ public class MockedOperationTest {
         .withTagMetadataFilter(new NoOpMetadataFilter())
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
-    ClientWrapper wrapper = new ClientWrapperImpl(client);    
+    ClientWrapper wrapper = new ClientWrapperImpl(client);
     execute(tag, wrapper, msg);
   }
 
@@ -159,10 +197,10 @@ public class MockedOperationTest {
     TagOperation tag = new TagOperation()
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
-    ClientWrapper wrapper = new ClientWrapperImpl(client);    
+    ClientWrapper wrapper = new ClientWrapperImpl(client);
     execute(tag, wrapper, msg);
   }
-  
+
   @Test
   public void testDownloadOperation_WithTempDir() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
@@ -170,13 +208,13 @@ public class MockedOperationTest {
     Download downloadObject = Mockito.mock(Download.class);
     ObjectMetadata metadata = Mockito.mock(ObjectMetadata.class);
     TransferProgress progress = new TransferProgress();
-    
+
     Map<String,String> userMetadata = new HashMap<>();
     userMetadata.put("hello", "world");
     Mockito.when(downloadObject.isDone()).thenReturn(false, false, true);
     Mockito.when(downloadObject.getProgress()).thenReturn(progress);
     Mockito.doAnswer((i)-> {return null;}).when(downloadObject).waitForCompletion();
-    
+
     Mockito.when(transferManager.download((GetObjectRequest) anyObject(), (File) anyObject())).thenReturn(downloadObject);
     Mockito.when(downloadObject.getObjectMetadata()).thenReturn(metadata);
     Mockito.when(metadata.getUserMetadata()).thenReturn(userMetadata);
@@ -188,7 +226,7 @@ public class MockedOperationTest {
         .withUserMetadataFilter(new NoOpMetadataFilter())
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
-    ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);    
+    ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
     execute(downloader, wrapper, msg);
   }
 
@@ -199,13 +237,13 @@ public class MockedOperationTest {
     Download downloadObject = Mockito.mock(Download.class);
     ObjectMetadata metadata = Mockito.mock(ObjectMetadata.class);
     TransferProgress progress = new TransferProgress();
-    
+
     Map<String,String> userMetadata = new HashMap<>();
     userMetadata.put("hello", "world");
     Mockito.when(downloadObject.isDone()).thenReturn(false, false, true);
     Mockito.when(downloadObject.getProgress()).thenReturn(progress);
     Mockito.doAnswer((i)-> {return null;}).when(downloadObject).waitForCompletion();
-    
+
     Mockito.when(transferManager.download((GetObjectRequest) anyObject(), (File) anyObject())).thenReturn(downloadObject);
     Mockito.when(downloadObject.getObjectMetadata()).thenReturn(metadata);
     Mockito.when(metadata.getUserMetadata()).thenReturn(userMetadata);
@@ -216,23 +254,23 @@ public class MockedOperationTest {
         .withUserMetadataFilter(new NoOpMetadataFilter())
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
-    ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);    
+    ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
     execute(downloader, wrapper, msg);
   }
-  
+
   @Test
   public void testUpload() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
     TransferManager transferManager = Mockito.mock(TransferManager.class);
     Upload uploadObject = Mockito.mock(Upload.class);
     TransferProgress progress = new TransferProgress();
-    
+
     Map<String,String> userMetadata = new HashMap<>();
     userMetadata.put("hello", "world");
     Mockito.when(uploadObject.isDone()).thenReturn(false, false, true);
     Mockito.when(uploadObject.getProgress()).thenReturn(progress);
     Mockito.doAnswer((i)-> {return null;}).when(uploadObject).waitForCompletion();
-    
+
     Mockito.when(transferManager.upload(anyString(), anyString(), (InputStream) anyObject(), (ObjectMetadata) anyObject())).thenReturn(uploadObject);
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
@@ -241,23 +279,23 @@ public class MockedOperationTest {
         .withUserMetadataFilter(new NoOpMetadataFilter())
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
-    ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);    
+    ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
     execute(uploader, wrapper, msg);
   }
-  
+
   @Test
   public void testUpload_WithMetadata() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
     TransferManager transferManager = Mockito.mock(TransferManager.class);
     Upload uploadObject = Mockito.mock(Upload.class);
     TransferProgress progress = new TransferProgress();
-    
+
     Map<String,String> userMetadata = new HashMap<>();
     userMetadata.put("hello", "world");
     Mockito.when(uploadObject.isDone()).thenReturn(false, false, true);
     Mockito.when(uploadObject.getProgress()).thenReturn(progress);
     Mockito.doAnswer((i)-> {return null;}).when(uploadObject).waitForCompletion();
-    
+
     Mockito.when(transferManager.upload(anyString(), anyString(), (InputStream) anyObject(), (ObjectMetadata) anyObject())).thenReturn(uploadObject);
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello");
@@ -266,7 +304,7 @@ public class MockedOperationTest {
         .withObjectMetadata(new S3ServerSideEncryption())
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
-    ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);    
+    ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
     execute(uploader, wrapper, msg);
   }
 
@@ -297,6 +335,7 @@ public class MockedOperationTest {
     GetObjectTaggingResult result = Mockito.mock(GetObjectTaggingResult.class);
     List<Tag> tags = new ArrayList<Tag>(Arrays.asList(new Tag("hello", "world")));
     Mockito.when(result.getTagSet()).thenReturn(tags);
+
     Mockito.when(client.getObjectTagging(anyObject())).thenReturn(result);
     GetTagOperation getTags = new GetTagOperation().withTagMetadataFilter(new NoOpMetadataFilter())
         .withBucketName(new ConstantDataInputParameter("srcBucket")).withKey(new ConstantDataInputParameter("srcKey"));

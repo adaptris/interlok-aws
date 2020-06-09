@@ -29,6 +29,8 @@ import com.adaptris.interlok.cloud.RemoteBlobFilterWrapper;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LocalstackServiceTest {
 
+  private static final String MY_TAG_TEXT = "text";
+  private static final String MY_TAG = "MyTag";
   private static final String TESTS_ENABLED = "localstack.tests.enabled";
   private static final String S3_SIGNING_REGION = "localstack.s3.signingRegion";
   private static final String S3_URL = "localstack.s3.url";
@@ -111,23 +113,11 @@ public class LocalstackServiceTest {
 
   @Test
   public void test_06_Tag() throws Exception {
-    TagOperation tag = new TagOperation().withTagMetadataFilter(new RegexMetadataFilter().withIncludePatterns("MyTag"))
-        .withObjectName(getConfig(S3_COPY_TO_FILENAME))
-        .withBucket(getConfig(S3_BUCKETNAME));
-    S3Service tagger = build(tag);
-    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    msg.addMessageHeader("MyTag", "text");
-    ServiceCase.execute(tagger, msg);
+    tagObject(getConfig(S3_COPY_TO_FILENAME));
 
-    GetTagOperation getTags = new GetTagOperation().withTagMetadataFilter(new NoOpMetadataFilter())
-        .withObjectName(getConfig(S3_COPY_TO_FILENAME))
-        .withBucket(getConfig(S3_BUCKETNAME));
-    S3Service retrieveTags = build(getTags);
-    AdaptrisMessage msgWithTags = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-
-    ServiceCase.execute(retrieveTags, msgWithTags);
-    assertTrue(msgWithTags.headersContainsKey("MyTag"));
-    assertEquals("text", msgWithTags.getMetadataValue("MyTag"));
+    AdaptrisMessage msgWithTags = getTags(getConfig(S3_COPY_TO_FILENAME));
+    assertTrue(msgWithTags.headersContainsKey(MY_TAG));
+    assertEquals(MY_TAG_TEXT, msgWithTags.getMetadataValue(MY_TAG));
   }
 
   @Test
@@ -170,21 +160,28 @@ public class LocalstackServiceTest {
 
 
   @Test
-  public void test_10_Copy_WithoutDestinationBucket() throws Exception {
-    CopyOperation copy =
-        new CopyOperation().withDestinationObjectName(getConfig(S3_COPY_TO_FILENAME))
+  public void test_10_ExtendedCopy_WithoutDestinationBucket() throws Exception {
+    tagObject(getConfig(S3_UPLOAD_FILENAME));
+
+    ExtendedCopyOperation copy = new ExtendedCopyOperation()
+        .withDestinationObjectName(getConfig(S3_COPY_TO_FILENAME))
             .withObjectName(getConfig(S3_UPLOAD_FILENAME))
             .withBucket(getConfig(S3_BUCKETNAME));
     S3Service copyService = build(copy);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ServiceCase.execute(copyService, msg);
 
-    S3GetOperation download =
-        new S3GetOperation().withObjectName(getConfig(S3_COPY_TO_FILENAME))
-            .withBucket(getConfig(S3_BUCKETNAME));
+    S3GetOperation download = new S3GetOperation().withObjectName(getConfig(S3_COPY_TO_FILENAME))
+        .withBucket(getConfig(S3_BUCKETNAME));
     S3Service downloadService = build(download);
     ServiceCase.execute(downloadService, msg);
     assertEquals(MSG_CONTENTS, msg.getContent());
+
+    // Check the tags were preserved
+    AdaptrisMessage msgWithTags = getTags(getConfig(S3_COPY_TO_FILENAME));
+
+    assertTrue(msgWithTags.headersContainsKey(MY_TAG));
+    assertEquals(MY_TAG_TEXT, msgWithTags.getMetadataValue(MY_TAG));
   }
 
   @Test
@@ -252,6 +249,25 @@ public class LocalstackServiceTest {
 
   protected String getConfig(String cfgKey) {
     return config.getProperty(cfgKey);
+  }
+
+  private void tagObject(String key) throws Exception {
+    TagOperation tag = new TagOperation()
+        .withTagMetadataFilter(new RegexMetadataFilter().withIncludePatterns(MY_TAG))
+        .withObjectName(key).withBucket(getConfig(S3_BUCKETNAME));
+    S3Service tagger = build(tag);
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
+    msg.addMessageHeader(MY_TAG, MY_TAG_TEXT);
+    ServiceCase.execute(tagger, msg);
+  }
+
+  private AdaptrisMessage getTags(String key) throws Exception {
+    GetTagOperation getTags = new GetTagOperation().withTagMetadataFilter(new NoOpMetadataFilter())
+        .withObjectName(key).withBucket(getConfig(S3_BUCKETNAME));
+    S3Service retrieveTags = build(getTags);
+    AdaptrisMessage msgWithTags = AdaptrisMessageFactory.getDefaultInstance().newMessage();
+    ServiceCase.execute(retrieveTags, msgWithTags);
+    return msgWithTags;
   }
 
 }
