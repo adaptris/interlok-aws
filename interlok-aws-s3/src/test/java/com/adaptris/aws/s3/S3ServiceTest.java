@@ -18,6 +18,7 @@ package com.adaptris.aws.s3;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -51,7 +52,7 @@ public class S3ServiceTest extends ServiceCase {
         op.setTempDirectory("/path/to/temp/dir/if/required");
         return op;
       }
-      
+
     },
     Get {
       @Override
@@ -74,6 +75,26 @@ public class S3ServiceTest extends ServiceCase {
         type.setContentLanguage("english");
         op.withObjectMetadata(new S3ServerSideEncryption(), type);
         return op;
+      }
+    },
+    Copy {
+      @Override
+      S3Operation build() {
+        return new CopyOperation()
+            .withDestinationObjectName("%message{s3-dest-key}")
+            .withObjectName("%message{s3-src-key}")
+            .withBucket("MyS3Bucket");
+      }
+    },
+    ExtendedCopy {
+      @Override
+      S3Operation build() {
+        S3ContentLanguage lang = new S3ContentLanguage();
+        lang.setContentLanguage("english");
+        return new ExtendedCopyOperation()
+            .withObjectMetadata(new ArrayList<>(Arrays.asList(new S3ServerSideEncryption(), lang)))
+            .withDestinationObjectName("%message{s3-dest-key}")
+            .withObjectName("%message{s3-src-key}").withBucket("MyS3Bucket");
       }
     },
     Tag {
@@ -104,7 +125,7 @@ public class S3ServiceTest extends ServiceCase {
       LifecycleHelper.init(service);
       fail();
     } catch (CoreException | IllegalArgumentException expected) {
-      
+
     } finally {
       LifecycleHelper.stopAndClose(service);
     }
@@ -119,12 +140,12 @@ public class S3ServiceTest extends ServiceCase {
     LifecycleHelper.initAndStart(service);
     LifecycleHelper.stopAndClose(service);
   }
-  
+
   @Test
   public void testDoService() throws Exception {
     AmazonS3Connection connection = Mockito.mock(AmazonS3Connection.class);
     S3Operation operation = Mockito.mock(S3Operation.class);
-    
+
     Mockito.doAnswer((i)-> {return null;}).when(connection).prepareConnection();
     Mockito.doAnswer((i)-> {return null;}).when(connection).startConnection();
     Mockito.doAnswer((i)-> {return null;}).when(connection).stopConnection();
@@ -137,12 +158,12 @@ public class S3ServiceTest extends ServiceCase {
 
     execute(service, AdaptrisMessageFactory.getDefaultInstance().newMessage());
   }
-  
+
   @Test
   public void testDoService_Exception() throws Exception {
     AmazonS3Connection connection = Mockito.mock(AmazonS3Connection.class);
     S3Operation operation = Mockito.mock(S3Operation.class);
-    
+
     Mockito.doAnswer((i)-> {return null;}).when(connection).prepareConnection();
     Mockito.doAnswer((i)-> {return null;}).when(connection).startConnection();
     Mockito.doAnswer((i)-> {return null;}).when(connection).stopConnection();
@@ -156,11 +177,11 @@ public class S3ServiceTest extends ServiceCase {
       execute(service, AdaptrisMessageFactory.getDefaultInstance().newMessage());
       fail();
     } catch (ServiceException expected) {
-      
+
     }
-    
+
   }
-  
+
   @Override
   protected S3Service retrieveObjectForSampleConfig() {
     return null;

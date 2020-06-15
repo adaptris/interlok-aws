@@ -25,32 +25,32 @@ import com.adaptris.interlok.util.Args;
 import com.adaptris.util.TimeInterval;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.Setter;
 
 @XStreamAlias("s3-http-expires-date")
+@NoArgsConstructor
 public class S3HttpExpiresDate extends S3ObjectMetadata {
 
+  /**
+   * Set how long after upload the object should remain cachable
+   *
+   */
   @NotNull
   @Valid
+  @Getter
+  @Setter
+  @NonNull
   private TimeInterval timeToLive;
-  
+
   @Override
   public void apply(AdaptrisMessage msg, ObjectMetadata meta) throws ServiceException {
     Args.notNull(getTimeToLive(), "time-to-live");
     Calendar cal = Calendar.getInstance();
     cal.add(Calendar.MILLISECOND, (int)getTimeToLive().toMilliseconds());
     meta.setHttpExpiresDate(cal.getTime());
-  }
-
-  public TimeInterval getTimeToLive() {
-    return timeToLive;
-  }
-
-  /**
-   * Set how long after upload the object should remain cachable
-   * @param timeToLive
-   */
-  public void setTimeToLive(TimeInterval timeToLive) {
-    this.timeToLive = timeToLive;
   }
 
 }

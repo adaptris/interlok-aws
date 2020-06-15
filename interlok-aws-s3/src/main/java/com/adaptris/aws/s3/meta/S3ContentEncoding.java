@@ -23,13 +23,27 @@ import com.adaptris.core.ServiceException;
 import com.adaptris.interlok.util.Args;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.Setter;
 
 @XStreamAlias("s3-content-encoding")
 // @XStreamConverter(value = ToAttributedValueConverter.class, strings = { "contentEncoding" })
+@NoArgsConstructor
 public class S3ContentEncoding extends S3ObjectMetadata {
 
+  /**
+   * Sets the optional Content-Encoding HTTP header specifying what content encodings have been
+   * applied to the object and what decoding mechanisms must be applied in order to obtain the
+   * media-type referenced by the Content-Type field.
+   *
+   */
   @NotNull
   @InputFieldHint(expression = true)
+  @Getter
+  @Setter
+  @NonNull
   private String contentEncoding;
 
   @Override
@@ -37,21 +51,4 @@ public class S3ContentEncoding extends S3ObjectMetadata {
     Args.notNull(getContentEncoding(), "content-encoding");
     meta.setContentEncoding(msg.resolve(getContentEncoding()));
   }
-
-  public String getContentEncoding() {
-    return contentEncoding;
-  }
-
-  /**
-   * Sets the optional Content-Encoding HTTP header specifying what
-   * content encodings have been applied to the object and what decoding
-   * mechanisms must be applied in order to obtain the media-type referenced
-   * by the Content-Type field.
-   *
-   * @param contentEncoding
-   */
-  public void setContentEncoding(String contentEncoding) {
-    this.contentEncoding = contentEncoding;
-  }
-
 }
