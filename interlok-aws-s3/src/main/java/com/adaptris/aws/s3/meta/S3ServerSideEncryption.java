@@ -17,13 +17,16 @@
 package com.adaptris.aws.s3.meta;
 
 import javax.validation.constraints.NotNull;
-
+import org.apache.commons.lang3.BooleanUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisMessage;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 
 /**
  * Enable S3 Server Side Encryption with AWS managed keys
@@ -35,55 +38,56 @@ public class S3ServerSideEncryption extends S3ObjectMetadata {
     AES_256(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
 
     private final String name;
-    
+
     private Algorithm(String name) {
       this.name = name;
     }
-    
+
     public void apply(ObjectMetadata meta) {
       meta.setSSEAlgorithm(name);
     }
   }
 
-  @AdvancedConfig
-  @InputFieldDefault("true")
-  private boolean enabled = true;
-  
+  /**
+   * Whether or not to actually enable server side encryption.
+   *
+   * <p>
+   * This is arguably meaningless since why would you want to define s3-serverside-encryption if you
+   * didn't want it, however, it can be useful as a variable substitution flag where some
+   * environments might not need it.
+   * </p>
+   */
+  @AdvancedConfig(rare = true)
+  @InputFieldDefault(value = "true")
+  @Getter
+  @Setter
+  private Boolean enabled;
+
+  /**
+   * Set the algorithm for server side encryption
+   *
+   */
   @NotNull
   @AutoPopulated
+  @AdvancedConfig
+  @Getter
+  @Setter
+  @NonNull
   private Algorithm algorithm;
-  
+
   public S3ServerSideEncryption() {
-    setEnabled(true);
     setAlgorithm(Algorithm.AES_256);
   }
 
   @Override
   public void apply(AdaptrisMessage msg, ObjectMetadata meta) {
-    if(getEnabled()) {
+    if (enabled()) {
       getAlgorithm().apply(meta);
     }
   }
 
-  public Algorithm getAlgorithm() {
-    return algorithm;
-  }
-
-  /**
-   * Set the algorithm for server side encryption
-   * 
-   * @param algorithm
-   */
-  public void setAlgorithm(Algorithm algorithm) {
-    this.algorithm = algorithm;
-  }
-
-  public boolean getEnabled() {
-    return enabled;
-  }
-
-  public void setEnabled(boolean enabled) {
-    this.enabled = enabled;
+  private boolean enabled() {
+    return BooleanUtils.toBooleanDefaultIfNull(getEnabled(), true);
   }
 
 }

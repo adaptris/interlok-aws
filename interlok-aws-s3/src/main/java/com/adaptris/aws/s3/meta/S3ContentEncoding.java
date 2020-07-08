@@ -16,45 +16,39 @@
 
 package com.adaptris.aws.s3.meta;
 
+import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
+import com.adaptris.interlok.util.Args;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.Setter;
 
 @XStreamAlias("s3-content-encoding")
 // @XStreamConverter(value = ToAttributedValueConverter.class, strings = { "contentEncoding" })
+@NoArgsConstructor
 public class S3ContentEncoding extends S3ObjectMetadata {
 
+  /**
+   * Sets the optional Content-Encoding HTTP header specifying what content encodings have been
+   * applied to the object and what decoding mechanisms must be applied in order to obtain the
+   * media-type referenced by the Content-Type field.
+   *
+   */
   @NotNull
   @InputFieldHint(expression = true)
+  @Getter
+  @Setter
+  @NonNull
   private String contentEncoding;
 
   @Override
   public void apply(AdaptrisMessage msg, ObjectMetadata meta) throws ServiceException {
-    if(StringUtils.isEmpty(getContentEncoding())) {
-      throw new ServiceException("Content Encoding must be specified");
-    }
+    Args.notNull(getContentEncoding(), "content-encoding");
     meta.setContentEncoding(msg.resolve(getContentEncoding()));
   }
-
-  public String getContentEncoding() {
-    return contentEncoding;
-  }
-
-  /**
-   * Sets the optional Content-Encoding HTTP header specifying what
-   * content encodings have been applied to the object and what decoding
-   * mechanisms must be applied in order to obtain the media-type referenced
-   * by the Content-Type field.
-   *
-   * @param contentEncoding
-   */
-  public void setContentEncoding(String contentEncoding) {
-    this.contentEncoding = contentEncoding;
-  }
-
 }

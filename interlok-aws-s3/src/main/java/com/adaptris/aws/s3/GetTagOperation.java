@@ -28,6 +28,7 @@ import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.GetObjectTaggingRequest;
 import com.amazonaws.services.s3.model.Tag;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.NoArgsConstructor;
 
 /**
  * Get tags associated with a S3 Object
@@ -41,17 +42,15 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Get tags associated with an object in S3", since = "3.8.4")
 @XStreamAlias("amazon-s3-tag-get")
-@DisplayOrder(order = {"bucketName", "key", "tagMetadataFilter"})
+@DisplayOrder(order = {"bucket", "objectName", "bucketName", "key", "tagMetadataFilter"})
+@NoArgsConstructor
 public class GetTagOperation extends TagOperation {
-
-  public GetTagOperation() {
-  }
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     AmazonS3Client s3 = wrapper.amazonClient();
-    String srcBucket = getBucketName().extract(msg);
-    String srcKey = getKey().extract(msg);
+    String srcBucket = s3Bucket(msg);
+    String srcKey = s3ObjectKey(msg);
     log.trace("Getting tags for [{}:{}]", srcBucket, srcKey);
     GetObjectTaggingRequest req = new GetObjectTaggingRequest(srcBucket, srcKey);
     msg.setMetadata(filterTags(s3.getObjectTagging(req).getTagSet()));    

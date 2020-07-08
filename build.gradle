@@ -2,28 +2,30 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
 plugins {
-  id 'com.github.spotbugs' version '4.0.5' apply false
-  id "io.freefair.lombok" version "5.0.0" apply false
+  id 'com.github.spotbugs' version '4.2.3' apply false
+  id "io.freefair.lombok" version "5.1.0" apply false
+  id 'org.owasp.dependencycheck' version '5.3.2.1' apply false
 }
 
 ext {
-  interlokCoreVersion = project.hasProperty('interlokCoreVersion') ? project.getProperty('interlokCoreVersion') : '3.10-SNAPSHOT'
-  releaseVersion = project.hasProperty('releaseVersion') ? project.getProperty('releaseVersion') : '3.10-SNAPSHOT'
-  nexusBaseUrl = project.hasProperty('nexusBaseUrl') ? project.getProperty('nexusBaseUrl') : 'https://nexus.adaptris.net/nexus'
-  mavenPublishUrl = project.hasProperty('mavenPublishUrl') ? project.getProperty('mavenPublishUrl') : nexusBaseUrl + '/content/repositories/snapshots'
+  interlokCoreVersion = project.findProperty('interlokCoreVersion') ?: '3.10-SNAPSHOT'
+  releaseVersion = project.findProperty('releaseVersion') ?: '3.10-SNAPSHOT'
+  nexusBaseUrl = project.findProperty('nexusBaseUrl') ?: 'https://nexus.adaptris.net/nexus'
+  mavenPublishUrl = project.findProperty('mavenPublishUrl') ?: nexusBaseUrl + '/content/repositories/snapshots'
   javadocsBaseUrl = nexusBaseUrl + "/content/sites/javadocs/com/adaptris"
-  repoUsername = project.hasProperty('repoUsername') ? project.getProperty('repoUsername') : 'unknown'
-  repoPassword = project.hasProperty('repoPassword') ? project.getProperty('repoPassword') : 'unknown'
-  defaultNexusRepo = project.hasProperty('defaultNexusRepo') ? project.getProperty('defaultNexusRepo') : 'https://repo1.maven.org/maven2/'
+  repoUsername = project.findProperty('repoUsername') ?: 'please set as gradle property'
+  repoPassword = project.findProperty('repoPassword') ?: 'please set as gradle property'
+  defaultNexusRepo = project.findProperty('defaultNexusRepo') ?: 'https://repo1.maven.org/maven2/'
   offlineJavadocPackageDir = new File(project.buildDir, "offline-javadoc-packages")
 
-  interlokJavadocs= project.hasProperty('interlokJavadocs') ? project.getProperty('interlokJavadocs') : javadocsBaseUrl + "/interlok-core/" + interlokCoreVersion
-  interlokCommonJavadocs= project.hasProperty('interlokJavadocs') ? project.getProperty('interlokJavadocs') : javadocsBaseUrl + "/interlok-common/" + interlokCoreVersion
+  interlokJavadocs= project.findProperty('interlokJavadocs') ?: javadocsBaseUrl + "/interlok-core/" + interlokCoreVersion
+  interlokCommonJavadocs= project.findProperty('interlokJavadocs') ?: javadocsBaseUrl + "/interlok-common/" + interlokCoreVersion
   organizationName = "Adaptris Ltd"
 
   slf4jVersion = '1.7.30'
-  awsSDKVersion = '1.11.765'
+  awsSDKVersion = '1.11.803'
   log4j2Version = '2.13.2'
+  mockitoVersion = '3.3.3'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
@@ -90,6 +92,7 @@ subprojects {
   apply plugin: "jacoco"
   apply plugin: "io.freefair.lombok"
   apply plugin: 'com.github.spotbugs'
+  apply plugin: 'org.owasp.dependencycheck'
 
   sourceCompatibility = 1.8
   group   = 'com.adaptris'
@@ -138,11 +141,14 @@ subprojects {
 
       annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
       testCompile ('junit:junit:4.13')
-      testCompile ("com.adaptris:interlok-stubs:$interlokCoreVersion") { changing= true}
+      testCompile "org.slf4j:slf4j-simple:$slf4jVersion"
+      // exclude any log4j dependencies so that we can just use slf4j simple.
+      // works around INTERLOk-3233
+      testCompile "com.adaptris:interlok-stubs:$interlokCoreVersion", {
+        changing= true
+        exclude group: "org.apache.logging.log4j"
+      }
       testCompile ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
-      testCompile ("org.apache.logging.log4j:log4j-core:${log4j2Version}")
-      testCompile ("org.apache.logging.log4j:log4j-1.2-api:${log4j2Version}")
-      testCompile ("org.apache.logging.log4j:log4j-api:${log4j2Version}")
       javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
       umlDoclet("nl.talsmasoftware:umldoclet:1.1.4")
 
@@ -289,6 +295,16 @@ subprojects {
   // disable spotbugsTests which checks our test code..
   spotbugsTest.enabled = false
 
+  dependencyCheck  {
+    suppressionFiles= [ "https://raw.githubusercontent.com/adaptris/interlok/develop/gradle/owasp-exclude.xml" ]
+    skipConfigurations = [ "antSql", "spotbugs", "umlDoclet", "offlineJavadocPackages", "javadoc", "jacocoAnt", "jacocoAgent", "spotbugsPlugins", "spotbugsSlf4j" ]
+    formats = [ "HTML", "JUNIT" ]
+    junitFailOnCVSS = 7.0
+    failBuildOnCVSS = 7.0
+    analyzers {
+      assemblyEnabled=false
+    }
+  }
 
   task lgtmCompile(type: JavaCompile, dependsOn: delombok) {
     group 'Build'

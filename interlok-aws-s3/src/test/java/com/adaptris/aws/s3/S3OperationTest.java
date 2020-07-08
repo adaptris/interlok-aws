@@ -20,21 +20,24 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-
-import com.adaptris.aws.s3.meta.*;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-
+import com.adaptris.aws.s3.meta.S3ContentDisposition;
+import com.adaptris.aws.s3.meta.S3ContentEncoding;
+import com.adaptris.aws.s3.meta.S3ContentLanguage;
+import com.adaptris.aws.s3.meta.S3ContentType;
+import com.adaptris.aws.s3.meta.S3ExpirationTimeRuleId;
+import com.adaptris.aws.s3.meta.S3HttpExpiresDate;
+import com.adaptris.aws.s3.meta.S3ObjectMetadata;
+import com.adaptris.aws.s3.meta.S3ServerSideEncryption;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.MetadataElement;
@@ -46,15 +49,9 @@ import com.adaptris.interlok.InterlokException;
 import com.adaptris.util.TimeInterval;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 
+@SuppressWarnings("deprecation")
 public class S3OperationTest {
 
-  @Before
-  public void setUp() throws Exception {
-  }
-
-  @After
-  public void tearDown() throws Exception {
-  }
 
   @Test
   public void testKey() {
@@ -62,14 +59,9 @@ public class S3OperationTest {
     assertNull(op.getKey());
     op.withKey(new ConstantDataInputParameter("hello"));
     assertEquals(ConstantDataInputParameter.class, op.getKey().getClass());
-    try {
-      op.setKey(null);
-      fail();
-    }
-    catch (IllegalArgumentException expected) {
-
-    }
-    assertEquals(ConstantDataInputParameter.class, op.getKey().getClass());
+    assertNull(op.getObjectName());
+    op.withObjectName("hello");
+    assertEquals("hello", op.getObjectName());
   }
 
   @Test
@@ -78,14 +70,10 @@ public class S3OperationTest {
     assertNull(op.getBucketName());
     op.withBucketName(new ConstantDataInputParameter("hello"));
     assertEquals(ConstantDataInputParameter.class, op.getBucketName().getClass());
-    try {
-      op.setBucketName(null);
-      fail();
-    }
-    catch (IllegalArgumentException expected) {
-
-    }
-    assertEquals(ConstantDataInputParameter.class, op.getBucketName().getClass());
+    op.setBucketName(null);
+    assertNull(op.getBucket());
+    op.withBucket("hello");
+    assertEquals("hello", op.getBucket());
   }
 
   @Test
@@ -192,7 +180,7 @@ public class S3OperationTest {
       ce.setContentEncoding("%message{ce}");
       allmetas.add(ce);
     }
-
+    Collections.sort(allmetas);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMetadata("cd", "content disposition");
     msg.addMetadata("cl", "content language");
@@ -210,6 +198,19 @@ public class S3OperationTest {
     assertEquals("content type", meta.getContentType());
     assertEquals("expiration time rule id", meta.getExpirationTimeRuleId());
     assertEquals("content encoding", meta.getContentEncoding());
+  }
+
+  @Test
+  public void testMustHaveEither() throws Exception {
+    try {
+      S3OperationImpl.mustHaveEither(null, null);
+      fail();
+    } catch (IllegalArgumentException e) {
+
+    }
+    S3OperationImpl.mustHaveEither(new ConstantDataInputParameter("hello"), null);
+    S3OperationImpl.mustHaveEither(null, "hello");
+    S3OperationImpl.mustHaveEither(new ConstantDataInputParameter("hello"), "hello");
   }
 
   private static class MyS3Operation extends TransferOperation {
