@@ -16,7 +16,6 @@ import org.junit.runners.MethodSorters;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.BaseCase;
-import com.adaptris.core.ConfiguredConsumeDestination;
 import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.FixedIntervalPoller;
 import com.adaptris.core.ServiceCase;
@@ -78,7 +77,7 @@ public class LocalstackRoundtripTest {
     StandaloneConsumer standaloneConsumer = null;
     try {
       Assume.assumeTrue(areTestsEnabled());
-      AmazonSQSConsumer consumer = new AmazonSQSConsumer(new ConfiguredConsumeDestination(getProperty(SQS_QUEUE)));
+      AmazonSQSConsumer consumer = new AmazonSQSConsumer().withQueue(getProperty(SQS_QUEUE));
       AmazonSQSConnection conn = helper.createConnection();
       FixedIntervalPoller poller = new FixedIntervalPoller(new TimeInterval(300L, TimeUnit.MILLISECONDS));
       consumer.setPoller(poller);

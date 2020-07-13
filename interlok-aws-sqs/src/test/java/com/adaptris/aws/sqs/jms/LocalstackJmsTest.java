@@ -15,7 +15,6 @@ import com.adaptris.aws.sqs.LocalstackHelper;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.BaseCase;
-import com.adaptris.core.ConfiguredConsumeDestination;
 import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.StandaloneConsumer;
@@ -72,7 +71,7 @@ public class LocalstackJmsTest {
     long start = System.currentTimeMillis();
     try {
       Assume.assumeTrue(areTestsEnabled());
-      PtpConsumer consumer = new PtpConsumer(new ConfiguredConsumeDestination(getProperty(SQS_JMS_QUEUE)));
+      PtpConsumer consumer = new PtpConsumer().withQueue(getProperty(SQS_JMS_QUEUE));
       JmsConnection conn = helper.createJmsConnection();
       // System.err.println("Create Objects : " + (System.currentTimeMillis() - start));
       standaloneConsumer = new StandaloneConsumer(conn, consumer);
