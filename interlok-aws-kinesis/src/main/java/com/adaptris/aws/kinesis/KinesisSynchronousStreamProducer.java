@@ -1,18 +1,16 @@
 package com.adaptris.aws.kinesis;
 
+import java.util.concurrent.atomic.AtomicInteger;
 import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.util.ExceptionHelper;
-import com.amazonaws.services.kinesis.producer.Attempt;
 import com.amazonaws.services.kinesis.producer.UserRecordFailedException;
 import com.amazonaws.services.kinesis.producer.UserRecordResult;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.NoArgsConstructor;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Producer to amazon kinesis using the Kinesis Producer Library.
@@ -38,12 +36,13 @@ import java.util.concurrent.atomic.AtomicInteger;
     recommended = {ProducerLibraryConnection.class})
 @XStreamAlias("aws-kinesis-synchronous-stream-producer")
 @NoArgsConstructor
+@DisplayOrder(order = {"stream", "partitionKey"})
 public class KinesisSynchronousStreamProducer extends KinesisStreamProducer {
 
   @Override
-  public void produce(AdaptrisMessage msg, ProduceDestination destination) throws ProduceException {
+  protected void doProduce(AdaptrisMessage msg, String endpoint) throws ProduceException {
     try {
-      ListenableFuture<UserRecordResult> results = addUserRecord(msg, destination);
+      ListenableFuture<UserRecordResult> results = addUserRecord(msg, endpoint);
       UserRecordResult result = results.get();
       logUserRecordResult(result);
     } catch (Exception e) {
@@ -72,15 +71,5 @@ public class KinesisSynchronousStreamProducer extends KinesisStreamProducer {
         attempt.getErrorCode(),
         attempt.getErrorMessage());
     });
-  }
-
-  public KinesisSynchronousStreamProducer withStream(String s) {
-    setStream(s);
-    return this;
-  }
-
-  public KinesisSynchronousStreamProducer withPartitionKey(String s) {
-    setPartitionKey(s);
-    return this;
   }
 }

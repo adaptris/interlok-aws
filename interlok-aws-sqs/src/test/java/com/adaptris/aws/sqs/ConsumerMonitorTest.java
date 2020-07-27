@@ -5,7 +5,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import org.junit.Test;
 import org.mockito.Mockito;
-import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.runtime.RuntimeInfoComponentFactory;
 import com.adaptris.core.runtime.WorkflowManager;
 import com.adaptris.util.GuidGenerator;
@@ -28,7 +27,7 @@ public class ConsumerMonitorTest {
     AmazonSQSConsumer consumer = new AmazonSQSConsumer().withQueue("myQueue");
     AmazonSQSConsumer consumerWithId = new AmazonSQSConsumer().withQueue("myQueue");
     consumerWithId.setUniqueId(new GuidGenerator().getUUID());
-    AmazonSQSProducer producer = new AmazonSQSProducer(new ConfiguredProduceDestination("myQueue"));
+    AmazonSQSProducer producer = new AmazonSQSProducer().withQueue("myQueue");
     assertNull(RuntimeInfoComponentFactory.create(workflowManager, null));
     assertNull(RuntimeInfoComponentFactory.create(workflowManager, producer));
     assertNull(RuntimeInfoComponentFactory.create(workflowManager, consumer));

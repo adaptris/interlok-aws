@@ -16,7 +16,6 @@ import org.junit.runners.MethodSorters;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.BaseCase;
-import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.FixedIntervalPoller;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.StandaloneConsumer;
@@ -56,7 +55,7 @@ public class LocalstackRoundtripTest {
   @Test
   public void test_02_TestPublish() throws Exception {
     Assume.assumeTrue(areTestsEnabled());
-    AmazonSQSProducer sqsProducer = new AmazonSQSProducer(new ConfiguredProduceDestination(getProperty(SQS_QUEUE)));
+    AmazonSQSProducer sqsProducer = new AmazonSQSProducer().withQueue(getProperty(SQS_QUEUE));
     sqsProducer.withMessageAsyncCallback((e) -> {
       try {
         System.err.println(e.get().getMessageId());

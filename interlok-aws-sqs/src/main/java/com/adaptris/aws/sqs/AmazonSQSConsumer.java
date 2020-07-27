@@ -26,6 +26,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisComponent;
@@ -65,6 +66,7 @@ import lombok.SneakyThrows;
 @AdapterComponent
 @ComponentProfile(summary = "Receive messages from Amazon SQS", tag = "consumer,amazon,sqs",
     recommended = {AmazonSQSConnection.class}, metadata= {"SQSMessageID"})
+@DisplayOrder(order = {"queue", "ownerAwsAccountId", "alwaysDelete", "prefetchCount"})
 public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
   /**

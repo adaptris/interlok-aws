@@ -18,9 +18,7 @@ package com.adaptris.aws.kinesis;
 
 import java.io.InputStream;
 import java.util.Properties;
-
-import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
@@ -33,12 +31,13 @@ import com.amazonaws.services.kinesis.producer.KinesisProducer;
 import com.amazonaws.services.kinesis.producer.KinesisProducerConfiguration;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon Kinesis using the Kinesis Producer Library.
- * 
+ *
  * <p>
  * This derives its connection information from a properties file such as this <a href=
  * "https://raw.githubusercontent.com/awslabs/amazon-kinesis-producer/master/java/amazon-kinesis-producer-sample/default_config.properties">github
@@ -46,7 +45,7 @@ import lombok.Setter;
  * effectively means that you will always be using a {@code DefaultAWSCredentialsProviderChain} since it is impossible to
  * override the {@code AWSCredentialsProvider} via the property file.
  * </p>
- * 
+ *
  * @config aws-kinesis-kpl-connection-from-properties
  */
 @XStreamAlias("aws-kinesis-kpl-connection-from-properties")
@@ -61,7 +60,7 @@ public class ConnectionFromProperties extends ProducerLibraryConnection implemen
    * <p>
    * This should be a URL style path (e.g. file:///path/to/my/properties).
    * </p>
-   * 
+   *
    */
   @NotBlank
   @Getter

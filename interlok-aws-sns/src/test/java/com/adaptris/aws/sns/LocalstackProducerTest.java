@@ -2,21 +2,17 @@ package com.adaptris.aws.sns;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-
 import java.util.Properties;
-
 import org.apache.commons.lang3.BooleanUtils;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.util.LifecycleHelper;
@@ -49,11 +45,11 @@ public class LocalstackProducerTest {
   public void test_01_TestPublish() throws Exception {
     if (areTestsEnabled()) {
       String topic = createTopicArn();
-      PublishToTopic producer = new PublishToTopic(new ConfiguredProduceDestination(topic));
+      PublishToTopic producer = new PublishToTopic().withTopicArn(topic);
       AmazonSNSConnection connection = buildConnection();
       StandaloneProducer sp = new StandaloneProducer(connection, producer);
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS);
-      
+
       ServiceCase.execute(sp, msg);
       assertTrue(msg.headersContainsKey(PublishToTopic.SNS_MSG_ID_KEY));
       assertNotNull(msg.getMetadataValue(PublishToTopic.SNS_MSG_ID_KEY));
@@ -63,7 +59,7 @@ public class LocalstackProducerTest {
     }
   }
 
-  
+
   protected static boolean areTestsEnabled() {
     return BooleanUtils.toBoolean(config.getProperty(TESTS_ENABLED, "false"));
   }

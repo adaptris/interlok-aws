@@ -1,25 +1,27 @@
 package com.adaptris.aws.kinesis;
 
-import com.adaptris.core.*;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.anyObject;
+import static org.mockito.Matchers.anyString;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+import org.junit.Test;
+import org.mockito.Mockito;
+import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.AdaptrisMessageFactory;
+import com.adaptris.core.ConfiguredProduceDestination;
+import com.adaptris.core.ProducerCase;
+import com.adaptris.core.ServiceCase;
+import com.adaptris.core.ServiceException;
+import com.adaptris.core.StandaloneProducer;
 import com.amazonaws.services.kinesis.producer.Attempt;
 import com.amazonaws.services.kinesis.producer.KinesisProducer;
 import com.amazonaws.services.kinesis.producer.UserRecordFailedException;
 import com.amazonaws.services.kinesis.producer.UserRecordResult;
-import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListenableFutureTask;
-import org.junit.Test;
-import org.mockito.Mockito;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-
-import static org.junit.Assert.*;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
-
+@SuppressWarnings("deprecation")
 public class KinesisSynchronousStreamProducerTest extends ProducerCase {
   @Override
   public boolean isAnnotatedForJunit4() {
@@ -42,7 +44,7 @@ public class KinesisSynchronousStreamProducerTest extends ProducerCase {
     producer.setDestination(new ConfiguredProduceDestination("myStreamName"));
     KinesisProducer mock = Mockito.mock(KinesisProducer.class);
     UserRecordResult mockResult = Mockito.mock(UserRecordResult.class);
-    ListenableFutureTask<UserRecordResult> futureTask = (ListenableFutureTask<UserRecordResult>)Mockito.mock(ListenableFutureTask.class);
+    ListenableFutureTask<UserRecordResult> futureTask = Mockito.mock(ListenableFutureTask.class);
     Mockito.when(futureTask.get()).thenReturn(mockResult);
     Mockito.when(mockResult.isSuccessful()).thenReturn(true);
     List<Attempt> list = Collections.singletonList(new Attempt(0, 0, "Success", "Success", true));
@@ -59,7 +61,7 @@ public class KinesisSynchronousStreamProducerTest extends ProducerCase {
     KinesisSynchronousStreamProducer producer = new KinesisSynchronousStreamProducer().withStream("myStreamName").withPartitionKey("myPartitionKey");
     KinesisProducer mock = Mockito.mock(KinesisProducer.class);
     UserRecordResult mockResult = Mockito.mock(UserRecordResult.class);
-    ListenableFutureTask<UserRecordResult> futureTask = (ListenableFutureTask<UserRecordResult>)Mockito.mock(ListenableFutureTask.class);
+    ListenableFutureTask<UserRecordResult> futureTask = Mockito.mock(ListenableFutureTask.class);
     Mockito.when(futureTask.get()).thenReturn(mockResult);
     Mockito.when(mockResult.isSuccessful()).thenReturn(true);
     List<Attempt> list = Collections.singletonList(new Attempt(0, 0, "Success", "Success", true));
@@ -77,7 +79,7 @@ public class KinesisSynchronousStreamProducerTest extends ProducerCase {
         new KinesisSynchronousStreamProducer().withStream("%message{does not exist}").withPartitionKey("%message{does not exist}");
     KinesisProducer mock = Mockito.mock(KinesisProducer.class);
     UserRecordResult mockResult = Mockito.mock(UserRecordResult.class);
-    ListenableFutureTask<UserRecordResult> futureTask = (ListenableFutureTask<UserRecordResult>)Mockito.mock(ListenableFutureTask.class);
+    ListenableFutureTask<UserRecordResult> futureTask = Mockito.mock(ListenableFutureTask.class);
     Mockito.when(futureTask.get()).thenReturn(mockResult);
     Mockito.doThrow(new IllegalArgumentException()).when(mock).addUserRecord(anyString(), anyString(), anyObject());
     StandaloneProducer standalone = new StandaloneProducer(new MyConnection(mock), producer);
@@ -96,7 +98,7 @@ public class KinesisSynchronousStreamProducerTest extends ProducerCase {
     KinesisSynchronousStreamProducer producer = new KinesisSynchronousStreamProducer().withStream("myStreamName").withPartitionKey("myPartitionKey");
     KinesisProducer mock = Mockito.mock(KinesisProducer.class);
     UserRecordResult mockResult = Mockito.mock(UserRecordResult.class);
-    ListenableFutureTask<UserRecordResult> futureTask = (ListenableFutureTask<UserRecordResult>)Mockito.mock(ListenableFutureTask.class);
+    ListenableFutureTask<UserRecordResult> futureTask = Mockito.mock(ListenableFutureTask.class);
     Mockito.doThrow(new ExecutionException("Mocked Exception", new UserRecordFailedException(mockResult))).when(futureTask).get();
     Mockito.when(mockResult.isSuccessful()).thenReturn(false);
     List<Attempt> list = Collections.singletonList(new Attempt(0, 0, "Failed", "Failed", false));
@@ -118,7 +120,7 @@ public class KinesisSynchronousStreamProducerTest extends ProducerCase {
     KinesisSynchronousStreamProducer producer = new KinesisSynchronousStreamProducer().withStream("myStreamName").withPartitionKey("myPartitionKey");
     KinesisProducer mock = Mockito.mock(KinesisProducer.class);
     UserRecordResult mockResult = Mockito.mock(UserRecordResult.class);
-    ListenableFutureTask<UserRecordResult> futureTask = (ListenableFutureTask<UserRecordResult>)Mockito.mock(ListenableFutureTask.class);
+    ListenableFutureTask<UserRecordResult> futureTask = Mockito.mock(ListenableFutureTask.class);
     Mockito.when(futureTask.get()).thenReturn(mockResult);
     Mockito.when(mockResult.isSuccessful()).thenReturn(false);
     List<Attempt> list = Collections.singletonList(new Attempt(0, 0, "Failed", "Failed", false));

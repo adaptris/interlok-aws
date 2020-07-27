@@ -15,7 +15,6 @@ import com.adaptris.aws.sqs.LocalstackHelper;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.BaseCase;
-import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.StandaloneConsumer;
 import com.adaptris.core.StandaloneProducer;
@@ -57,7 +56,7 @@ public class LocalstackJmsTest {
   @Test
   public void test_02_TestPublish() throws Exception {
     Assume.assumeTrue(areTestsEnabled());
-    PtpProducer producer = new PtpProducer(new ConfiguredProduceDestination(getProperty(SQS_JMS_QUEUE)));
+    PtpProducer producer = new PtpProducer().withQueue(getProperty(SQS_JMS_QUEUE));
     JmsConnection conn = helper.createJmsConnection();
     StandaloneProducer sp = new StandaloneProducer(conn, producer);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS);

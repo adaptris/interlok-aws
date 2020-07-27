@@ -16,6 +16,7 @@ import com.amazonaws.services.kinesis.producer.KinesisProducer;
 import com.amazonaws.services.kinesis.producer.UserRecordResult;
 import com.google.common.util.concurrent.ListenableFutureTask;
 
+@SuppressWarnings("deprecation")
 public class KinesisStreamProducerTest extends ProducerCase {
   @Override
   public boolean isAnnotatedForJunit4() {
