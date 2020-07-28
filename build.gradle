@@ -25,7 +25,7 @@ ext {
   slf4jVersion = '1.7.30'
   awsSDKVersion = '1.11.820'
   log4j2Version = '2.13.2'
-  mockitoVersion = '3.4.0'
+  mockitoVersion = '3.4.4'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
