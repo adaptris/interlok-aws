@@ -18,7 +18,6 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.ServiceException;
-import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RegexMetadataFilter;
 import com.adaptris.core.util.PropertyHelper;
@@ -129,19 +128,6 @@ public class LocalstackServiceTest {
     ServiceCase.execute(s1, AdaptrisMessageFactory.getDefaultInstance().newMessage());
   }
 
-
-  @Test
-  @SuppressWarnings("deprecation")
-  public void test_08_List_Legacy() throws Exception {
-    ListOperation ls = new ListOperation()
-        .withFilterSuffix(new ConstantDataInputParameter(getConfig(S3_FILTER_SUFFIX)))
-        .withPrefix(null)
-        .withBucket(getConfig(S3_BUCKETNAME));
-    S3Service service = build(ls);
-    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    ServiceCase.execute(service, msg);
-    assertEquals(config.getProperty(S3_UPLOAD_FILENAME) + System.lineSeparator(), msg.getContent());
-  }
 
   @Test
   public void test_09_List() throws Exception {

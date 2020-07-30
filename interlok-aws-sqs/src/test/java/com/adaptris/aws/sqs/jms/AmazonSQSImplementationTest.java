@@ -74,17 +74,11 @@ public class AmazonSQSImplementationTest {
   public void testAuthentication() throws Exception {
     AmazonSQSImplementation jmsImpl = createImpl();
 
-    assertNull(jmsImpl.getAuthentication());
     assertNull(jmsImpl.getCredentials());
     assertNotNull(jmsImpl.credentialsProvider());
     assertEquals(StaticCredentialsBuilder.class, jmsImpl.credentialsProvider().getClass());
-    jmsImpl.withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey"));
-    assertNotNull(jmsImpl.getAuthentication());
     assertNull(jmsImpl.getCredentials());
     assertEquals(StaticCredentialsBuilder.class, jmsImpl.credentialsProvider().getClass());
-    assertEquals(AWSKeysAuthentication.class,
-        ((StaticCredentialsBuilder) jmsImpl.credentialsProvider()).getAuthentication().getClass());
-    jmsImpl.setAuthentication(null);
     jmsImpl.withCredentialsProviderBuilder(new StaticCredentialsBuilder().withAuthentication(new DefaultAWSAuthentication()));
     assertEquals(StaticCredentialsBuilder.class, jmsImpl.credentialsProvider().getClass());
     assertEquals(DefaultAWSAuthentication.class,
