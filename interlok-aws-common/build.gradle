@@ -1,7 +1,7 @@
 ext {
   componentName='Interlok AWS/Common'
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  jacksonVersion='2.11.1'
+  jacksonVersion='2.11.2'
 }
 
 dependencies {
@@ -15,7 +15,7 @@ dependencies {
   compile ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
-  compile ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.11.1")
+  compile ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.11.2")
   compile ("com.adaptris:interlok-apache-http:$interlokCoreVersion")
 }
 
