@@ -28,7 +28,6 @@ import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.interlok.cloud.BlobListRenderer;
 import com.adaptris.interlok.cloud.RemoteBlobFilter;
-import com.adaptris.interlok.config.DataInputParameter;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -49,28 +48,20 @@ import lombok.Setter;
     "filterSuffix"})
 @NoArgsConstructor
 public class ListOperation extends S3OperationImpl {
-  private transient boolean suffixWarningLogged;
   private transient boolean pageWarningLogged;
 
   /**
    * Specific the prefix for use with the List operation.
-   * 
+   *
    */
   @Getter
   @Setter
   @InputFieldHint(expression = true)
   private String prefix;
 
-  @Getter
-  @Setter
-  @Deprecated
-  @AdvancedConfig
-  @Removal(version = "3.11.0", message = "Use a RemoteBlobFilter instead")
-  private DataInputParameter<String> filterSuffix;
-
   /**
    * Specify any additional filtering you wish to perform on the list.
-   * 
+   *
    */
   @AdvancedConfig
   @Getter
@@ -79,7 +70,7 @@ public class ListOperation extends S3OperationImpl {
 
   /**
    * Specify the output style.
-   * 
+   *
    * <p>
    * If left as null, then only the names of the files will be emitted. You may require additional
    * optional components to utilise other rendering styles.
@@ -102,7 +93,7 @@ public class ListOperation extends S3OperationImpl {
   @Getter
   @Setter
   @Deprecated
-  @Removal(version = "3.11.0",
+  @Removal(version = "4.0",
       message = "due to interface changes; paging results is not explicitly configurable and will be ignored")
   private Boolean pageResults;
 
@@ -118,11 +109,6 @@ public class ListOperation extends S3OperationImpl {
   @Override
   public void prepare() throws CoreException {
     super.prepare();
-    if (getFilterSuffix() != null) {
-      LoggingHelper.logWarning(suffixWarningLogged, () -> {
-        suffixWarningLogged = true;
-      }, "[{}] uses filter-suffix; use a filter instead");
-    }
     if (getPageResults() != null) {
       LoggingHelper.logWarning(pageWarningLogged, () -> pageWarningLogged = true,
           "[{}] uses [page-results], this is ignored",
@@ -143,13 +129,6 @@ public class ListOperation extends S3OperationImpl {
     outputStyle().render(new RemoteBlobIterable(s3, request, blobFilter(msg)), msg);
   }
 
-  @Deprecated
-  @Removal(version = "3.11.0")
-  public ListOperation withFilterSuffix(DataInputParameter<String> key) {
-    setFilterSuffix(key);
-    return this;
-  }
-
   private BlobListRenderer outputStyle() {
     return ObjectUtils.defaultIfNull(getOutputStyle(), new BlobListRenderer() {});
   }
@@ -165,13 +144,6 @@ public class ListOperation extends S3OperationImpl {
     return this;
   }
 
-  @Deprecated
-  @Removal(version = "3.11.0", message="due to interface changes; paging results is not explicitly configurable and will be ignored")
-  public ListOperation withPageResults(Boolean paging){
-    setPageResults(paging);
-    return this;
-  }
-
   public ListOperation withMaxKeys(Integer maxKeys){
     setMaxKeys(maxKeys);
     return this;
@@ -183,10 +155,6 @@ public class ListOperation extends S3OperationImpl {
   }
 
   private RemoteBlobFilter blobFilter(AdaptrisMessage msg) throws Exception {
-    if (getFilterSuffix() != null) {
-      final String suffix = getFilterSuffix().extract(msg);
-      return (blob) -> blob.getName().endsWith(suffix);
-    }
     return ObjectUtils.defaultIfNull(getFilter(), (blob) -> true);
   }
 

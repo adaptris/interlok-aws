@@ -21,6 +21,7 @@ import javax.validation.constraints.NotNull;
 import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.DefaultRetryPolicyFactory;
@@ -45,7 +46,7 @@ import lombok.Setter;
  * property. So if you wanted to control the user-agent you would configure
  * </p>
  * <pre>
- * {@code 
+ * {@code
  *   <client-configuration-properties>
  *     <key-value-pair>
  *        <key>UserAgent</key>
@@ -54,16 +55,17 @@ import lombok.Setter;
  *   </client-configuration-properties>
  * }
  * </pre>
- * 
+ *
  * @config advanced-amazon-sqs-implementation
  * @since 3.2.1
  */
 @XStreamAlias("advanced-amazon-sqs-implementation")
+@DisplayOrder(order = {"region", "prefetchCount", "credentials"})
 public class AdvancedSQSImplementation extends AmazonSQSImplementation {
 
   /**
    * Any other properties you wish to set on the client.
-   * 
+   *
    * @see ClientConfigurationBuilder
    */
   @NotNull
@@ -76,7 +78,7 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
 
   /**
    * The retry policy if required.
-   * 
+   *
    */
   @AdvancedConfig
   @Valid
@@ -92,14 +94,14 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
    * Explicitly configuring this means that your {@link #setRegion(String)} will have no effect (i.e.
    * {@code AwsClientBuilder#setRegion(String)} will never be invoked.
    * </p>
-   * 
+   *
    */
   @Valid
   @AdvancedConfig
   @Getter
   @Setter
   private CustomEndpoint customEndpoint;
-    
+
   public AdvancedSQSImplementation() {
     setClientConfigurationProperties(new KeyValuePairSet());
   }
@@ -109,18 +111,18 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
     return ClientConfigurationBuilder.build(getClientConfigurationProperties())
         .withRetryPolicy(retryPolicy());
   }
-  
+
   @Override
   protected EndpointBuilder endpointBuilder(){
     return getCustomEndpoint() != null && getCustomEndpoint().isConfigured() ? getCustomEndpoint()
         : new RegionOnly();
   }
-  
+
   public AdvancedSQSImplementation withCustomEndpoint(CustomEndpoint endpoint) {
     setCustomEndpoint(endpoint);
     return this;
   }
-  
+
   RetryPolicy retryPolicy() throws Exception {
     return ObjectUtils.defaultIfNull(getRetryPolicy(), new DefaultRetryPolicyFactory()).build();
   }

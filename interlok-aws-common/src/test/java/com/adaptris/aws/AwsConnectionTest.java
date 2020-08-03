@@ -24,16 +24,11 @@ public class AwsConnectionTest extends AWSConnection {
   @Test
   @SuppressWarnings("deprecation")
   public void testAuthentication() {
-    assertNull(getAuthentication());
     assertNull(getCredentials());
     assertNotNull(credentialsProvider());
     assertEquals(StaticCredentialsBuilder.class, credentialsProvider().getClass());
-    setAuthentication(new AWSKeysAuthentication("accessKey", "secretKey"));
-    assertNotNull(getAuthentication());
     assertNull(getCredentials());
     assertEquals(StaticCredentialsBuilder.class, credentialsProvider().getClass());    
-    assertEquals(AWSKeysAuthentication.class, ((StaticCredentialsBuilder) credentialsProvider()).getAuthentication().getClass());
-    setAuthentication(null);
     withCredentialsProviderBuilder(new StaticCredentialsBuilder().withAuthentication(new DefaultAWSAuthentication()));
     assertEquals(StaticCredentialsBuilder.class, credentialsProvider().getClass());
     assertEquals(DefaultAWSAuthentication.class, ((StaticCredentialsBuilder) credentialsProvider()).getAuthentication().getClass());

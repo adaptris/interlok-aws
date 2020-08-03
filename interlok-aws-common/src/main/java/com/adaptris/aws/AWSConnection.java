@@ -21,9 +21,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.InputFieldDefault;
-import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisConnectionImp;
-import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.DefaultAwsRegionProviderChain;
@@ -34,24 +32,17 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
 
   /**
    * Set the region for the client.
-   * 
+   *
    * <p>
    * If the region is not specified, then {@link DefaultAwsRegionProviderChain} is used to determine
    * the region. You can always specify a region using the standard system property {@code aws.region}
    * or via environment variables.
    * </p>
-   * 
+   *
    */
   @Getter
   @Setter
   private String region;
-
-  @Valid
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use a AWSCredentialsProviderBuilder instead")
-  @Getter
-  @Setter
-  private AWSAuthentication authentication;
 
   /**
    * How to provide Credentials for AWS.
@@ -67,7 +58,7 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
 
   /**
    * Any specific client configuration.
-   * 
+   *
    */
   @Valid
   @AdvancedConfig
@@ -77,7 +68,7 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
 
   /**
    * The Retry policy.
-   * 
+   *
    */
   @Valid
   @AdvancedConfig
@@ -104,8 +95,7 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
 
   @SuppressWarnings("deprecation")
   public AWSCredentialsProviderBuilder credentialsProvider() {
-    return AWSCredentialsProviderBuilder.providerWithWarning(LoggingHelper.friendlyName(this), getAuthentication(),
-        getCredentials());
+    return AWSCredentialsProviderBuilder.defaultIfNull(getCredentials());
   }
 
   public KeyValuePairSet clientConfiguration() {
@@ -115,12 +105,12 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
   public RetryPolicyFactory retryPolicy() {
     return ObjectUtils.defaultIfNull(getRetryPolicy(), new DefaultRetryPolicyFactory());
   }
-  
+
   public <T extends AWSConnection> T withCustomEndpoint(CustomEndpoint endpoint) {
     setCustomEndpoint(endpoint);
     return (T) this;
   }
-  
+
   public <T extends AWSConnection> T withCredentialsProviderBuilder(AWSCredentialsProviderBuilder builder) {
     setCredentials(builder);
     return (T) this;
@@ -142,13 +132,13 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
   }
 
   /** Returns something that can configure a normal AWS builder with a custom endpoint or a region...
-   * 
+   *
    */
   protected EndpointBuilder endpointBuilder(){
     return getCustomEndpoint() != null && getCustomEndpoint().isConfigured() ? getCustomEndpoint()
         : new RegionOnly();
   }
-  
+
 
 
   protected class RegionOnly implements EndpointBuilder {
@@ -161,6 +151,6 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
       }
       return builder;
     }
-    
+
   }
 }
