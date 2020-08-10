@@ -39,9 +39,44 @@ If you need to override various ports and other things, then check the contents 
 
 # AWS Kinesis
 
-The AWS Kinesis component uses the simplified AWS kinesis producer; under the covers this spawns a native executable. Note that your platform may not be always supported; so you may need to inspect `amazon-kinesis-producer.jar` manually to check that your OS is represented (sometimes the _Windows_ binary is missing).
+## AWS Kinesis + Windows
 
-Also please note that the native binary on Linux is compiled against `glibc` which means that you may get a stacktrace that looks like this (generally on alpine based images, since they use muslc as the standard C library rather than glibc). It's probably easier at this point to choose a docker image that isn't alpine based.
+The AWS Kinesis component uses the simplified AWS kinesis producer; under the covers this spawns a native executable. Since it's native executables you may need to inspect `amazon-kinesis-producer.jar` manually to check that your OS is represented. We have found that sometimes the _Windows_ binary is missing); since the underlying system is opaque to us, this well be intentional on Amazon's part. A listing of recent jar files reveals :
+
+version | Windows | MacOS | Linux |
+-------|------------| ------| -----|
+0.13 | __No__ | Yes | Yes |
+0.13.1| Yes | Yes | Yes |
+0.14|  __No__ | Yes | Yes |
+0.14.1| __No__ | Yes | Yes |
+
+That table was compiled by just eyeballing the jar file :
+
+```
+$ jar -tvf build/distribution/lib/amazon-kinesis-producer.jar | grep native
+     0 Wed Jul 31 22:20:56 BST 2019 amazon-kinesis-producer-native-binaries/
+     0 Wed Jul 31 22:20:56 BST 2019 amazon-kinesis-producer-native-binaries/osx/
+     0 Wed Jul 31 22:20:56 BST 2019 amazon-kinesis-producer-native-binaries/linux/
+     0 Wed Jul 31 22:20:56 BST 2019 amazon-kinesis-producer-native-binaries/windows/
+11797944 Wed Jul 31 22:20:56 BST 2019 amazon-kinesis-producer-native-binaries/osx/kinesis_producer
+65780579 Wed Jul 31 22:20:56 BST 2019 amazon-kinesis-producer-native-binaries/linux/kinesis_producer
+3792384 Wed Jul 31 22:20:56 BST 2019 amazon-kinesis-producer-native-binaries/windows/kinesis_producer.exe
+```
+
+If you need to pin to a specific version then we suggest you something like this when managing your dependencies (gradle)
+
+```
+  interlokRuntime ("com.adaptris:interlok-aws-kinesis:3.11-SNAPSHOT") {
+    changing=true
+    exclude group: "com.amazonaws", module: "amazon-kinesis-producer"
+  }
+  // 0.13 and 0.14 don't contain the windows binaries...
+  interlokRuntime ("com.amazonaws:amazon-kinesis-producer:0.13.1")
+```
+
+## AWS Kinesis + docker
+
+Note that the native binary on Linux is compiled against `glibc` which means that you may get a stacktrace that looks like this (generally on alpine based images, since they use _muslc_ as the standard C library rather than _glibc_). It's probably easier at this point to choose a docker image that isn't alpine based.
 
 ```
 com.amazonaws.services.kinesis.producer.IrrecoverableError: Error starting child process
