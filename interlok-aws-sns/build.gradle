@@ -13,7 +13,8 @@ dependencies {
   }
   compile project(':interlok-aws-common')
 
-  testCompile 'org.mockito:mockito-all:1.10.19'
+  testCompile ("org.mockito:mockito-core:3.5.0")
+  testCompile ("org.mockito:mockito-inline:3.5.0")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
