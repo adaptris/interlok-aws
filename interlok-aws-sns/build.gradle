@@ -12,9 +12,6 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
   }
   compile project(':interlok-aws-common')
-
-  testCompile ("org.mockito:mockito-core:3.5.0")
-  testCompile ("org.mockito:mockito-inline:3.5.0")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
