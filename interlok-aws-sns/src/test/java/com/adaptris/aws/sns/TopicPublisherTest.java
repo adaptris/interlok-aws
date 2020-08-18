@@ -19,7 +19,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import org.junit.Test;
 import org.mockito.Mockito;
 import com.adaptris.aws.AWSKeysAuthentication;
@@ -27,25 +27,20 @@ import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.ProducerCase;
-import com.adaptris.core.ServiceCase;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.common.MetadataDataInputParameter;
 import com.adaptris.interlok.InterlokException;
 import com.adaptris.interlok.config.DataInputParameter;
+import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
+import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import com.adaptris.interlok.types.InterlokMessage;
 import com.adaptris.util.GuidGenerator;
 import com.amazonaws.services.sns.AmazonSNSClient;
 import com.amazonaws.services.sns.model.PublishResult;
 
-@SuppressWarnings("deprecation")
-public class TopicPublisherTest extends ProducerCase {
-  @Override
-  public boolean isAnnotatedForJunit4() {
-    return true;
-  }
+public class TopicPublisherTest extends ExampleProducerCase {
 
   @Override
   protected StandaloneProducer retrieveObjectForSampleConfig() {
@@ -63,6 +58,7 @@ public class TopicPublisherTest extends ProducerCase {
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testSubject() throws Exception {
     PublishToTopic producer =
         new PublishToTopic().withTopicArn("arn:aws:sns:us-east-1:123456789012:MyNewTopic");
@@ -96,7 +92,7 @@ public class TopicPublisherTest extends ProducerCase {
   public void testPublish() throws Exception {
     AmazonSNSClient mockClient = Mockito.mock(AmazonSNSClient.class);
     PublishResult mockResult = Mockito.mock(PublishResult.class);
-    Mockito.when(mockClient.publish(anyObject())).thenReturn(mockResult);
+    Mockito.when(mockClient.publish(any())).thenReturn(mockResult);
     String resultId = new GuidGenerator().getUUID();
     Mockito.when(mockResult.getMessageId()).thenReturn(resultId);
     PublishToTopic producer = new PublishToTopic()
@@ -105,7 +101,7 @@ public class TopicPublisherTest extends ProducerCase {
     StandaloneProducer p =
         new StandaloneProducer(new MockAmazonSNSConnection(mockClient), producer);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    ServiceCase.execute(p, msg);
+    ExampleServiceCase.execute(p, msg);
     assertTrue(msg.headersContainsKey(PublishToTopic.SNS_MSG_ID_KEY));
     assertEquals(resultId, msg.getMetadataValue(PublishToTopic.SNS_MSG_ID_KEY));
   }
@@ -114,7 +110,7 @@ public class TopicPublisherTest extends ProducerCase {
   public void testPublish_NoSubject() throws Exception {
     AmazonSNSClient mockClient = Mockito.mock(AmazonSNSClient.class);
     PublishResult mockResult = Mockito.mock(PublishResult.class);
-    Mockito.when(mockClient.publish(anyObject())).thenReturn(mockResult);
+    Mockito.when(mockClient.publish(any())).thenReturn(mockResult);
     String resultId = new GuidGenerator().getUUID();
     Mockito.when(mockResult.getMessageId()).thenReturn(resultId);
 
@@ -123,7 +119,7 @@ public class TopicPublisherTest extends ProducerCase {
     StandaloneProducer p =
         new StandaloneProducer(new MockAmazonSNSConnection(mockClient), producer);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    ServiceCase.execute(p, msg);
+    ExampleServiceCase.execute(p, msg);
     assertTrue(msg.headersContainsKey(PublishToTopic.SNS_MSG_ID_KEY));
     assertEquals(resultId, msg.getMetadataValue(PublishToTopic.SNS_MSG_ID_KEY));
   }
@@ -132,7 +128,7 @@ public class TopicPublisherTest extends ProducerCase {
   public void testPublish_Failure() throws Exception {
     AmazonSNSClient mockClient = Mockito.mock(AmazonSNSClient.class);
     PublishResult mockResult = Mockito.mock(PublishResult.class);
-    Mockito.when(mockClient.publish(anyObject())).thenReturn(mockResult);
+    Mockito.when(mockClient.publish(any())).thenReturn(mockResult);
     String resultId = new GuidGenerator().getUUID();
     Mockito.when(mockResult.getMessageId()).thenReturn(resultId);
     PublishToTopic producer =
@@ -148,7 +144,7 @@ public class TopicPublisherTest extends ProducerCase {
         new StandaloneProducer(new MockAmazonSNSConnection(mockClient), producer);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     try {
-      ServiceCase.execute(p, msg);
+      ExampleServiceCase.execute(p, msg);
       fail();
     } catch (ServiceException expected) {
 

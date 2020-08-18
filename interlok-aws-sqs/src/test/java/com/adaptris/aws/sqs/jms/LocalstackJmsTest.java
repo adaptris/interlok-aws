@@ -14,8 +14,6 @@ import org.junit.runners.MethodSorters;
 import com.adaptris.aws.sqs.LocalstackHelper;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.BaseCase;
-import com.adaptris.core.ServiceCase;
 import com.adaptris.core.StandaloneConsumer;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.jms.JmsConnection;
@@ -24,6 +22,8 @@ import com.adaptris.core.jms.PtpProducer;
 import com.adaptris.core.stubs.MockMessageListener;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.core.util.ManagedThreadFactory;
+import com.adaptris.interlok.junit.scaffolding.BaseCase;
+import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.ListQueuesResult;
 
@@ -60,7 +60,7 @@ public class LocalstackJmsTest {
     JmsConnection conn = helper.createJmsConnection();
     StandaloneProducer sp = new StandaloneProducer(conn, producer);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS);
-    ServiceCase.execute(sp, msg);
+    ExampleServiceCase.execute(sp, msg);
     assertTrue(helper.messagesOnQueue(helper.toQueueURL(getProperty(SQS_JMS_QUEUE))) > 0);
   }
 

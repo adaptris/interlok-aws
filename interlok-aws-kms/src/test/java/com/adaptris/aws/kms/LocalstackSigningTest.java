@@ -20,10 +20,10 @@ import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.ServiceCase;
 import com.adaptris.core.common.ByteArrayFromMetadata;
 import com.adaptris.core.common.MetadataStreamOutput;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import com.adaptris.util.text.Base64ByteTranslator;
 import com.amazonaws.services.kms.AWSKMSClient;
 import com.amazonaws.services.kms.model.CreateKeyRequest;
@@ -53,18 +53,18 @@ public class LocalstackSigningTest {
       LifecycleHelper.initAndStart(conn);
       String keyId = createMasterSigningKey(conn.awsClient());
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS, StandardCharsets.UTF_8.name());
-      
+
       msg.addMessageHeader(HASH_METADATA_KEY, Base64.getEncoder().encodeToString(hash(MSG_CONTENTS)));
 
       // Now create the signature
       GenerateSignatureService signer = generateSignatureService(keyId);
-      ServiceCase.execute(signer, msg);
+      ExampleServiceCase.execute(signer, msg);
       assertTrue(msg.headersContainsKey(SIG_METADATA_KEY));
-      
+
       // Re-hash the payload to "simulate the payload being transported...
       msg.addMessageHeader(HASH_METADATA_KEY, Base64.getEncoder().encodeToString(hash(MSG_CONTENTS)));
       VerifySignatureService verify = verifySignatureService(keyId);
-      ServiceCase.execute(signer, msg);
+      ExampleServiceCase.execute(signer, msg);
       // no exception...
     } finally {
       LifecycleHelper.stopAndClose(conn);

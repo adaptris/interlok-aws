@@ -22,17 +22,11 @@ import static org.junit.Assert.fail;
 import org.junit.Test;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.StaticCredentialsBuilder;
-import com.adaptris.core.BaseCase;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.junit.scaffolding.BaseCase;
 
 public class AmazonS3ConnectionTest extends BaseCase {
-
-  @Override
-  public boolean isAnnotatedForJunit4() {
-    return true;
-  }
-
 
   @Test
   public void testCreateBuilder() throws Exception {

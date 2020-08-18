@@ -29,16 +29,16 @@ import com.adaptris.aws.s3.meta.S3ServerSideEncryption;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.ServiceCase;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.common.PayloadStreamOutputParameter;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
 
-public class S3ServiceTest extends ServiceCase {
+public class S3ServiceTest extends ExampleServiceCase {
   private static final String HYPHEN = "-";
 
   private enum OperationsBuilder {
@@ -111,10 +111,6 @@ public class S3ServiceTest extends ServiceCase {
   }
 
   public S3ServiceTest() {
-  }
-  @Override
-  public boolean isAnnotatedForJunit4() {
-    return true;
   }
 
   @Test

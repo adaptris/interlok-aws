@@ -18,10 +18,10 @@ import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.ServiceCase;
 import com.adaptris.core.common.ByteArrayFromPayload;
 import com.adaptris.core.common.PayloadOutputStreamWrapper;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import com.amazonaws.services.kms.AWSKMSClient;
 import com.amazonaws.services.kms.model.CreateKeyRequest;
 import com.amazonaws.services.kms.model.CreateKeyResult;
@@ -48,17 +48,17 @@ public class LocalstackEncryptionTest {
       LifecycleHelper.initAndStart(conn);
       String keyId = createSymmetricKey(conn.awsClient());
       AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS.getBytes(StandardCharsets.UTF_8));
-      
+
       EncryptService encryptor = generateEncryptService(keyId);
       DecryptService decryptor = generateDecryptService(keyId);
 
-      ServiceCase.execute(encryptor, msg);
-      
+      ExampleServiceCase.execute(encryptor, msg);
+
       assertNotEqual(MSG_CONTENTS.getBytes(StandardCharsets.UTF_8), msg.getPayload());
-      
-      
-      ServiceCase.execute(decryptor, msg);
-      
+
+
+      ExampleServiceCase.execute(decryptor, msg);
+
       assertEqual(MSG_CONTENTS.getBytes(StandardCharsets.UTF_8), msg.getPayload());
     } finally {
       LifecycleHelper.stopAndClose(conn);
@@ -81,7 +81,7 @@ public class LocalstackEncryptionTest {
         .withKeyId(keyId)
         .withConnection(buildConnection());
   }
-  
+
   protected AWSKMSConnection buildConnection() {
     String serviceEndpoint = CONFIG.getProperty(KMS_URL);
     String signingRegion = CONFIG.getProperty(KMS_SIGNING_REGION);

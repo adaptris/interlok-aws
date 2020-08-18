@@ -16,8 +16,7 @@
 
 package com.adaptris.aws.sqs;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
@@ -35,12 +34,12 @@ import org.junit.Test;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.ConsumerCase;
 import com.adaptris.core.QuartzCronPoller;
 import com.adaptris.core.StandaloneConsumer;
 import com.adaptris.core.stubs.MessageCounter;
 import com.adaptris.core.stubs.MockMessageListener;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.junit.scaffolding.ExampleConsumerCase;
 import com.adaptris.util.GuidGenerator;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
@@ -57,24 +56,20 @@ import com.amazonaws.services.sqs.model.QueueAttributeName;
 import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 
-public class AwsConsumerTest extends ConsumerCase {
+public class AwsConsumerTest extends ExampleConsumerCase {
 
   private static final String payload = "The quick brown fox jumps over the lazy dog.";
 
   private AmazonSQS sqsClientMock;
   private AmazonSQSConnection connectionMock;
 
-  @Override
-  public boolean isAnnotatedForJunit4() {
-    return true;
-  }
 
   @Before
   public void setUp() throws Exception {
 
     sqsClientMock = mock(AmazonSQS.class);
     GetQueueUrlResult queueUrlResultMock = mock(GetQueueUrlResult.class);
-    when(sqsClientMock.getQueueUrl((GetQueueUrlRequest)anyObject())).thenReturn(queueUrlResultMock);
+    when(sqsClientMock.getQueueUrl((GetQueueUrlRequest) any())).thenReturn(queueUrlResultMock);
 
     // Initialize SQS Connection mock
     connectionMock = mock(AmazonSQSConnection.class);
@@ -107,7 +102,8 @@ public class AwsConsumerTest extends ConsumerCase {
   @Test
   public void testSingleConsume_AlwaysDelete() throws Exception {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
-    when(sqsClientMock.receiveMessage((ReceiveMessageRequest) anyObject())).thenReturn(createReceiveMessageResult(1),
+    when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
+        createReceiveMessageResult(1),
         new ReceiveMessageResult());
 
     StandaloneConsumer consumer = startConsumer();
@@ -121,7 +117,7 @@ public class AwsConsumerTest extends ConsumerCase {
   @Test
   public void testSingleConsume_DeleteOnSuccess() throws Exception {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
-    when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenReturn(
+    when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
         createReceiveMessageResult(1),
         new ReceiveMessageResult());
 
@@ -141,7 +137,8 @@ public class AwsConsumerTest extends ConsumerCase {
   @Test
   public void testSingleConsume_NoDeleteOnFailure() throws Exception {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
-    when(sqsClientMock.receiveMessage((ReceiveMessageRequest) anyObject())).thenReturn(createReceiveMessageResult(1),
+    when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
+        createReceiveMessageResult(1),
         new ReceiveMessageResult());
 
     NoCallbackListener messageListener = new NoCallbackListener();
@@ -160,7 +157,8 @@ public class AwsConsumerTest extends ConsumerCase {
 
   @Test
   public void testConsumeWithAmazonReceiveException() throws Exception {
-    when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenThrow(new AmazonServiceException("expected"));
+    when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any()))
+        .thenThrow(new AmazonServiceException("expected"));
 
     StandaloneConsumer consumer = startConsumer();
     AmazonSQSConsumer sqsConsumer = (AmazonSQSConsumer) consumer.getConsumer();
@@ -172,11 +170,12 @@ public class AwsConsumerTest extends ConsumerCase {
   @Test
   public void testConsumeWithAmazonDeleteException() throws Exception {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
-    when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenReturn(
+    when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
         createReceiveMessageResult(1),
         new ReceiveMessageResult());
 
-    doThrow(new AmazonServiceException("expected")).when(sqsClientMock).deleteMessage((DeleteMessageRequest)anyObject());
+    doThrow(new AmazonServiceException("expected")).when(sqsClientMock)
+        .deleteMessage((DeleteMessageRequest) any());
 
     StandaloneConsumer consumer = startConsumer();
     AmazonSQSConsumer sqsConsumer = (AmazonSQSConsumer) consumer.getConsumer();
@@ -192,7 +191,7 @@ public class AwsConsumerTest extends ConsumerCase {
     attributes.put("myKey2", "myValue2");
 
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
-    when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenReturn(
+    when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
         createReceiveMessageResult(1, attributes),
         new ReceiveMessageResult());
 
@@ -222,7 +221,7 @@ public class AwsConsumerTest extends ConsumerCase {
 
 
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
-    when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenReturn(
+    when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
         createReceiveMessageResult(1, attributes, convertToMessageAttributes(msgAttributes)),
         new ReceiveMessageResult());
 
@@ -246,7 +245,7 @@ public class AwsConsumerTest extends ConsumerCase {
   public void testSingleConsumeWithMessageId() throws Exception {
     ReceiveMessageResult receiveMessageResult = createReceiveMessageResult(1);
     String expected = receiveMessageResult.getMessages().get(0).getMessageId();
-    when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenReturn(
+    when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
         receiveMessageResult, new ReceiveMessageResult());
 
     MockMessageListener messageListener = new MockMessageListener(10);
@@ -269,7 +268,7 @@ public class AwsConsumerTest extends ConsumerCase {
     final int numMsgs = b1 + b2 + b3 + b4 + b5;
 
     // Return a ReceiveMessageResult the first calls, an empty result the last call
-    when(sqsClientMock.receiveMessage((ReceiveMessageRequest)anyObject())).thenReturn(
+    when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
         createReceiveMessageResult(b1),
         createReceiveMessageResult(b2),
         createReceiveMessageResult(b3),
