@@ -4,7 +4,7 @@ import org.apache.tools.ant.filters.*
 ext {
   componentName='Interlok AWS/KMS'
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  mockitoVersion = '3.5.0'
+  mockitoVersion = '3.5.5'
 }
 
 dependencies {
