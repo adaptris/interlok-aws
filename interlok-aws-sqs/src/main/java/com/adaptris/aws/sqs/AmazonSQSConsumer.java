@@ -21,11 +21,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import javax.management.MalformedObjectNameException;
+import javax.validation.Valid;
 import org.apache.commons.lang3.BooleanUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
+import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisComponent;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -36,6 +39,8 @@ import com.adaptris.core.runtime.ParentRuntimeInfoComponent;
 import com.adaptris.core.runtime.RuntimeInfoComponent;
 import com.adaptris.core.runtime.RuntimeInfoComponentFactory;
 import com.adaptris.core.runtime.WorkflowManager;
+import com.adaptris.core.util.DestinationHelper;
+import com.adaptris.core.util.LoggingHelper;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
@@ -61,12 +66,13 @@ import lombok.SneakyThrows;
 @AdapterComponent
 @ComponentProfile(summary = "Receive messages from Amazon SQS", tag = "consumer,amazon,sqs",
     recommended = {AmazonSQSConnection.class}, metadata= {"SQSMessageID"})
+@DisplayOrder(order = {"queue", "ownerAwsAccountId", "alwaysDelete", "prefetchCount"})
 public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
   /**
    * The maximum number of messages to retrieve from the Amazon SQS queue per request. When omitted
    * the default setting on the queue will be used.
-   * 
+   *
    */
   @Getter
   @Setter
@@ -82,7 +88,7 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
   /**
    * Whether or not to always delete the message from the queue.
-   * 
+   *
    * <p>
    * Since the workflow can be configured weith complex behaviour on errors, we have traditionally deleted the message once
    * submitted to the workflow. In the specific AWS instance, this means that any configured 'Dead Letter Queue' behaviour will
@@ -97,9 +103,30 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
   @InputFieldDefault(value = "true")
   private Boolean alwaysDelete;
 
+  /**
+   * The consume destination represents the SQS Queue
+   *
+   */
+  @Deprecated
+  @Valid
+  @Removal(version = "4.0.0", message = "Use 'queue' instead")
+  @Getter
+  @Setter
+  private ConsumeDestination destination;
+
+  /**
+   * The SQS Queue name
+   *
+   */
+  @Getter
+  @Setter
+  private String queue;
+
+
   private transient String queueUrl = null;
   private transient List<String> receiveAttributes = Collections.singletonList("All");
   private transient List<String> receiveMessageAttributes = Collections.singletonList("All");
+  private transient boolean destinationWarningLogged = false;
 
   static {
     RuntimeInfoComponentFactory.registerComponentFactory(new AmazonSQSConsumer.JmxFactory());
@@ -107,11 +134,6 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
   public AmazonSQSConsumer() {
     setReacquireLockBetweenMessages(true);
-  }
-
-  public AmazonSQSConsumer(ConsumeDestination dest) {
-    this();
-    setDestination(dest);
   }
 
   @Override
@@ -189,12 +211,27 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
   @Override
   protected void prepareConsumer() throws CoreException {
+    if (getDestination() != null) {
+      LoggingHelper.logWarning(destinationWarningLogged, () -> destinationWarningLogged = true,
+          "{} uses destination, use queue instead",
+          LoggingHelper.friendlyName(this));
+    }
+    DestinationHelper.mustHaveEither(getQueue(), getDestination());
+  }
+
+  public AmazonSQSConsumer withQueue(String s) {
+    setQueue(s);
+    return this;
   }
 
   int messagesRemaining() throws CoreException {
     GetQueueAttributesResult result = getSynClient().getQueueAttributes(
         new GetQueueAttributesRequest(getQueueUrl()).withAttributeNames(QueueAttributeName.ApproximateNumberOfMessages));
     return Integer.parseInt(result.getAttributes().get(QueueAttributeName.ApproximateNumberOfMessages.toString()));
+  }
+
+  private String queueName() {
+    return DestinationHelper.consumeDestination(getQueue(), getDestination());
   }
 
   @SneakyThrows(CoreException.class)
@@ -204,13 +241,18 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
   private String getQueueUrl() throws CoreException {
     if (queueUrl == null) {
-      queueUrl = AwsHelper.buildQueueUrl(getDestination().getDestination(), getOwnerAwsAccountId(), getSynClient());
+      queueUrl = AwsHelper.buildQueueUrl(queueName(), getOwnerAwsAccountId(), getSynClient());
     }
     return queueUrl;
   }
 
   private boolean alwaysDelete() {
     return BooleanUtils.toBooleanDefaultIfNull(getAlwaysDelete(), true);
+  }
+
+  @Override
+  protected String newThreadName() {
+    return DestinationHelper.threadName(retrieveAdaptrisMessageListener(), getDestination());
   }
 
   private static class JmxFactory extends RuntimeInfoComponentFactory {
@@ -230,4 +272,5 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
     }
 
   }
+
 }

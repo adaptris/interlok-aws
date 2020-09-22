@@ -32,7 +32,7 @@ import lombok.Setter;
  * {@code %message} expression language; they will, however, be passed as-is into the underlying
  * service (which may still resolve them).
  * </p>
- * 
+ *
  * @config s3-bucket-list
  */
 @XStreamAlias("s3-bucket-list")
@@ -50,7 +50,7 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
 
   /**
    * The S3 bucket to connect to.
-   * 
+   *
    */
   @NotBlank
   @Setter
@@ -60,7 +60,7 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
 
   /**
    * The S3 key to perform a list operation on.
-   * 
+   *
    */
   @AdvancedConfig(rare = true)
   @Setter
@@ -71,7 +71,7 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
 
   /**
    * The prefix to use when issuing the listOperation
-   * 
+   *
    */
   @Setter
   @Getter
@@ -79,7 +79,7 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
 
   /**
    * Specify any additional filtering you wish to perform on the list.
-   * 
+   *
    */
   @Getter
   @Setter
@@ -98,7 +98,7 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
   @Getter
   @Setter
   @Deprecated
-  @Removal(version = "3.11.0",
+  @Removal(version = "4.0",
       message = "due to interface changes; paging results is not explicitly configurable and will be ignored")
   private Boolean pageResults;
 
@@ -133,7 +133,7 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
 
   @Override
   public void doService(AdaptrisMessage msg) throws ServiceException {
-    S3Service service = buildService(); 
+    S3Service service = buildService();
     try {
       LifecycleHelper.initAndStart(service, false);
       service.doService(msg);
@@ -149,13 +149,6 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
     return this;
   }
 
-  @Deprecated
-  @Removal(version = "3.11.0",
-      message = "due to interface changes; paging results is not explicitly configurable and will be ignored")
-  public S3BucketList withPageResults(Boolean b) {
-    setPageResults(b);
-    return this;
-  }
 
   @Deprecated
   @Removal(version = "3.12.0", message = "Use prefix instead")

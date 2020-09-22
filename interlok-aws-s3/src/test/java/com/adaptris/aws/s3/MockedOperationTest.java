@@ -369,29 +369,6 @@ public class MockedOperationTest {
 
 
   @Test
-  public void testListOperation_LegacyFilter() throws Exception {
-    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
-    TransferManager transferManager = Mockito.mock(TransferManager.class);
-    ListObjectsV2Result result = Mockito.mock(ListObjectsV2Result.class);
-    S3ObjectSummary sbase = createSummary("srcBucket", "srcKeyPrefix/");
-    S3ObjectSummary s1 = createSummary("srcBucket", "srcKeyPrefix/file.json");
-    S3ObjectSummary s2 = createSummary("srcBucket", "srcKeyPrefix/file2.csv");
-
-    List<S3ObjectSummary> list = new ArrayList<>(Arrays.asList(sbase, s1, s2));
-    Mockito.when(result.getObjectSummaries()).thenReturn(list);
-    Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
-    ListOperation ls = new ListOperation()
-        .withFilterSuffix(new ConstantDataInputParameter(".json"))
-        .withPageResults(true)
-        .withBucketName(new ConstantDataInputParameter("srcBucket")).withKey(new ConstantDataInputParameter("srcKeyPrefix/"));
-
-    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("");
-    ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
-    execute(ls, wrapper, msg);
-    assertEquals("srcKeyPrefix/file.json" + System.lineSeparator(), msg.getContent());
-  }
-
-  @Test
   public void testListOperation_RemoteBlobFilter() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
     TransferManager transferManager = Mockito.mock(TransferManager.class);

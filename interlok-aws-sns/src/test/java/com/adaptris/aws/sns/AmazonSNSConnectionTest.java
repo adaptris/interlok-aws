@@ -20,22 +20,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyObject;
+import static org.mockito.ArgumentMatchers.any;
 import org.junit.Test;
 import org.mockito.Mockito;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.StaticCredentialsBuilder;
-import com.adaptris.core.BaseCase;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.junit.scaffolding.BaseCase;
 import com.amazonaws.services.sns.AmazonSNSClient;
 
 public class AmazonSNSConnectionTest extends BaseCase {
-  @Override
-  public boolean isAnnotatedForJunit4() {
-    return true;
-  }
+
   @Test
   public void testRegion() {
     AmazonSNSConnection c = new AmazonSNSConnection();
@@ -65,9 +62,9 @@ public class AmazonSNSConnectionTest extends BaseCase {
       LifecycleHelper.stopAndClose(conn);
     }
     assertNull(conn.amazonClient());
-    
+
     CustomEndpoint customEndpoint = Mockito.mock(CustomEndpoint.class);
-    Mockito.when(customEndpoint.rebuild(anyObject())).thenThrow(new RuntimeException());
+    Mockito.when(customEndpoint.rebuild(any())).thenThrow(new RuntimeException());
     Mockito.when(customEndpoint.isConfigured()).thenReturn(true);
     conn = new AmazonSNSConnection();
     conn.setCustomEndpoint(customEndpoint);
@@ -76,19 +73,19 @@ public class AmazonSNSConnectionTest extends BaseCase {
       LifecycleHelper.initAndStart(conn);
       fail();
     } catch (CoreException expected) {
-      
+
     } finally {
       LifecycleHelper.stopAndClose(conn);
     }
     assertNull(conn.amazonClient());
 
   }
-  
+
   @Test
   public void testCloseQuietly() throws Exception {
     AmazonSNSClient mockClient= Mockito.mock(AmazonSNSClient.class);
     AmazonSNSConnection.closeQuietly(null);
-    AmazonSNSConnection.closeQuietly(mockClient);    
+    AmazonSNSConnection.closeQuietly(mockClient);
   }
-  
+
 }

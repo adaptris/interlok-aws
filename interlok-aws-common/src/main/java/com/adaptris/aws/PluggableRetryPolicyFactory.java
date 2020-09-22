@@ -18,8 +18,8 @@ package com.adaptris.aws;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import org.apache.commons.lang3.BooleanUtils;
-import org.hibernate.validator.constraints.NotBlank;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.util.NumberUtils;
 import com.amazonaws.retry.RetryPolicy;
@@ -31,7 +31,7 @@ import lombok.Setter;
 
 /**
  * Basic {@link RetryPolicy} builder implementation for AWS that allows you to plug in your own conditions and strategies.
- * 
+ *
  * @config aws-pluggable-retry-policy-factory
  */
 @XStreamAlias("aws-pluggable-retry-policy-factory")

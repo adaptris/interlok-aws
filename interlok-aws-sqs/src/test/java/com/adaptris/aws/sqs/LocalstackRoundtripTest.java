@@ -15,15 +15,13 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.BaseCase;
-import com.adaptris.core.ConfiguredConsumeDestination;
-import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.FixedIntervalPoller;
-import com.adaptris.core.ServiceCase;
 import com.adaptris.core.StandaloneConsumer;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.stubs.MockMessageListener;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.junit.scaffolding.BaseCase;
+import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import com.adaptris.util.TimeInterval;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.ListQueuesResult;
@@ -57,7 +55,7 @@ public class LocalstackRoundtripTest {
   @Test
   public void test_02_TestPublish() throws Exception {
     Assume.assumeTrue(areTestsEnabled());
-    AmazonSQSProducer sqsProducer = new AmazonSQSProducer(new ConfiguredProduceDestination(getProperty(SQS_QUEUE)));
+    AmazonSQSProducer sqsProducer = new AmazonSQSProducer().withQueue(getProperty(SQS_QUEUE));
     sqsProducer.withMessageAsyncCallback((e) -> {
       try {
         System.err.println(e.get().getMessageId());
@@ -68,7 +66,7 @@ public class LocalstackRoundtripTest {
     StandaloneProducer sp = new StandaloneProducer(conn, sqsProducer);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS);
 
-    ServiceCase.execute(sp, msg);
+    ExampleServiceCase.execute(sp, msg);
 
     assertTrue(helper.messagesOnQueue(helper.toQueueURL(getProperty(SQS_QUEUE))) > 0);
   }
@@ -78,7 +76,7 @@ public class LocalstackRoundtripTest {
     StandaloneConsumer standaloneConsumer = null;
     try {
       Assume.assumeTrue(areTestsEnabled());
-      AmazonSQSConsumer consumer = new AmazonSQSConsumer(new ConfiguredConsumeDestination(getProperty(SQS_QUEUE)));
+      AmazonSQSConsumer consumer = new AmazonSQSConsumer().withQueue(getProperty(SQS_QUEUE));
       AmazonSQSConnection conn = helper.createConnection();
       FixedIntervalPoller poller = new FixedIntervalPoller(new TimeInterval(300L, TimeUnit.MILLISECONDS));
       consumer.setPoller(poller);

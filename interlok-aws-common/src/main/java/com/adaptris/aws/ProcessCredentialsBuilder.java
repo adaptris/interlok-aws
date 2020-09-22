@@ -1,7 +1,7 @@
 package com.adaptris.aws;
 
 import java.util.concurrent.TimeUnit;
-import org.hibernate.validator.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldDefault;
@@ -15,15 +15,15 @@ import lombok.Setter;
 
 /**
  * Credentials provider that can load credentials from an external process.
- * 
+ *
  * <p>
  * See
  * https://docs.aws.amazon.com/cli/latest/topic/config-vars.html#sourcing-credentials-from-external-processes
  * for more information
  * </p>
- * 
+ *
  * @config aws-process-credentials-builder
- * 
+ *
  */
 @XStreamAlias("aws-process-credentials-builder")
 @ComponentProfile(summary = "Credentials provider that can load credentials from an external process", since = "3.9.2")
@@ -61,7 +61,7 @@ public class ProcessCredentialsBuilder implements AWSCredentialsProviderBuilder 
   /**
    * The number of seconds between when the credentials expire and when the credentials should start
    * to be refreshed.
-   * 
+   *
    * <p>
    * This setting allows the credentials to be refreshed <strong>before</strong> they are reported to
    * expire. If not configured, then the AWS internal default is used (currently 15 seconds)

@@ -170,7 +170,7 @@ public class BucketListTest {
     Mockito.when(client.listObjectsV2(argument.capture())).thenReturn(listing, listing2);
 
     S3BucketList bucket =
-        new S3BucketList().withConnection(mockConnection).withPageResults(true)
+        new S3BucketList().withConnection(mockConnection)
             .withPrefix("srcKeyPrefix").withMaxKeys(2)
             .withOutputStyle(null).withBucket("srcBucket");
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();

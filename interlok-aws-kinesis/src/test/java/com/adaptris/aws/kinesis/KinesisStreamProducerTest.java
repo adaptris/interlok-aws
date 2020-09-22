@@ -1,26 +1,23 @@
 package com.adaptris.aws.kinesis;
 
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyObject;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import org.junit.Test;
 import org.mockito.Mockito;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ConfiguredProduceDestination;
-import com.adaptris.core.ProducerCase;
-import com.adaptris.core.ServiceCase;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.StandaloneProducer;
+import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
+import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import com.amazonaws.services.kinesis.producer.KinesisProducer;
 import com.amazonaws.services.kinesis.producer.UserRecordResult;
 import com.google.common.util.concurrent.ListenableFutureTask;
 
-public class KinesisStreamProducerTest extends ProducerCase {
-  @Override
-  public boolean isAnnotatedForJunit4() {
-    return true;
-  }
+public class KinesisStreamProducerTest extends ExampleProducerCase {
+
 
   @Override
   protected StandaloneProducer retrieveObjectForSampleConfig() {
@@ -31,6 +28,7 @@ public class KinesisStreamProducerTest extends ProducerCase {
   }
 
   @Test
+  @SuppressWarnings("deprecation")
   public void testProduce() throws Exception {
     KinesisStreamProducer producer =
         new KinesisStreamProducer().withPartitionKey("myPartitionKey");
@@ -40,10 +38,10 @@ public class KinesisStreamProducerTest extends ProducerCase {
     ListenableFutureTask<UserRecordResult> future = ListenableFutureTask.create(() -> {
       return mockResult;
     });
-    Mockito.when(mock.addUserRecord(anyString(), anyString(), anyObject())).thenReturn(future);
+    Mockito.when(mock.addUserRecord(anyString(), anyString(), any())).thenReturn(future);
     StandaloneProducer standalone = new StandaloneProducer(new MyConnection(mock), producer);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    ServiceCase.execute(standalone, msg);
+    ExampleServiceCase.execute(standalone, msg);
   }
 
   @Test
@@ -54,10 +52,10 @@ public class KinesisStreamProducerTest extends ProducerCase {
     ListenableFutureTask<UserRecordResult> future = ListenableFutureTask.create(() -> {
       return mockResult;
     });
-    Mockito.when(mock.addUserRecord(anyString(), anyString(), anyObject())).thenReturn(future);
+    Mockito.when(mock.addUserRecord(anyString(), anyString(), any())).thenReturn(future);
     StandaloneProducer standalone = new StandaloneProducer(new MyConnection(mock), producer);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    ServiceCase.execute(standalone, msg);
+    ExampleServiceCase.execute(standalone, msg);
   }
 
   @Test
@@ -69,11 +67,12 @@ public class KinesisStreamProducerTest extends ProducerCase {
     ListenableFutureTask<UserRecordResult> future = ListenableFutureTask.create(() -> {
       return mockResult;
     });
-    Mockito.doThrow(new IllegalArgumentException()).when(mock).addUserRecord(anyString(), anyString(), anyObject());
+    Mockito.doThrow(new IllegalArgumentException()).when(mock).addUserRecord(anyString(),
+        anyString(), any());
     StandaloneProducer standalone = new StandaloneProducer(new MyConnection(mock), producer);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     try {
-      ServiceCase.execute(standalone, msg);
+      ExampleServiceCase.execute(standalone, msg);
       fail();
     } catch (ServiceException expected) {
 

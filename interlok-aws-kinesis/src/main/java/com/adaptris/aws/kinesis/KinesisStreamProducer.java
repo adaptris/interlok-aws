@@ -1,16 +1,14 @@
 package com.adaptris.aws.kinesis;
 
+import static com.adaptris.core.util.DestinationHelper.logWarningIfNotNull;
+import static com.adaptris.core.util.DestinationHelper.mustHaveEither;
+import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination;
 import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.concurrent.Future;
-
-import com.amazonaws.services.kinesis.producer.UserRecordResult;
-import com.google.common.util.concurrent.ListenableFuture;
-import lombok.NoArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.validator.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
+import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ProduceDestination;
@@ -18,9 +16,13 @@ import com.adaptris.core.ProduceException;
 import com.adaptris.core.ProduceOnlyProducerImp;
 import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
+import com.adaptris.core.util.LoggingHelper;
 import com.amazonaws.services.kinesis.producer.KinesisProducer;
+import com.amazonaws.services.kinesis.producer.UserRecordResult;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -35,18 +37,19 @@ import lombok.Setter;
  * <li>{@link #setPartitionKey(String)} should always be populated with a non-blank value, which will be used.</li>
  * </ul>
  * </p>
- * 
+ *
  * @config aws-kinesis-stream-producer
  */
 @ComponentProfile(summary = "Produce to Amazon Kinesis using the Kinesis Producer Library", tag = "amazon,aws,kinesis,producer",
     recommended = {ProducerLibraryConnection.class})
+@DisplayOrder(order = {"stream", "partitionKey"})
 @XStreamAlias("aws-kinesis-stream-producer")
 @NoArgsConstructor
 public class KinesisStreamProducer extends ProduceOnlyProducerImp {
 
   /**
    * The kinesis stream name.
-   * 
+   *
    */
   @InputFieldHint(expression = true)
   @Getter
@@ -54,54 +57,67 @@ public class KinesisStreamProducer extends ProduceOnlyProducerImp {
   private String stream;
   /**
    * The kinesis partition key.
-   * 
+   *
    */
   @NotBlank
   @InputFieldHint(expression = true)
   @Getter
   private String partitionKey;
 
+  /**
+   * The ProduceDestination is the stream that we will used.
+   *
+   * @deprecated since 3.11.0 use 'stream' instead.
+   *
+   */
+  @Getter
+  @Setter
+  @Deprecated
+  @Removal(version = "4.0.0", message = "use 'stream' instead")
+  private ProduceDestination destination;
+
+  private transient boolean destWarning;
+
   @Override
   public void prepare() throws CoreException {
+    logWarningIfNotNull(destWarning, () -> destWarning = true, getDestination(),
+        "{} uses destination, use 'stream' instead", LoggingHelper.friendlyName(this));
+    mustHaveEither(getStream(), getDestination());
   }
 
-  @Override
-  public void produce(AdaptrisMessage msg, ProduceDestination destination) throws ProduceException {
-    try {
-      addUserRecord(msg, destination);
-    } catch (Exception e) {
-      throw ExceptionHelper.wrapProduceException(e);
-    }
-  }
-
-  ListenableFuture<UserRecordResult> addUserRecord(AdaptrisMessage msg, ProduceDestination destination) throws Exception {
+  ListenableFuture<UserRecordResult> addUserRecord(AdaptrisMessage msg, String endpoint)
+      throws Exception {
     KinesisProducer producer = retrieveConnection(KinesisProducerWrapper.class).kinesisProducer();
-    String myStream = getStream(msg, destination);
     String myPartitionKey = msg.resolve(getPartitionKey());
-    return producer.addUserRecord(myStream, myPartitionKey, ByteBuffer.wrap(msg.getPayload()));
+    return producer.addUserRecord(endpoint, myPartitionKey, ByteBuffer.wrap(msg.getPayload()));
   }
 
-  String getStream(AdaptrisMessage msg, ProduceDestination destination) throws CoreException {
-    if (destination != null) {
-      return StringUtils.defaultIfBlank(msg.resolve(getStream()), destination.getDestination(msg));
-    }
-    // ProduceDestination is null, so we have to use what is available.
-    return msg.resolve(getStream());
-
-  }
-
-  public KinesisStreamProducer withStream(String s) {
+  public <T extends KinesisStreamProducer> T withStream(String s) {
     setStream(s);
-    return this;
+    return (T) this;
   }
 
   public void setPartitionKey(String partitionKey) {
     this.partitionKey = Args.notBlank(partitionKey, "partition-key");
   }
 
-  public KinesisStreamProducer withPartitionKey(String s) {
+  public <T extends KinesisStreamProducer> T withPartitionKey(String s) {
     setPartitionKey(s);
-    return this;
+    return (T) this;
+  }
+
+  @Override
+  protected void doProduce(AdaptrisMessage msg, String endpoint) throws ProduceException {
+    try {
+      addUserRecord(msg, endpoint);
+    } catch (Exception e) {
+      throw ExceptionHelper.wrapProduceException(e);
+    }
+  }
+
+  @Override
+  public String endpoint(AdaptrisMessage msg) throws ProduceException {
+    return resolveProduceDestination(getStream(), getDestination(), msg);
   }
 
 }

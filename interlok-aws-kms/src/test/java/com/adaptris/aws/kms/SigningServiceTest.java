@@ -15,12 +15,12 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.ServiceCase;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.common.ByteArrayFromMetadata;
 import com.adaptris.core.common.MetadataStreamOutput;
 import com.adaptris.core.stubs.DefectiveMessageFactory;
 import com.adaptris.core.stubs.DefectiveMessageFactory.WhenToBreak;
+import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import com.adaptris.util.GuidGenerator;
 import com.adaptris.util.text.Base64ByteTranslator;
 import com.amazonaws.services.kms.AWSKMSClient;
@@ -28,12 +28,8 @@ import com.amazonaws.services.kms.model.MessageType;
 import com.amazonaws.services.kms.model.SignResult;
 import com.amazonaws.services.kms.model.SigningAlgorithmSpec;
 
-public class SigningServiceTest extends ServiceCase {
+public class SigningServiceTest extends ExampleServiceCase {
 
-  @Override
-  public boolean isAnnotatedForJunit4() {
-    return true;
-  }
 
   @Override
   protected GenerateSignatureService retrieveObjectForSampleConfig() {

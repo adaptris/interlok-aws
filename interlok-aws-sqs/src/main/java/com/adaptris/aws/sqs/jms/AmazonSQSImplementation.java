@@ -23,9 +23,8 @@ import javax.validation.constraints.NotNull;
 import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
+import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
-import com.adaptris.annotation.Removal;
-import com.adaptris.aws.AWSAuthentication;
 import com.adaptris.aws.AWSCredentialsProviderBuilder;
 import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.EndpointBuilder;
@@ -52,35 +51,29 @@ import lombok.Setter;
  * This VendorImplementation uses the Amazon SQS JMS compatibility layer. When using this class, do not use the AmazonSQS Producer
  * and Consumer classes. Use regular JMS consumers and producers instead.
  * </p>
- * 
+ *
  * @config amazon-sqs-implementation
  * @since 3.0.3
  */
 @XStreamAlias("amazon-sqs-implementation")
+@DisplayOrder(order = {"region", "prefetchCount", "credentials"})
 public class AmazonSQSImplementation extends VendorImplementationImp {
 
   private static int DEFAULT_PREFETCH_COUNT = 10;
 
   /**
    * Set the region for the client.
-   * 
+   *
    * <p>
    * If the region is not specified, then {@link DefaultAwsRegionProviderChain} is used to determine
    * the region. You can always specify a region using the standard system property {@code aws.region}
    * or via environment variables.
    * </p>
-   * 
+   *
    */
   @Getter
   @Setter
   private String region;
-
-  @Valid
-  @Deprecated
-  @Removal(version = "3.11.0", message = "Use a AWSCredentialsProviderBuilder instead")
-  @Getter
-  @Setter
-  private AWSAuthentication authentication;
 
   /**
    * How to provide Credentials for AWS.
@@ -97,7 +90,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
 
   /**
    * The maximum number of messages to retrieve from the Amazon SQS queue per request.
-   * 
+   *
    */
   @AdvancedConfig
   @Getter
@@ -107,7 +100,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
 
   /**
    * How to create the SQS client and set parameters.
-   * 
+   *
    */
   @NotNull
   @AutoPopulated
@@ -117,7 +110,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   @Setter
   @NonNull
   private SQSClientFactory sqsClientFactory;
-  
+
   private transient SQSConnectionFactory connectionFactory = null;
 
   public AmazonSQSImplementation() {
@@ -147,7 +140,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
 
   @SuppressWarnings("deprecation")
   protected AWSCredentialsProviderBuilder credentialsProvider() {
-    return AWSCredentialsProviderBuilder.providerWithWarning(getClass().getCanonicalName(), getAuthentication(), getCredentials());
+    return AWSCredentialsProviderBuilder.defaultIfNull(getCredentials());
   }
 
 
@@ -161,18 +154,11 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   }
 
 
-  @Deprecated
-  @Removal(version = "3.11.0")
-  public <T extends AmazonSQSImplementation> T withAuthentication(AWSAuthentication a) {
-    setAuthentication(a);
-    return (T) this;
-  }
-  
   public <T extends AmazonSQSImplementation> T withClientFactory(SQSClientFactory fac) {
     setSqsClientFactory(fac);
     return (T) this;
   }
-  
+
 
   public <T extends AmazonSQSImplementation> T withCredentialsProviderBuilder(AWSCredentialsProviderBuilder builder) {
     setCredentials(builder);
@@ -183,11 +169,11 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   protected EndpointBuilder endpointBuilder() {
     return new RegionOnly();
   }
-  
+
   protected ProviderConfiguration newProviderConfiguration() {
     return new ProviderConfiguration().withNumberOfMessagesToPrefetch(prefetchCount());
   }
-  
+
   protected class RegionOnly implements EndpointBuilder {
 
     @Override
@@ -198,6 +184,6 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
       }
       return builder;
     }
-    
+
   }
 }

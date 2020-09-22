@@ -2,14 +2,14 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
 plugins {
-  id 'com.github.spotbugs' version '4.2.3' apply false
-  id "io.freefair.lombok" version "5.1.0" apply false
+  id 'com.github.spotbugs' version '4.5.0' apply false
+  id "io.freefair.lombok" version "5.1.1" apply false
   id 'org.owasp.dependencycheck' version '5.3.2.1' apply false
 }
 
 ext {
-  interlokCoreVersion = project.findProperty('interlokCoreVersion') ?: '3.10-SNAPSHOT'
-  releaseVersion = project.findProperty('releaseVersion') ?: '3.10-SNAPSHOT'
+  interlokCoreVersion = project.findProperty('interlokCoreVersion') ?: '3.11-SNAPSHOT'
+  releaseVersion = project.findProperty('releaseVersion') ?: '3.11-SNAPSHOT'
   nexusBaseUrl = project.findProperty('nexusBaseUrl') ?: 'https://nexus.adaptris.net/nexus'
   mavenPublishUrl = project.findProperty('mavenPublishUrl') ?: nexusBaseUrl + '/content/repositories/snapshots'
   javadocsBaseUrl = nexusBaseUrl + "/content/sites/javadocs/com/adaptris"
@@ -23,9 +23,9 @@ ext {
   organizationName = "Adaptris Ltd"
 
   slf4jVersion = '1.7.30'
-  awsSDKVersion = '1.11.803'
+  awsSDKVersion = '1.11.842'
   log4j2Version = '2.13.2'
-  mockitoVersion = '3.3.3'
+  mockitoVersion = '3.5.9'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
@@ -149,6 +149,8 @@ subprojects {
         exclude group: "org.apache.logging.log4j"
       }
       testCompile ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
+      testCompile ("org.mockito:mockito-core:$mockitoVersion")
+      testCompile ("org.mockito:mockito-inline:$mockitoVersion")
       javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
       umlDoclet("nl.talsmasoftware:umldoclet:1.1.4")
 
