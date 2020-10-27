@@ -22,7 +22,7 @@ import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.annotation.Removal;
+import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LoggingHelper;
@@ -93,8 +93,8 @@ public class ListOperation extends S3OperationImpl {
   @Getter
   @Setter
   @Deprecated
-  @Removal(version = "4.0",
-      message = "due to interface changes; paging results is not explicitly configurable and will be ignored")
+  @ConfigDeprecated(removalVersion = "4.0",
+      message = "due to interface changes; paging results is not explicitly configurable and will be ignored", groups = Deprecated.class)
   private Boolean pageResults;
 
   /**

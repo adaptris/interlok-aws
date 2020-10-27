@@ -19,7 +19,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
-import com.adaptris.annotation.Removal;
+import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LoggingHelper;
@@ -65,7 +65,7 @@ public class CopyOperation extends CopyOperationImpl {
   @Getter
   @Setter
   @Deprecated
-  @Removal(version = "3.12.0", message = "Use an expression based bucket instead")
+  @ConfigDeprecated(removalVersion = "3.12.0", message = "Use an expression based bucket instead", groups = Deprecated.class)
   private DataInputParameter<String> destinationBucketName;
   /**
    * The destination object.
@@ -74,7 +74,7 @@ public class CopyOperation extends CopyOperationImpl {
   @Getter
   @Setter
   @Deprecated
-  @Removal(version = "3.12.0", message = "Use an expression based key instead")
+  @ConfigDeprecated(removalVersion = "3.12.0", message = "Use an expression based key instead", groups = Deprecated.class)
   private DataInputParameter<String> destinationKey;
 
 

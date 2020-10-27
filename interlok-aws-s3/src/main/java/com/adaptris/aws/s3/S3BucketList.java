@@ -5,6 +5,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AdaptrisMessage;
@@ -66,7 +67,7 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
   @Setter
   @Getter
   @Deprecated
-  @Removal(version = "3.12.0", message = "use prefix instead")
+  @ConfigDeprecated(removalVersion = "3.12.0", message = "use prefix instead", groups = Deprecated.class)
   private String key;
 
   /**
@@ -98,8 +99,8 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
   @Getter
   @Setter
   @Deprecated
-  @Removal(version = "4.0",
-      message = "due to interface changes; paging results is not explicitly configurable and will be ignored")
+  @ConfigDeprecated(removalVersion = "4.0",
+      message = "due to interface changes; paging results is not explicitly configurable and will be ignored", groups = Deprecated.class)
   private Boolean pageResults;
 
   private transient boolean pageWarningLogged;

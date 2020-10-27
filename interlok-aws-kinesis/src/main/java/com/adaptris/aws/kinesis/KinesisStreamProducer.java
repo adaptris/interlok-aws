@@ -8,7 +8,7 @@ import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.annotation.Removal;
+import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ProduceDestination;
@@ -73,7 +73,7 @@ public class KinesisStreamProducer extends ProduceOnlyProducerImp {
   @Getter
   @Setter
   @Deprecated
-  @Removal(version = "4.0.0", message = "use 'stream' instead")
+  @ConfigDeprecated(removalVersion = "4.0.0", message = "use 'stream' instead", groups = Deprecated.class)
   private ProduceDestination destination;
 
   private transient boolean destWarning;
