@@ -1,45 +1,35 @@
 package com.adaptris.aws.s3;
 
+import static com.adaptris.aws.s3.LocalstackConfig.MY_TAG;
+import static com.adaptris.aws.s3.LocalstackConfig.MY_TAG_TEXT;
+import static com.adaptris.aws.s3.LocalstackConfig.S3_BUCKETNAME;
+import static com.adaptris.aws.s3.LocalstackConfig.S3_COPY_TO_FILENAME;
+import static com.adaptris.aws.s3.LocalstackConfig.S3_FILTER_REGEXP;
+import static com.adaptris.aws.s3.LocalstackConfig.S3_UPLOAD_FILENAME;
+import static com.adaptris.aws.s3.LocalstackConfig.areTestsEnabled;
+import static com.adaptris.aws.s3.LocalstackConfig.build;
+import static com.adaptris.aws.s3.LocalstackConfig.getConfiguration;
 import static com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase.execute;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import java.util.Properties;
 import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.apache.commons.lang3.BooleanUtils;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import com.adaptris.aws.AWSKeysAuthentication;
-import com.adaptris.aws.CustomEndpoint;
-import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RegexMetadataFilter;
-import com.adaptris.core.util.PropertyHelper;
 import com.adaptris.interlok.cloud.RemoteBlobFilterWrapper;
 
 // A new local stack instance; we're going upload, copy, tag, download, get, delete in that order
 // So, sadly we are being really lame, and forcing the ordering...
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LocalstackServiceTest {
-
-  private static final String MY_TAG_TEXT = "text";
-  private static final String MY_TAG = "MyTag";
-  private static final String TESTS_ENABLED = "localstack.tests.enabled";
-  private static final String S3_SIGNING_REGION = "localstack.s3.signingRegion";
-  private static final String S3_URL = "localstack.s3.url";
-  private static final String S3_UPLOAD_FILENAME = "localstack.s3.upload.filename";
-  private static final String S3_COPY_TO_FILENAME = "localstack.s3.copy.filename";
-  private static final String S3_BUCKETNAME = "localstack.s3.bucketname";
-  private static final String S3_FILTER_SUFFIX = "localstack.s3.ls.filterSuffix";
-  private static final String S3_FILTER_REGEXP = "localstack.s3.ls.filterRegexp";
-  private static final String PROPERTIES_RESOURCE = "unit-tests.properties";
-  private static Properties config = PropertyHelper.loadQuietly(PROPERTIES_RESOURCE);
 
   private static final String MSG_CONTENTS = "hello world";
 
@@ -131,7 +121,9 @@ public class LocalstackServiceTest {
 
   @Test
   public void test_09_List() throws Exception {
-    String regexp = config.getProperty(S3_FILTER_REGEXP, ".*"); // if it doesn't exist, then it will still pass this test...
+    // if it doesn't exist, then it
+    // will still pass this test...
+    String regexp = getConfiguration().getProperty(S3_FILTER_REGEXP, ".*");
     RemoteBlobFilterWrapper filter =
         new RemoteBlobFilterWrapper().withFilterExpression(regexp).withFilterImp(RegexFileFilter.class.getCanonicalName());
 
@@ -141,7 +133,7 @@ public class LocalstackServiceTest {
     S3Service service = build(ls);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     execute(service, msg);
-    assertEquals(config.getProperty(S3_UPLOAD_FILENAME) + System.lineSeparator(), msg.getContent());
+    assertEquals(getConfig(S3_UPLOAD_FILENAME) + System.lineSeparator(), msg.getContent());
   }
 
 
@@ -219,22 +211,8 @@ public class LocalstackServiceTest {
     execute(service, AdaptrisMessageFactory.getDefaultInstance().newMessage());
   }
 
-  protected static boolean areTestsEnabled() {
-    return BooleanUtils.toBoolean(config.getProperty(TESTS_ENABLED, "false"));
-  }
-
-  protected S3Service build(S3Operation operation) {
-    String serviceEndpoint = config.getProperty(S3_URL);
-    String signingRegion = config.getProperty(S3_SIGNING_REGION);
-    AmazonS3Connection connection = new AmazonS3Connection()
-        .withCredentialsProviderBuilder(
-            new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("TEST", "TEST")))
-        .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion));
-    return new S3Service(connection, operation);
-  }
-
   protected String getConfig(String cfgKey) {
-    return config.getProperty(cfgKey);
+    return getConfiguration().getProperty(cfgKey);
   }
 
   private void tagObject(String key) throws Exception {
