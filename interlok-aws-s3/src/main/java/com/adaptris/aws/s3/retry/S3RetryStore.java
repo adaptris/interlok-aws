@@ -176,6 +176,7 @@ public class S3RetryStore implements RetryStore {
       try (InputStream in = getInputStream(payloadName); OutputStream out = msg.getOutputStream()) {
         IOUtils.copy(in, out);
       }
+      log.trace("Payload for [{}] loaded", msgId);
       msg.setMessageHeaders(metadata);
       msg.setUniqueId(msgId);
       return msg;
@@ -192,6 +193,7 @@ public class S3RetryStore implements RetryStore {
       try (InputStream in = getInputStream(metadataName)) {
         meta.load(in);
       }
+      log.trace("metadata for [{}] loaded", msgId);
       // The compiler works in mysterious ways.
       return (Map) meta;
     } catch (Exception e) {
