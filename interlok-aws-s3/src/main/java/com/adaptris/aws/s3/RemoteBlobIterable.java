@@ -12,29 +12,31 @@ import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
-class RemoteBlobIterable extends RemoteBlobIterableImpl<S3ObjectSummary> {
-  
+public class RemoteBlobIterable extends RemoteBlobIterableImpl<S3ObjectSummary> {
+
   private AmazonS3Client s3Client = null;
   private ListObjectsV2Request listRequest = null;
   private RemoteBlobFilter blobFilter = null;
-  
+
   private ListObjectsV2Result currentListing;
   private Iterator<S3ObjectSummary> currentListingIterator;
-  
-  
-  protected RemoteBlobIterable(AmazonS3Client s3, ListObjectsV2Request request, RemoteBlobFilter filter) {
-    this.s3Client = s3;
-    this.listRequest = request;
-    this.blobFilter = filter;
+
+
+  public RemoteBlobIterable(AmazonS3Client s3, ListObjectsV2Request request,
+      RemoteBlobFilter filter) {
+    s3Client = s3;
+    listRequest = request;
+    blobFilter = filter;
   }
-    
+
+  @Override
   protected Optional<S3ObjectSummary> nextStorageItem() throws NoSuchElementException {
     if (!currentListingIterator.hasNext()) {
       advanceToNextPage();
     }
     return Optional.ofNullable(currentListingIterator.next());
   }
-  
+
   private void advanceToNextPage() throws NoSuchElementException {
     if (!currentListing.isTruncated()) {
       // it's not truncated so there's nothing else to get
@@ -45,7 +47,8 @@ class RemoteBlobIterable extends RemoteBlobIterableImpl<S3ObjectSummary> {
     currentListing = s3Client.listObjectsV2(listRequest);
     currentListingIterator = currentListing.getObjectSummaries().iterator();
   }
-  
+
+  @Override
   protected Optional<RemoteBlob> accept(S3ObjectSummary summary) {
     String bucket = StringUtils.defaultIfEmpty(summary.getBucketName(), listRequest.getBucketName());
     RemoteBlob blob = new RemoteBlob.Builder().setBucket(bucket).setLastModified(summary.getLastModified().getTime())
@@ -53,12 +56,12 @@ class RemoteBlobIterable extends RemoteBlobIterableImpl<S3ObjectSummary> {
     if (blobFilter.accept(blob)) {
       return Optional.of(blob);
     }
-    return Optional.empty();   
+    return Optional.empty();
   }
-  
+
   @Override
   protected void iteratorInit() {
     currentListing = s3Client.listObjectsV2(listRequest);
-    currentListingIterator = currentListing.getObjectSummaries().iterator();    
+    currentListingIterator = currentListing.getObjectSummaries().iterator();
   }
 }
