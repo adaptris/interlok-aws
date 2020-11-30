@@ -43,6 +43,8 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 /**
  * Upload an object to S3 using {@link TransferManager}.
  * 
@@ -57,6 +59,8 @@ public class UploadOperation extends TransferOperation {
 
   private transient ManagedThreadFactory threadFactory = new ManagedThreadFactory();
 
+  @Getter
+  @Setter
   @AdvancedConfig
   @Valid
   private List<S3ObjectMetadata> objectMetadata;
@@ -84,21 +88,13 @@ public class UploadOperation extends TransferOperation {
     try (InputStream in = msg.getInputStream()) {
       log.debug("Uploading to {} in bucket {}", key, bucketName);
       PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, in, s3meta);
-      if(getCannedObjectAcl() != null) {
+      if(!isEmpty(getCannedObjectAcl())) {
         putObjectRequest.setCannedAcl(S3ObjectCannedAcl.valueOf(msg.resolve(getCannedObjectAcl())).getCannedAccessControl());
       }
       Upload upload = tm.upload(putObjectRequest);
       threadFactory.newThread(new MyProgressListener(Thread.currentThread().getName(), upload)).start();
       upload.waitForCompletion();
     }
-  }
-  
-  public List<S3ObjectMetadata> getObjectMetadata() {
-    return objectMetadata;
-  }
-
-  public void setObjectMetadata(List<S3ObjectMetadata> objectMetadata) {
-    this.objectMetadata = objectMetadata;
   }
 
   public UploadOperation withObjectMetadata(List<S3ObjectMetadata> objectMetadata) {
