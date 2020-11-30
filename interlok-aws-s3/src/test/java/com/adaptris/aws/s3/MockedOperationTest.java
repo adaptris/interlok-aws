@@ -8,7 +8,6 @@ import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.anyString;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -33,6 +32,7 @@ import com.amazonaws.services.s3.model.GetObjectTaggingResult;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
@@ -268,7 +268,7 @@ public class MockedOperationTest {
     Mockito.when(uploadObject.getProgress()).thenReturn(progress);
     Mockito.doAnswer((i)-> {return null;}).when(uploadObject).waitForCompletion();
 
-    Mockito.when(transferManager.upload(anyString(), anyString(), (InputStream) anyObject(), (ObjectMetadata) anyObject())).thenReturn(uploadObject);
+    Mockito.when(transferManager.upload((PutObjectRequest) anyObject())).thenReturn(uploadObject);
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
     msg.addMessageHeader("hello", "world");
@@ -293,7 +293,7 @@ public class MockedOperationTest {
     Mockito.when(uploadObject.getProgress()).thenReturn(progress);
     Mockito.doAnswer((i)-> {return null;}).when(uploadObject).waitForCompletion();
 
-    Mockito.when(transferManager.upload(anyString(), anyString(), (InputStream) anyObject(), (ObjectMetadata) anyObject())).thenReturn(uploadObject);
+    Mockito.when(transferManager.upload((PutObjectRequest) anyObject())).thenReturn(uploadObject);
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello");
 
@@ -301,6 +301,32 @@ public class MockedOperationTest {
         .withObjectMetadata(new S3ServerSideEncryption())
         .withBucketName(new ConstantDataInputParameter("srcBucket"))
         .withKey(new ConstantDataInputParameter("srcKey"));
+    ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
+    execute(uploader, wrapper, msg);
+  }
+
+  @Test
+  public void testUpload_withAcl() throws Exception {
+    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    TransferManager transferManager = Mockito.mock(TransferManager.class);
+    Upload uploadObject = Mockito.mock(Upload.class);
+    TransferProgress progress = new TransferProgress();
+
+    Map<String,String> userMetadata = new HashMap<>();
+    userMetadata.put("hello", "world");
+    Mockito.when(uploadObject.isDone()).thenReturn(false, false, true);
+    Mockito.when(uploadObject.getProgress()).thenReturn(progress);
+    Mockito.doAnswer((i)-> {return null;}).when(uploadObject).waitForCompletion();
+
+    Mockito.when(transferManager.upload((PutObjectRequest) anyObject())).thenReturn(uploadObject);
+
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
+    msg.addMessageHeader("hello", "world");
+    UploadOperation uploader = new UploadOperation()
+      .withCannedObjectAcl(S3ObjectCannedAcl.BUCKET_OWNER_FULL_CONTROL.name())
+      .withUserMetadataFilter(new NoOpMetadataFilter())
+      .withBucketName(new ConstantDataInputParameter("srcBucket"))
+      .withKey(new ConstantDataInputParameter("srcKey"));
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
     execute(uploader, wrapper, msg);
   }
