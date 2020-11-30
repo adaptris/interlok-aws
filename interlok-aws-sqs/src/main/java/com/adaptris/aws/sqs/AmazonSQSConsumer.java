@@ -28,7 +28,7 @@ import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
-import com.adaptris.annotation.Removal;
+import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisComponent;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -109,7 +109,7 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
    */
   @Deprecated
   @Valid
-  @Removal(version = "4.0.0", message = "Use 'queue' instead")
+  @ConfigDeprecated(removalVersion = "4.0.0", message = "Use 'queue' instead", groups = Deprecated.class)
   @Getter
   @Setter
   private ConsumeDestination destination;

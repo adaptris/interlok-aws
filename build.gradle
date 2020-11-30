@@ -2,9 +2,9 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
 plugins {
-  id 'com.github.spotbugs' version '4.5.0' apply false
-  id "io.freefair.lombok" version "5.1.1" apply false
-  id 'org.owasp.dependencycheck' version '5.3.2.1' apply false
+  id 'com.github.spotbugs' version '4.5.1' apply false
+  id "io.freefair.lombok" version "5.3.0" apply false
+  id 'org.owasp.dependencycheck' version '6.0.3' apply false
 }
 
 ext {
@@ -23,9 +23,9 @@ ext {
   organizationName = "Adaptris Ltd"
 
   slf4jVersion = '1.7.30'
-  awsSDKVersion = '1.11.842'
+  awsSDKVersion = '1.11.892'
   log4j2Version = '2.13.2'
-  mockitoVersion = '3.5.9'
+  mockitoVersion = '3.6.0'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
@@ -140,7 +140,7 @@ subprojects {
       compile ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
 
       annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
-      testCompile ('junit:junit:4.13')
+      testCompile ('junit:junit:4.13.1')
       testCompile "org.slf4j:slf4j-simple:$slf4jVersion"
       // exclude any log4j dependencies so that we can just use slf4j simple.
       // works around INTERLOk-3233

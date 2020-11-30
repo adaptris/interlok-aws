@@ -18,7 +18,7 @@ package com.adaptris.aws.s3.meta;
 
 import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.annotation.Removal;
+import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.util.LoggingHelper;
@@ -47,7 +47,7 @@ public class S3ExpirationTimeRuleId extends S3ObjectMetadata {
   @Getter
   @Setter
   @Deprecated
-  @Removal(version = "3.12.0", message = "naming mismatch, use 'expiration-time-rule-id' instead")
+  @ConfigDeprecated(removalVersion = "3.12.0", message = "naming mismatch, use 'expiration-time-rule-id' instead", groups = Deprecated.class)
   private String expirationRuleId;
 
   /**

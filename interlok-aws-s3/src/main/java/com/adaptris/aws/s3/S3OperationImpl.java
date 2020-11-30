@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.annotation.Removal;
+import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LoggingHelper;
@@ -48,14 +48,14 @@ public abstract class S3OperationImpl implements S3Operation {
   @Setter
   @Valid
   @Deprecated
-  @Removal(version = "3.12.0", message = "Use an expression based bucket instead")
+  @ConfigDeprecated(removalVersion = "3.12.0", message = "Use an expression based bucket instead", groups = Deprecated.class)
   private DataInputParameter<String> bucketName;
   @AdvancedConfig(rare = true)
   @Getter
   @Setter
   @Valid
   @Deprecated
-  @Removal(version = "3.12.0", message = "Use an expression based blob-name/prefix instead")
+  @ConfigDeprecated(removalVersion = "3.12.0", message = "Use an expression based blob-name/prefix instead", groups = Deprecated.class)
   private DataInputParameter<String> key;
 
   @Getter
