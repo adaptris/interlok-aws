@@ -24,6 +24,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
 
@@ -31,13 +33,17 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
+import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.aws.s3.meta.S3ObjectMetadata;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.util.ManagedThreadFactory;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * Upload an object to S3 using {@link TransferManager}.
@@ -48,14 +54,22 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @AdapterComponent
 @ComponentProfile(summary = "Amazon S3 Upload using Transfer Manager")
 @XStreamAlias("amazon-s3-upload")
-@DisplayOrder(order = {"bucket", "objectName", "bucketName", "key", "userMetadataFilter", "objectMetadata"})
+@DisplayOrder(order = {"bucket", "objectName", "bucketName", "key", "userMetadataFilter", "cannedObjectAcl", "objectMetadata"})
 public class UploadOperation extends TransferOperation {
 
   private transient ManagedThreadFactory threadFactory = new ManagedThreadFactory();
 
+  @Getter
+  @Setter
   @AdvancedConfig
   @Valid
   private List<S3ObjectMetadata> objectMetadata;
+
+  @Getter
+  @Setter
+  @AdvancedConfig
+  @InputFieldHint(expression = true, style = "com.adaptris.aws.s3.S3ObjectCannedAcl")
+  private String cannedObjectAcl;
   
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
@@ -73,18 +87,14 @@ public class UploadOperation extends TransferOperation {
     }
     try (InputStream in = msg.getInputStream()) {
       log.debug("Uploading to {} in bucket {}", key, bucketName);
-      Upload upload = tm.upload(bucketName, key, in, s3meta);
+      PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, in, s3meta);
+      if(!isEmpty(getCannedObjectAcl())) {
+        putObjectRequest.setCannedAcl(S3ObjectCannedAcl.valueOf(msg.resolve(getCannedObjectAcl())).getCannedAccessControl());
+      }
+      Upload upload = tm.upload(putObjectRequest);
       threadFactory.newThread(new MyProgressListener(Thread.currentThread().getName(), upload)).start();
       upload.waitForCompletion();
     }
-  }
-  
-  public List<S3ObjectMetadata> getObjectMetadata() {
-    return objectMetadata;
-  }
-
-  public void setObjectMetadata(List<S3ObjectMetadata> objectMetadata) {
-    this.objectMetadata = objectMetadata;
   }
 
   public UploadOperation withObjectMetadata(List<S3ObjectMetadata> objectMetadata) {
@@ -99,8 +109,12 @@ public class UploadOperation extends TransferOperation {
   private List<S3ObjectMetadata> objectMetadata() {
     return ObjectUtils.defaultIfNull(getObjectMetadata(), Collections.emptyList());
   }
-  
-  
+
+  public UploadOperation withCannedObjectAcl(String objectAcl) {
+    setCannedObjectAcl(objectAcl);
+    return this;
+  }
+
   private class MyProgressListener implements Runnable {
     private Upload upload;
     private String name;
