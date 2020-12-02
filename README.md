@@ -18,13 +18,13 @@ services:
       #Management - http://localhost:8025
       - "8025:8080"
       #SNS - http://localhost:4575
-      - "4575:4575"
+      - "4575:4566"
       #SQS - http://localhost:4576
-      - "4576:4576"
+      - "4576:4566"
       #S3 - http://localhost:4572
-      - "4572:4572"
+      - "4572:4566"
       #KMS - http://localhost:4599
-      - "4599:4599"
+      - "4599:4566"
 ```
 
 ## Enabling the localstack tests

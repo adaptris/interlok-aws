@@ -4,14 +4,12 @@ import org.apache.tools.ant.filters.*
 ext {
   componentName='Interlok AWS/KMS'
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  mockitoVersion = '3.6.28'
+  awsSDKVersion = '1.11.909'
 }
 
 dependencies {
   compile project(':interlok-aws-common')
   compile ("com.amazonaws:aws-java-sdk-kms:$awsSDKVersion")
-  testCompile ("org.mockito:mockito-core:$mockitoVersion")
-  testCompile ("org.mockito:mockito-inline:$mockitoVersion")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {

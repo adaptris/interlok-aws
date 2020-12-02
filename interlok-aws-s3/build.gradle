@@ -4,15 +4,13 @@ import org.apache.tools.ant.filters.*
 ext {
   componentName='Interlok AWS/S3'
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
+  awsSDKVersion = '1.11.909'
 }
 
 // In this section you declare the dependencies for your production and test code
 dependencies {
   compile ("com.amazonaws:aws-java-sdk-s3:$awsSDKVersion")
   compile project(':interlok-aws-common')
-
-  testCompile ("org.mockito:mockito-core:$mockitoVersion")
-  testCompile ("org.mockito:mockito-inline:$mockitoVersion")
 }
 
 
