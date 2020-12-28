@@ -4,7 +4,7 @@ import org.apache.tools.ant.filters.*
 ext {
   componentName='Interlok AWS/Kinesis'
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.11.918'
+  awsSDKVersion = '1.11.926'
 }
 
 // In this section you declare the dependencies for your production and test code
