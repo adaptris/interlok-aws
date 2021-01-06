@@ -27,7 +27,9 @@ import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.aws.AWSCredentialsProviderBuilder;
 import com.adaptris.aws.ClientConfigurationBuilder;
+import com.adaptris.aws.DefaultRetryPolicyFactory;
 import com.adaptris.aws.EndpointBuilder;
+import com.adaptris.aws.RetryPolicyFactory;
 import com.adaptris.aws.sqs.SQSClientFactory;
 import com.adaptris.aws.sqs.UnbufferedSQSClientFactory;
 import com.adaptris.core.jms.VendorImplementationBase;
@@ -57,7 +59,8 @@ import lombok.Setter;
  */
 @XStreamAlias("amazon-sqs-implementation")
 @DisplayOrder(order = {"region", "prefetchCount", "credentials"})
-public class AmazonSQSImplementation extends VendorImplementationImp {
+public class AmazonSQSImplementation extends VendorImplementationImp
+    implements AWSCredentialsProviderBuilder.BuilderConfig {
 
   private static int DEFAULT_PREFETCH_COUNT = 10;
 
@@ -129,20 +132,21 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   }
 
   protected SQSConnectionFactory build() throws Exception {
-    ClientConfiguration cc = clientConfiguration();
-    AmazonSQS sqsClient = getSqsClientFactory().createClient(credentialsProvider().build(), cc, endpointBuilder());
+    ClientConfiguration cc = buildClientConfiguration();
+    AmazonSQS sqsClient =
+        getSqsClientFactory().createClient(credentialsProvider().build(this), cc,
+            endpointBuilder());
     return new SQSConnectionFactory(newProviderConfiguration(), sqsClient);
   }
 
-  protected ClientConfiguration clientConfiguration() throws Exception {
-    return ClientConfigurationBuilder.build(new KeyValuePairSet());
+  protected ClientConfiguration buildClientConfiguration() throws Exception {
+    return ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
   }
 
   @SuppressWarnings("deprecation")
   protected AWSCredentialsProviderBuilder credentialsProvider() {
     return AWSCredentialsProviderBuilder.defaultIfNull(getCredentials());
   }
-
 
   @Override
   public boolean connectionEquals(VendorImplementationBase arg0) {
@@ -166,9 +170,21 @@ public class AmazonSQSImplementation extends VendorImplementationImp {
   }
 
 
-  protected EndpointBuilder endpointBuilder() {
+  @Override
+  public EndpointBuilder endpointBuilder() {
     return new RegionOnly();
   }
+
+  @Override
+  public RetryPolicyFactory retryPolicy() {
+    return new DefaultRetryPolicyFactory();
+  }
+
+  @Override
+  public KeyValuePairSet clientConfiguration() {
+    return new KeyValuePairSet();
+  }
+
 
   protected ProviderConfiguration newProviderConfiguration() {
     return new ProviderConfiguration().withNumberOfMessagesToPrefetch(prefetchCount());
