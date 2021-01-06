@@ -2,19 +2,15 @@ package com.adaptris.aws.apache.interceptor;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.http.HttpRequestInterceptor;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.aws.AWSCredentialsProviderBuilder;
-import com.adaptris.aws.DefaultAWSAuthentication;
-import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.http.apache.request.RequestInterceptorBuilder;
 import com.adaptris.interlok.util.Args;
 import com.amazonaws.auth.AWS4Signer;
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.http.AWSRequestSigningApacheInterceptor;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
@@ -26,14 +22,14 @@ import lombok.SneakyThrows;
 /**
  * {@code RequestInterceptorBuilder} implementation that creates an interceptor to sign requests
  * made to AWS using AWS4Signer
- * 
+ *
  * <p>
  * Note that this uses the interceptor from
  * <a href="https://github.com/awslabs/aws-request-signing-apache-interceptor/">this github
  * project</a> verbatim. It is in fact copied locally into a {@code com.amazonaws.http} package
  * since it is not officially published in any publicly available artifact.
  * </p>
- * 
+ *
  * @config aws-apache-signing-interceptor
  */
 @XStreamAlias("aws-apache-signing-interceptor")
@@ -96,8 +92,7 @@ public class ApacheSigningInterceptor implements RequestInterceptorBuilder {
   }
 
   private AWSCredentialsProviderBuilder credentialsProvider() {
-    return ObjectUtils.defaultIfNull(getCredentials(),
-        new StaticCredentialsBuilder().withAuthentication(new DefaultAWSAuthentication()));
+    return AWSCredentialsProviderBuilder.defaultIfNull(getCredentials());
   }
 
   public ApacheSigningInterceptor withRegion(String region) {
