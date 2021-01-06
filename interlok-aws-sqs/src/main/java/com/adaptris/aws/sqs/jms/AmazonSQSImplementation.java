@@ -20,7 +20,6 @@ import static com.adaptris.core.jms.JmsUtils.wrapJMSException;
 import javax.jms.JMSException;
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
-import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.DisplayOrder;
@@ -29,6 +28,7 @@ import com.adaptris.aws.AWSCredentialsProviderBuilder;
 import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.DefaultRetryPolicyFactory;
 import com.adaptris.aws.EndpointBuilder;
+import com.adaptris.aws.RegionEndpoint;
 import com.adaptris.aws.RetryPolicyFactory;
 import com.adaptris.aws.sqs.SQSClientFactory;
 import com.adaptris.aws.sqs.UnbufferedSQSClientFactory;
@@ -39,7 +39,6 @@ import com.adaptris.util.NumberUtils;
 import com.amazon.sqs.javamessaging.ProviderConfiguration;
 import com.amazon.sqs.javamessaging.SQSConnectionFactory;
 import com.amazonaws.ClientConfiguration;
-import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.DefaultAwsRegionProviderChain;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -172,7 +171,7 @@ public class AmazonSQSImplementation extends VendorImplementationImp
 
   @Override
   public EndpointBuilder endpointBuilder() {
-    return new RegionOnly();
+    return new RegionEndpoint(getRegion());
   }
 
   @Override
@@ -188,18 +187,5 @@ public class AmazonSQSImplementation extends VendorImplementationImp
 
   protected ProviderConfiguration newProviderConfiguration() {
     return new ProviderConfiguration().withNumberOfMessagesToPrefetch(prefetchCount());
-  }
-
-  protected class RegionOnly implements EndpointBuilder {
-
-    @Override
-    public <T extends AwsClientBuilder<?, ?>> T rebuild(T builder) {
-      if (StringUtils.isNotBlank(getRegion())) {
-        log.trace("Setting Region to {}", getRegion());
-        builder.setRegion(getRegion());
-      }
-      return builder;
-    }
-
   }
 }

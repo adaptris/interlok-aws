@@ -18,12 +18,10 @@ package com.adaptris.aws;
 
 import javax.validation.Valid;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisConnectionImp;
 import com.adaptris.util.KeyValuePairSet;
-import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.DefaultAwsRegionProviderChain;
 import lombok.Getter;
 import lombok.Setter;
@@ -140,21 +138,7 @@ public abstract class AWSConnection extends AdaptrisConnectionImp
   @Override
   public EndpointBuilder endpointBuilder() {
     return getCustomEndpoint() != null && getCustomEndpoint().isConfigured() ? getCustomEndpoint()
-        : new RegionOnly();
+        : new RegionEndpoint(getRegion());
   }
 
-
-
-  protected class RegionOnly implements EndpointBuilder {
-
-    @Override
-    public <T extends AwsClientBuilder<?, ?>> T rebuild(T builder) {
-      if (StringUtils.isNotBlank(getRegion())) {
-        log.trace("Setting Region to {}", getRegion());
-        builder.setRegion(getRegion());
-      }
-      return builder;
-    }
-
-  }
 }

@@ -39,7 +39,8 @@ import lombok.Setter;
  * @config aws-sts-credentials-builder
  */
 @XStreamAlias("aws-sts-credentials-builder")
-@ComponentProfile(summary = "Create a set of credentials via STS", since = "3.12.0")
+@ComponentProfile(summary = "Create a set of credentials via STS",
+    tag = "amazon,aws,sts", since = "3.12.0")
 @DisplayOrder(order = {"roleArn", "roleSessionName", "roleExternalId", "roleDurationSeconds",
     "scopeDownPolicy", "credentials", "sessionTags", "transitiveTagKeys"})
 @NoArgsConstructor
@@ -151,7 +152,7 @@ public class STSCredentialsBuilder implements AWSCredentialsProviderBuilder {
       stsBuilder.setClientConfiguration(
           ClientConfigurationBuilder.build(conf.clientConfiguration(), conf.retryPolicy()));
       // CustomEndpoint has a EndpointConfiguration
-      // Connection#setRegion gives us a RegionOnly endpoint which gives us the correct
+      // Connection#setRegion gives us a RegionEndpoint which gives us the correct
       // EndpointConfiguration as well.
       //
       conf.endpointBuilder().rebuild(stsBuilder);

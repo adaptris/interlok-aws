@@ -26,6 +26,7 @@ import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.DefaultRetryPolicyFactory;
 import com.adaptris.aws.EndpointBuilder;
+import com.adaptris.aws.RegionEndpoint;
 import com.adaptris.aws.RetryPolicyFactory;
 import com.adaptris.util.KeyValuePairSet;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -112,7 +113,7 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
   @Override
   public EndpointBuilder endpointBuilder() {
     return getCustomEndpoint() != null && getCustomEndpoint().isConfigured() ? getCustomEndpoint()
-        : new RegionOnly();
+        : new RegionEndpoint(getRegion());
   }
 
   public AdvancedSQSImplementation withCustomEndpoint(CustomEndpoint endpoint) {
