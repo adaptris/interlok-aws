@@ -29,8 +29,8 @@ public class STSCredentialsBuilderTest {
   @Test
   public void testBuild() throws Exception {
 
-    STSCredentialsBuilder builder =
-        new STSCredentialsBuilder().withRoleArn("arn:aws:sts:us-west-1:123456789012:MyArn")
+    STSAssumeroleCredentialsBuilder builder =
+        new STSAssumeroleCredentialsBuilder().withRoleArn("arn:aws:sts:us-west-1:123456789012:MyArn")
             .withRoleExternalId("externalId").withRoleSessionName("sessionName")
             .withCredentials(
                 new StaticCredentialsBuilder()
@@ -60,8 +60,8 @@ public class STSCredentialsBuilderTest {
 
   @Test
   public void testBuild_WithConfig() throws Exception {
-    STSCredentialsBuilder builder =
-        new STSCredentialsBuilder().withRoleArn("arn:aws:sts:us-west-1:123456789012:MyArn")
+    STSAssumeroleCredentialsBuilder builder =
+        new STSAssumeroleCredentialsBuilder().withRoleArn("arn:aws:sts:us-west-1:123456789012:MyArn")
         .withRoleExternalId("externalId").withRoleSessionName("sessionName");
     AWSCredentialsProvider credentials = builder.build(new DummyConfig());
     assertNotNull(credentials);

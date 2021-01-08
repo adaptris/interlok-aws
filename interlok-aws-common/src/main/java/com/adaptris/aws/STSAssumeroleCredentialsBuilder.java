@@ -36,15 +36,15 @@ import lombok.Setter;
  * Security Credentials</a>.
  * </p>
  *
- * @config aws-sts-credentials-builder
+ * @config aws-sts-assumerole-credentials-builder
  */
-@XStreamAlias("aws-sts-credentials-builder")
+@XStreamAlias("aws-sts-assumerole-credentials-builder")
 @ComponentProfile(summary = "Create a set of credentials via STS",
-    tag = "amazon,aws,sts", since = "3.12.0")
+    tag = "amazon,aws,sts,assumerole", since = "3.12.0")
 @DisplayOrder(order = {"roleArn", "roleSessionName", "roleExternalId", "roleDurationSeconds",
     "scopeDownPolicy", "credentials", "sessionTags", "transitiveTagKeys"})
 @NoArgsConstructor
-public class STSCredentialsBuilder implements AWSCredentialsProviderBuilder {
+public class STSAssumeroleCredentialsBuilder implements AWSCredentialsProviderBuilder {
 
   /**
    * The underlying credentials used to access STS.
@@ -178,22 +178,22 @@ public class STSCredentialsBuilder implements AWSCredentialsProviderBuilder {
         .collect(Collectors.toList());
   }
 
-  public STSCredentialsBuilder withCredentials(AWSCredentialsProviderBuilder a) {
+  public STSAssumeroleCredentialsBuilder withCredentials(AWSCredentialsProviderBuilder a) {
     setCredentials(a);
     return this;
   }
 
-  public STSCredentialsBuilder withRoleArn(String s) {
+  public STSAssumeroleCredentialsBuilder withRoleArn(String s) {
     setRoleArn(s);
     return this;
   }
 
-  public STSCredentialsBuilder withRoleSessionName(String s) {
+  public STSAssumeroleCredentialsBuilder withRoleSessionName(String s) {
     setRoleSessionName(s);
     return this;
   }
 
-  public STSCredentialsBuilder withRoleExternalId(String s) {
+  public STSAssumeroleCredentialsBuilder withRoleExternalId(String s) {
     setRoleExternalId(s);
     return this;
   }

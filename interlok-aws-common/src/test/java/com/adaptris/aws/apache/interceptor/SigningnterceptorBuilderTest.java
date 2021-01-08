@@ -5,7 +5,7 @@ import static org.junit.Assert.assertNotNull;
 import org.apache.http.HttpRequestInterceptor;
 import org.junit.Test;
 import com.adaptris.aws.AWSCredentialsProviderBuilder;
-import com.adaptris.aws.STSCredentialsBuilder;
+import com.adaptris.aws.STSAssumeroleCredentialsBuilder;
 import com.adaptris.aws.StaticCredentialsBuilder;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.http.AWSRequestSigningApacheInterceptor;
@@ -33,8 +33,8 @@ public class SigningnterceptorBuilderTest {
 
   @Test
   public void testBuild_WithSTS() {
-    STSCredentialsBuilder sts =
-        new STSCredentialsBuilder().withRoleArn("arn:aws:sts:us-west-1:123456789012:MyArn")
+    STSAssumeroleCredentialsBuilder sts =
+        new STSAssumeroleCredentialsBuilder().withRoleArn("arn:aws:sts:us-west-1:123456789012:MyArn")
             .withRoleExternalId("externalId").withRoleSessionName("sessionName");
     ApacheSigningInterceptor builder = new ApacheSigningInterceptor().withRegion("region")
         .withService("service").withCredentials(sts);
