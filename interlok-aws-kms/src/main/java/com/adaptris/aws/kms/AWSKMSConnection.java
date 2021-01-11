@@ -32,7 +32,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon KMS
- * 
+ *
  * <p>
  * This class directly exposes almost all the getter and setters that are available in {@link ClientConfiguration} via the
  * {@link #getClientConfiguration()} property for maximum flexibility in configuration.
@@ -41,9 +41,9 @@ import lombok.NoArgsConstructor;
  * The key from the <code>client-configuration</code> element should match the name of the underlying ClientConfiguration property;
  * so if you wanted to control the user-agent you would do :
  * </p>
- * 
+ *
  * <pre>
- * {@code 
+ * {@code
  *   <client-configuration>
  *     <key-value-pair>
  *        <key>UserAgent</key>
@@ -52,8 +52,8 @@ import lombok.NoArgsConstructor;
  *   </client-configuration>
  * }
  * </pre>
- * 
- * 
+ *
+ *
  * @config aws-kms-connection
  */
 @XStreamAlias("aws-kms-connection")
@@ -100,7 +100,7 @@ public class AWSKMSConnection extends AWSConnection implements ClientWrapper<AWS
       ClientConfiguration cc =
           ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
       builder = endpointBuilder().rebuild(AWSKMSClientBuilder.standard().withClientConfiguration(cc));
-      builder.withCredentials(credentialsProvider().build());
+      builder.withCredentials(credentialsProvider().build(this));
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }

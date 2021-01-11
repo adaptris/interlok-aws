@@ -26,10 +26,9 @@ import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.DefaultRetryPolicyFactory;
 import com.adaptris.aws.EndpointBuilder;
+import com.adaptris.aws.RegionEndpoint;
 import com.adaptris.aws.RetryPolicyFactory;
 import com.adaptris.util.KeyValuePairSet;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.retry.RetryPolicy;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NonNull;
@@ -107,15 +106,14 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
   }
 
   @Override
-  protected ClientConfiguration clientConfiguration() throws Exception {
-    return ClientConfigurationBuilder.build(getClientConfigurationProperties())
-        .withRetryPolicy(retryPolicy());
+  public KeyValuePairSet clientConfiguration() {
+    return ObjectUtils.defaultIfNull(getClientConfigurationProperties(), new KeyValuePairSet());
   }
 
   @Override
-  protected EndpointBuilder endpointBuilder(){
+  public EndpointBuilder endpointBuilder() {
     return getCustomEndpoint() != null && getCustomEndpoint().isConfigured() ? getCustomEndpoint()
-        : new RegionOnly();
+        : new RegionEndpoint(getRegion());
   }
 
   public AdvancedSQSImplementation withCustomEndpoint(CustomEndpoint endpoint) {
@@ -123,8 +121,9 @@ public class AdvancedSQSImplementation extends AmazonSQSImplementation {
     return this;
   }
 
-  RetryPolicy retryPolicy() throws Exception {
-    return ObjectUtils.defaultIfNull(getRetryPolicy(), new DefaultRetryPolicyFactory()).build();
+  @Override
+  public RetryPolicyFactory retryPolicy() {
+    return ObjectUtils.defaultIfNull(getRetryPolicy(), new DefaultRetryPolicyFactory());
   }
 
 }

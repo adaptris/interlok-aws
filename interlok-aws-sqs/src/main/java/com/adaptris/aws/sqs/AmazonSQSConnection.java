@@ -39,7 +39,7 @@ import lombok.Setter;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon SQS.
- * 
+ *
  * <p>
  * This class directly exposes almost all the getter and setters that are available in {@link ClientConfiguration} via the
  * {@link #getClientConfiguration()} property for maximum flexibility in configuration.
@@ -49,7 +49,7 @@ import lombok.Setter;
  * property; so if you wanted to control the user-agent you would do :
  * </p>
  * <pre>
- * {@code 
+ * {@code
  *   <client-configuration>
  *     <key-value-pair>
  *        <key>UserAgent</key>
@@ -58,8 +58,8 @@ import lombok.Setter;
  *   </client-configuration>
  * }
  * </pre>
- * 
- * 
+ *
+ *
  * @config amazon-sqs-connection
  * @since 3.0.3
  */
@@ -108,7 +108,8 @@ public class AmazonSQSConnection extends AWSConnection {
   protected synchronized void initConnection() throws CoreException {
     try {
       ClientConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
-      sqsClient = getSqsClientFactory().createClient(credentialsProvider().build(), cc, endpointBuilder());
+      sqsClient = getSqsClientFactory().createClient(credentialsProvider().build(this), cc,
+          endpointBuilder());
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }
@@ -134,7 +135,7 @@ public class AmazonSQSConnection extends AWSConnection {
     if(sqsClient == null) {
       throw new CoreException("Amazon SQS Connection is not initialized");
     }
-    
+
     return sqsClient;
   }
 
@@ -145,7 +146,7 @@ public class AmazonSQSConnection extends AWSConnection {
     if(sqsClient == null) {
       throw new CoreException("Amazon SQS Connection is not initialized");
     }
-    
+
     return sqsClient;
   }
 }
