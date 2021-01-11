@@ -1,7 +1,7 @@
 ext {
   componentName='Interlok AWS/SNS'
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.11.930'
+  awsSDKVersion = '1.11.934'
 }
 
 // In this section you declare the dependencies for your production and test code
