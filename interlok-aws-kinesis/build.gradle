@@ -8,7 +8,7 @@ ext {
 }
 dependencies {
   compile ("com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion")
-  compile ("com.amazonaws:amazon-kinesis-client:1.13.3") {
+  compile ("com.amazonaws:amazon-kinesis-client:1.14.0") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.google.protobuf", module: "protobuf-java"
