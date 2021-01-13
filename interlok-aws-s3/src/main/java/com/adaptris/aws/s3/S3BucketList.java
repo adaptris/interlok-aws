@@ -67,7 +67,7 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
   @Setter
   @Getter
   @Deprecated
-  @ConfigDeprecated(removalVersion = "3.12.0", message = "use prefix instead", groups = Deprecated.class)
+  @ConfigDeprecated(removalVersion = "4.0.0", message = "use prefix instead", groups = Deprecated.class)
   private String key;
 
   /**
@@ -152,7 +152,7 @@ public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.T
 
 
   @Deprecated
-  @Removal(version = "3.12.0", message = "Use prefix instead")
+  @Removal(version = "4.0.0", message = "Use prefix instead")
   public S3BucketList withKey(String key) {
     setKey(key);
     return this;

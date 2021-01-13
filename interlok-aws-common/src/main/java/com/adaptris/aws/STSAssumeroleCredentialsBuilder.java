@@ -40,7 +40,7 @@ import lombok.Setter;
  */
 @XStreamAlias("aws-sts-assumerole-credentials-builder")
 @ComponentProfile(summary = "Create a set of credentials via STS",
-    tag = "amazon,aws,sts,assumerole", since = "3.12.0")
+    tag = "amazon,aws,sts,assumerole", since = "4.0.0")
 @DisplayOrder(order = {"roleArn", "roleSessionName", "roleExternalId", "roleDurationSeconds",
     "scopeDownPolicy", "credentials", "sessionTags", "transitiveTagKeys"})
 @NoArgsConstructor

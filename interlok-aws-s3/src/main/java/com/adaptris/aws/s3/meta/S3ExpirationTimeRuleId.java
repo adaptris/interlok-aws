@@ -47,7 +47,7 @@ public class S3ExpirationTimeRuleId extends S3ObjectMetadata {
   @Getter
   @Setter
   @Deprecated
-  @ConfigDeprecated(removalVersion = "3.12.0", message = "naming mismatch, use 'expiration-time-rule-id' instead", groups = Deprecated.class)
+  @ConfigDeprecated(removalVersion = "4.0.0", message = "naming mismatch, use 'expiration-time-rule-id' instead", groups = Deprecated.class)
   private String expirationRuleId;
 
   /**
