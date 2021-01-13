@@ -48,14 +48,14 @@ public abstract class S3OperationImpl implements S3Operation {
   @Setter
   @Valid
   @Deprecated
-  @ConfigDeprecated(removalVersion = "3.12.0", message = "Use an expression based bucket instead", groups = Deprecated.class)
+  @ConfigDeprecated(removalVersion = "4.0.0", message = "Use an expression based bucket instead", groups = Deprecated.class)
   private DataInputParameter<String> bucketName;
   @AdvancedConfig(rare = true)
   @Getter
   @Setter
   @Valid
   @Deprecated
-  @ConfigDeprecated(removalVersion = "3.12.0", message = "Use an expression based blob-name/prefix instead", groups = Deprecated.class)
+  @ConfigDeprecated(removalVersion = "4.0.0", message = "Use an expression based blob-name/prefix instead", groups = Deprecated.class)
   private DataInputParameter<String> key;
 
   @Getter
