@@ -7,7 +7,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -34,6 +33,7 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
@@ -137,8 +137,7 @@ public class S3RetryStoreTest {
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
-    Mockito.when(transferManager.upload(anyString(), anyString(), (InputStream) any(),
-        (ObjectMetadata) any())).thenReturn(uploadObject);
+    Mockito.when(transferManager.upload((PutObjectRequest) any())).thenReturn(uploadObject);
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
     msg.addMessageHeader("hello", "world");
@@ -165,8 +164,7 @@ public class S3RetryStoreTest {
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
-    Mockito.when(transferManager.upload(anyString(), anyString(), (InputStream) any(),
-        (ObjectMetadata) any())).thenThrow(new RuntimeException());
+    Mockito.when(transferManager.upload((PutObjectRequest) any())).thenThrow(new RuntimeException());
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
     msg.addMessageHeader("hello", "world");

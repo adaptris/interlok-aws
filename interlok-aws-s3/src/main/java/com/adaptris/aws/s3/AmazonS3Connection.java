@@ -37,7 +37,7 @@ import lombok.Setter;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon S3.
- * 
+ *
  * <p>
  * This class directly exposes almost all the getter and setters that are available in {@link ClientConfiguration} via the
  * {@link #getClientConfiguration()} property for maximum flexibility in configuration.
@@ -47,7 +47,7 @@ import lombok.Setter;
  * so if you wanted to control the user-agent you would do :
  * </p>
  * <pre>
- * {@code 
+ * {@code
  *   <client-configuration>
  *     <key-value-pair>
  *        <key>UserAgent</key>
@@ -56,8 +56,8 @@ import lombok.Setter;
  *   </client-configuration>
  * }
  * </pre>
- * 
- * 
+ *
+ *
  * @config amazon-s3-connection
  */
 @XStreamAlias("amazon-s3-connection")
@@ -108,7 +108,7 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
       if (getForcePathStyleAccess() != null) {
         builder.setPathStyleAccessEnabled(getForcePathStyleAccess());
       }
-      builder.withCredentials(credentialsProvider().build());
+      builder.withCredentials(credentialsProvider().build(this));
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }

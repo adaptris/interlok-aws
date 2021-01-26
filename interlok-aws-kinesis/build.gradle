@@ -4,9 +4,8 @@ import org.apache.tools.ant.filters.*
 ext {
   componentName='Interlok AWS/Kinesis'
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
+  awsSDKVersion = '1.11.930'
 }
-
-// In this section you declare the dependencies for your production and test code
 dependencies {
   compile ("com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion")
   compile ("com.amazonaws:amazon-kinesis-client:1.13.3") {
@@ -18,14 +17,14 @@ dependencies {
   // 0.13.0 doesn't contain the windows execuatble (bad?) so use the older version for now.
   // 0.13.1 does containthe windows binaries
   // 0.14 does not contain the windows binary.
-  compile ("com.amazonaws:amazon-kinesis-producer:0.14.1") {
+  compile ("com.amazonaws:amazon-kinesis-producer:0.14.2") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.google.protobuf", module: "protobuf-java"
   }
-  compile ("com.google.protobuf:protobuf-java:3.13.0")
-  compile ("com.fasterxml.jackson.core:jackson-databind:2.11.3")
-  compile ("com.fasterxml.jackson.core:jackson-core:2.11.3")
+  compile ("com.google.protobuf:protobuf-java:3.14.0")
+  compile ("com.fasterxml.jackson.core:jackson-databind:2.12.1")
+  compile ("com.fasterxml.jackson.core:jackson-core:2.12.1")
   compile project(':interlok-aws-common')
 }
 

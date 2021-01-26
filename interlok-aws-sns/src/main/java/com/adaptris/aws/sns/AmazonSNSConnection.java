@@ -31,7 +31,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon SNS.
- * 
+ *
  * <p>
  * This class directly exposes almost all the getter and setters that are available in {@link ClientConfiguration} via the
  * {@link #getClientConfiguration()} property for maximum flexibility in configuration.
@@ -41,7 +41,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * so if you wanted to control the user-agent you would do :
  * </p>
  * <pre>
- * {@code 
+ * {@code
  *   <client-configuration>
  *     <key-value-pair>
  *        <key>UserAgent</key>
@@ -50,8 +50,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  *   </client-configuration>
  * }
  * </pre>
- * 
- * 
+ *
+ *
  * @config amazon-sns-connection
  */
 @XStreamAlias("amazon-sns-connection")
@@ -76,7 +76,7 @@ public class AmazonSNSConnection extends AWSConnection {
     try {
       ClientConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
       AmazonSNSClientBuilder builder = endpointBuilder().rebuild(AmazonSNSClientBuilder.standard().withClientConfiguration(cc));
-      builder.withCredentials(credentialsProvider().build());
+      builder.withCredentials(credentialsProvider().build(this));
       snsClient = (AmazonSNSClient) builder.build();
     }
     catch (Exception e) {
@@ -102,7 +102,7 @@ public class AmazonSNSConnection extends AWSConnection {
   public AmazonSNSClient amazonClient() {
     return snsClient;
   }
-  
+
   protected static void closeQuietly(AmazonSNSClient c) {
     if (c != null) {
       c.shutdown();

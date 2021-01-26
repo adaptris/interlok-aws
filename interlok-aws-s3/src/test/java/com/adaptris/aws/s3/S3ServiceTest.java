@@ -74,6 +74,7 @@ public class S3ServiceTest extends ExampleServiceCase {
         S3ContentLanguage type = new S3ContentLanguage();
         type.setContentLanguage("english");
         op.withObjectMetadata(new S3ServerSideEncryption(), type);
+        op.setCannedObjectAcl(S3ObjectCannedAcl.BUCKET_OWNER_FULL_CONTROL.name());
         return op;
       }
     },

@@ -1,5 +1,5 @@
 # interlok-aws
-[![GitHub tag](https://img.shields.io/github/tag/adaptris/interlok-aws.svg)](https://github.com/adaptris/interlok-aws/tags) ![license](https://img.shields.io/github/license/adaptris/interlok-aws.svg) [![Build Status](https://travis-ci.org/adaptris/interlok-aws.svg?branch=develop)](https://travis-ci.org/adaptris/interlok-aws) [![CircleCI](https://circleci.com/gh/adaptris/interlok-aws/tree/develop.svg?style=svg)](https://circleci.com/gh/adaptris/interlok-aws/tree/develop) [![codecov](https://codecov.io/gh/adaptris/interlok-aws/branch/develop/graph/badge.svg)](https://codecov.io/gh/adaptris/interlok-aws) [![Known Vulnerabilities](https://snyk.io/test/github/adaptris/interlok-aws/badge.svg?targetFile=interlok-aws-sqs%2Fbuild.gradle)](https://snyk.io/test/github/adaptris/interlok-aws?targetFile=interlok-aws-sqs%2Fbuild.gradle) [![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/adaptris/interlok-aws.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/adaptris/interlok-aws/context:java)
+[![GitHub tag](https://img.shields.io/github/tag/adaptris/interlok-aws.svg)](https://github.com/adaptris/interlok-aws/tags) ![license](https://img.shields.io/github/license/adaptris/interlok-aws.svg) [![codecov](https://codecov.io/gh/adaptris/interlok-aws/branch/develop/graph/badge.svg)](https://codecov.io/gh/adaptris/interlok-aws) [![Known Vulnerabilities](https://snyk.io/test/github/adaptris/interlok-aws/badge.svg?targetFile=interlok-aws-sqs%2Fbuild.gradle)](https://snyk.io/test/github/adaptris/interlok-aws?targetFile=interlok-aws-sqs%2Fbuild.gradle) [![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/adaptris/interlok-aws.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/adaptris/interlok-aws/context:java)
 
 The suggested name was `musical-octo-waffle`
 
@@ -18,13 +18,13 @@ services:
       #Management - http://localhost:8025
       - "8025:8080"
       #SNS - http://localhost:4575
-      - "4575:4575"
+      - "4575:4566"
       #SQS - http://localhost:4576
-      - "4576:4576"
+      - "4576:4566"
       #S3 - http://localhost:4572
-      - "4572:4572"
+      - "4572:4566"
       #KMS - http://localhost:4599
-      - "4599:4599"
+      - "4599:4566"
 ```
 
 ## Enabling the localstack tests

@@ -18,17 +18,16 @@ package com.adaptris.aws;
 
 import javax.validation.Valid;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisConnectionImp;
 import com.adaptris.util.KeyValuePairSet;
-import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.DefaultAwsRegionProviderChain;
 import lombok.Getter;
 import lombok.Setter;
 
-public abstract class AWSConnection extends AdaptrisConnectionImp {
+public abstract class AWSConnection extends AdaptrisConnectionImp
+    implements AWSCredentialsProviderBuilder.BuilderConfig {
 
   /**
    * Set the region for the client.
@@ -98,10 +97,12 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
     return AWSCredentialsProviderBuilder.defaultIfNull(getCredentials());
   }
 
+  @Override
   public KeyValuePairSet clientConfiguration() {
     return ObjectUtils.defaultIfNull(getClientConfiguration(), new KeyValuePairSet());
   }
 
+  @Override
   public RetryPolicyFactory retryPolicy() {
     return ObjectUtils.defaultIfNull(getRetryPolicy(), new DefaultRetryPolicyFactory());
   }
@@ -134,23 +135,10 @@ public abstract class AWSConnection extends AdaptrisConnectionImp {
   /** Returns something that can configure a normal AWS builder with a custom endpoint or a region...
    *
    */
-  protected EndpointBuilder endpointBuilder(){
+  @Override
+  public EndpointBuilder endpointBuilder() {
     return getCustomEndpoint() != null && getCustomEndpoint().isConfigured() ? getCustomEndpoint()
-        : new RegionOnly();
+        : new RegionEndpoint(getRegion());
   }
 
-
-
-  protected class RegionOnly implements EndpointBuilder {
-
-    @Override
-    public <T extends AwsClientBuilder<?, ?>> T rebuild(T builder) {
-      if (StringUtils.isNotBlank(getRegion())) {
-        log.trace("Setting Region to {}", getRegion());
-        builder.setRegion(getRegion());
-      }
-      return builder;
-    }
-
-  }
 }

@@ -8,6 +8,7 @@ import static com.adaptris.aws.s3.LocalstackConfig.S3_FILTER_REGEXP;
 import static com.adaptris.aws.s3.LocalstackConfig.S3_UPLOAD_FILENAME;
 import static com.adaptris.aws.s3.LocalstackConfig.areTestsEnabled;
 import static com.adaptris.aws.s3.LocalstackConfig.build;
+import static com.adaptris.aws.s3.LocalstackConfig.extendedCopyTests;
 import static com.adaptris.aws.s3.LocalstackConfig.getConfiguration;
 import static com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase.execute;
 import static org.junit.Assert.assertEquals;
@@ -139,6 +140,8 @@ public class LocalstackServiceTest {
 
   @Test
   public void test_10_ExtendedCopy_WithoutDestinationBucket() throws Exception {
+    // INTERLOK-3544 localstack is broken for the test.
+    Assume.assumeTrue(extendedCopyTests());
     tagObject(getConfig(S3_UPLOAD_FILENAME));
 
     ExtendedCopyOperation copy = new ExtendedCopyOperation()
@@ -164,6 +167,8 @@ public class LocalstackServiceTest {
 
   @Test
   public void test_11_DeleteCopy() throws Exception {
+    // INTERLOK-3544 localstack is broken for the test.
+    Assume.assumeTrue(extendedCopyTests());
     DeleteOperation delete =
         new DeleteOperation().withObjectName(getConfig(S3_COPY_TO_FILENAME))
             .withBucket(getConfig(S3_BUCKETNAME));
@@ -233,5 +238,4 @@ public class LocalstackServiceTest {
     execute(retrieveTags, msgWithTags);
     return msgWithTags;
   }
-
 }

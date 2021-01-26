@@ -28,7 +28,7 @@ public class AwsConnectionTest extends AWSConnection {
     assertNotNull(credentialsProvider());
     assertEquals(StaticCredentialsBuilder.class, credentialsProvider().getClass());
     assertNull(getCredentials());
-    assertEquals(StaticCredentialsBuilder.class, credentialsProvider().getClass());    
+    assertEquals(StaticCredentialsBuilder.class, credentialsProvider().getClass());
     withCredentialsProviderBuilder(new StaticCredentialsBuilder().withAuthentication(new DefaultAWSAuthentication()));
     assertEquals(StaticCredentialsBuilder.class, credentialsProvider().getClass());
     assertEquals(DefaultAWSAuthentication.class, ((StaticCredentialsBuilder) credentialsProvider()).getAuthentication().getClass());
@@ -52,7 +52,7 @@ public class AwsConnectionTest extends AWSConnection {
     assertEquals(DefaultRetryPolicyFactory.class, retryPolicy().getClass());
     withRetryPolicy(new RetryNotFoundPolicyFactory());
     assertNotNull(getRetryPolicy());
-    assertEquals(RetryNotFoundPolicyFactory.class, retryPolicy().getClass());    
+    assertEquals(RetryNotFoundPolicyFactory.class, retryPolicy().getClass());
   }
 
   @Test
@@ -60,12 +60,12 @@ public class AwsConnectionTest extends AWSConnection {
     assertNull(getCustomEndpoint());
     setRegion("us-west-1");
     assertNotNull(endpointBuilder());
-    assertEquals(RegionOnly.class, endpointBuilder().getClass());
+    assertEquals(RegionEndpoint.class, endpointBuilder().getClass());
     withCustomEndpoint(new CustomEndpoint().withServiceEndpoint("http://localhost").withSigningRegion("us-west-1"));
     assertNotNull(getCustomEndpoint());
     assertEquals(CustomEndpoint.class, endpointBuilder().getClass());
   }
-  
+
 
   @Test
   public void testRegion() {
@@ -73,25 +73,25 @@ public class AwsConnectionTest extends AWSConnection {
     withRegion("us-west-1");
     assertEquals("us-west-1", getRegion());
     assertNotNull(endpointBuilder());
-    assertEquals(RegionOnly.class, endpointBuilder().getClass());
+    assertEquals(RegionEndpoint.class, endpointBuilder().getClass());
   }
-  
+
   @Test
   public void testRegionOnlyEndpointBuilder() {
     assertNull(getRegion());
     EndpointBuilder b0 = endpointBuilder();
-    assertEquals(RegionOnly.class, b0.getClass());
+    assertEquals(RegionEndpoint.class, b0.getClass());
     assertNull(b0.rebuild((AwsClientBuilder) new MockAwsClientBuilder()).getRegion());
 
     setRegion("us-west-1");
     assertEquals("us-west-1", getRegion());
     EndpointBuilder b1 = endpointBuilder();
-    assertEquals(RegionOnly.class, b1.getClass());
+    assertEquals(RegionEndpoint.class, b1.getClass());
     assertEquals("us-west-1", b1.rebuild((AwsClientBuilder)new MockAwsClientBuilder()).getRegion());
 
     setCustomEndpoint(new CustomEndpoint());
     EndpointBuilder b2 = endpointBuilder();
-    assertEquals(RegionOnly.class, b2.getClass());
+    assertEquals(RegionEndpoint.class, b2.getClass());
     assertEquals("us-west-1", b2.rebuild((AwsClientBuilder)new MockAwsClientBuilder()).getRegion());
 
     setCustomEndpoint(

@@ -22,6 +22,8 @@ public class LocalstackConfig {
   public static final String S3_RETRY_PREFIX = "localstack.s3.retry.prefix";
   public static final String S3_RETRY_BUCKET_NAME = "localstack.s3.retry.bucketname";
 
+  public static final String EXTENDED_COPY_ENABLED = "localstack.s3.extended.copy.tests";
+
   public static final String PROPERTIES_RESOURCE = "unit-tests.properties";
 
   private static Properties config = PropertyHelper.loadQuietly(PROPERTIES_RESOURCE);
@@ -36,6 +38,10 @@ public class LocalstackConfig {
 
   public static boolean areTestsEnabled() {
     return BooleanUtils.toBoolean(getConfiguration().getProperty(TESTS_ENABLED, "false"));
+  }
+
+  public static boolean extendedCopyTests() {
+    return BooleanUtils.toBoolean(getConfiguration().getProperty(EXTENDED_COPY_ENABLED, "false"));
   }
 
   public static S3Service build(S3Operation operation) {
