@@ -8,8 +8,8 @@ plugins {
 }
 
 ext {
-  interlokCoreVersion = project.findProperty('interlokCoreVersion') ?: '3.12-SNAPSHOT'
-  releaseVersion = project.findProperty('releaseVersion') ?: '3.12-SNAPSHOT'
+  interlokCoreVersion = project.findProperty('interlokCoreVersion') ?: '4.0-SNAPSHOT'
+  releaseVersion = project.findProperty('releaseVersion') ?: '4.0-SNAPSHOT'
   nexusBaseUrl = project.findProperty('nexusBaseUrl') ?: 'https://nexus.adaptris.net/nexus'
   mavenPublishUrl = project.findProperty('mavenPublishUrl') ?: nexusBaseUrl + '/content/repositories/snapshots'
   javadocsBaseUrl = nexusBaseUrl + "/content/sites/javadocs/com/adaptris"
@@ -42,13 +42,14 @@ ext.hostname = { ->
 }
 
 ext.hasGraphViz = { ->
-  def app = "dot"
-  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-    app = app + ".exe"
-  }
-  return System.getenv("PATH").split(File.pathSeparator).any{
-    java.nio.file.Paths.get("${it}").resolve(app).toFile().exists()
-  }
+//  def app = "dot"
+//  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+//    app = app + ".exe"
+//  }
+//  return System.getenv("PATH").split(File.pathSeparator).any{
+//    java.nio.file.Paths.get("${it}").resolve(app).toFile().exists()
+//  }
+  return false
 }
 ext.gitBranchNameOrTimestamp = { branchName ->
   if (branchName.equals("HEAD") || branchName.equals("develop") || branchName.startsWith("release")) {
@@ -92,8 +93,8 @@ subprojects {
   apply plugin: 'com.github.spotbugs'
   apply plugin: 'org.owasp.dependencycheck'
 
-  sourceCompatibility = JavaVersion.VERSION_1_8
-  targetCompatibility = JavaVersion.VERSION_1_8
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
   group   = 'com.adaptris'
   version = releaseVersion
   def versionDir = "$buildDir/version"
@@ -167,6 +168,7 @@ subprojects {
       options.linksOffline(interlokCommonJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-common-$interlokCoreVersion-javadoc.jar")
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
+      options.addBooleanOption "-no-module-directories", true
     }
   }
 
@@ -187,6 +189,7 @@ subprojects {
       options.linksOffline(interlokCommonJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-common-$interlokCoreVersion-javadoc.jar")
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
+      options.addBooleanOption "-no-module-directories", true
       options.docletpath = configurations.umlDoclet.files.asType(List)
       options.doclet = "nl.talsmasoftware.umldoclet.UMLDoclet"
       options.addStringOption "umlBasePath", destinationDir.getCanonicalPath()
@@ -247,6 +250,7 @@ subprojects {
       }
     }
     include "package-list"
+    include "element-list"
     into offlineJavadocPackageDir
   }
 
