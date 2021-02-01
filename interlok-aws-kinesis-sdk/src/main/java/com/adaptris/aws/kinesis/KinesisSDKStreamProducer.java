@@ -109,7 +109,8 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
       putRecordRequest.setData(ByteBuffer.wrap(msg.getPayload()));
       putRecordRequest.setPartitionKey(getPartitionKey());
       AmazonKinesis kinesisClient = retrieveConnection(AWSKinesisSDKConnection.class).kinesisClient();
-      PutRecordResult putRecordsResult  = kinesisClient.putRecord(putRecordRequest);
+      PutRecordResult putRecordResult = kinesisClient.putRecord(putRecordRequest);
+      log.trace("PutRecordResults: SequenceNumber[{}]", putRecordResult.getSequenceNumber());
     } catch (Exception e) {
       throw ExceptionHelper.wrapProduceException(e);
     }
