@@ -4,7 +4,7 @@ import org.apache.tools.ant.filters.*
 ext {
   componentName='Interlok AWS/S3'
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.11.950'
+  awsSDKVersion = '1.11.954'
 }
 
 dependencies {
