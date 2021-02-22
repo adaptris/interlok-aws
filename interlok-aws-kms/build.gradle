@@ -3,6 +3,7 @@ import org.apache.tools.ant.filters.*
 
 ext {
   componentName='Interlok AWS/KMS'
+  componentDesc="Components that interact with AWS KMS to perform sign/encrypt/decrypt/verify operations"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   awsSDKVersion = '1.11.954'
 }
@@ -58,7 +59,7 @@ publishing {
           artifact sourcesJar { classifier "sources" }
           pom.withXml {
             asNode().appendNode("name", componentName)
-            asNode().appendNode("description", "Components that interact with AWS KMS to perform sign/encrypt/decrypt/verify operations")
+            asNode().appendNode("description", componentDesc)
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.10.1+")
             properties.appendNode("tags", "aws,kms")

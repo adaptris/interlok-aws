@@ -1,5 +1,6 @@
 ext {
   componentName='Interlok AWS/SNS'
+  componentDesc="Publishing to AWS SNS topics"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   awsSDKVersion = '1.11.954'
 }
@@ -52,7 +53,7 @@ publishing {
           artifact examplesJar { classifier "examples" }
           artifact sourcesJar { classifier "sources" }
           pom.withXml {
-            asNode().appendNode("description", "Publishing to AWS SNS topics")
+            asNode().appendNode("description", componentDesc)
             asNode().appendNode("name", componentName)
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.7.2+")

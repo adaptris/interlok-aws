@@ -3,6 +3,7 @@ import org.apache.tools.ant.filters.*
 
 ext {
   componentName='Interlok AWS/Kinesis'
+  componentDesc="Components that interact AWS Kinesis data streams"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   awsSDKVersion = '1.11.954'
 }
@@ -70,7 +71,7 @@ publishing {
           artifact sourcesJar { classifier "sources" }
           pom.withXml {
             asNode().appendNode("name", componentName)
-            asNode().appendNode("description", "Components that interact AWS Kinesis data streams")
+            asNode().appendNode("description", componentDesc)
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.9.1+")
             properties.appendNode("tags", "aws,kinesis")
