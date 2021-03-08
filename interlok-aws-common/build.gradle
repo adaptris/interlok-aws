@@ -22,7 +22,7 @@ dependencies {
   compile ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
-  compile ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.1")
+  compile ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.2")
   compile ("com.adaptris:interlok-apache-http:$interlokCoreVersion") { changing = true}
 }
 
