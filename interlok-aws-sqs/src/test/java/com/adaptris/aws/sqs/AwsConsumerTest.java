@@ -104,7 +104,7 @@ public class AwsConsumerTest extends ExampleConsumerCase {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
         createReceiveMessageResult(1),
-        new ReceiveMessageResult());
+        createReceiveMessageResult(0));
 
     StandaloneConsumer consumer = startConsumer();
     AmazonSQSConsumer sqsConsumer = (AmazonSQSConsumer) consumer.getConsumer();
