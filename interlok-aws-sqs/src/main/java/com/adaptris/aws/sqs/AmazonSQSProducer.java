@@ -16,8 +16,6 @@
 
 package com.adaptris.aws.sqs;
 
-import static com.adaptris.core.util.DestinationHelper.logWarningIfNotNull;
-import static com.adaptris.core.util.DestinationHelper.mustHaveEither;
 import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +24,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdapterComponent;
@@ -35,17 +34,14 @@ import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageProducer;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.ProduceOnlyProducerImp;
 import com.adaptris.core.cache.ExpiringMapCache;
 import com.adaptris.core.util.Args;
 import com.adaptris.core.util.LifecycleHelper;
-import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.util.TimeInterval;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
@@ -118,22 +114,13 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
   @InputFieldHint(expression = true)
   @Getter
   @Setter
+  @NotBlank
   private String queue;
-  /**
-   * The destination is essentially the queue.
-   *
-   * @deprecated since 3.11.0 use 'queue' instead.
-   */
-  @Deprecated
-  @Getter
-  @Setter
-  @ConfigDeprecated(removalVersion = "4.0.0", message = "use queue instead", groups = Deprecated.class)
-  private ProduceDestination destination;
+
 
   private transient SendMessageAsyncCallback callback = (e) -> {  };
 
   private transient ExpiringMapCache cachedQueueURLs;
-  private transient boolean destWarning;
 
 
   public AmazonSQSProducer() {
@@ -143,9 +130,7 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
 
   @Override
   public void prepare() throws CoreException {
-    logWarningIfNotNull(destWarning, () -> destWarning = true, getDestination(),
-        "{} uses destination, use 'queue' instead", LoggingHelper.friendlyName(this));
-    mustHaveEither(getQueue(), getDestination());
+    Args.notBlank(getQueue(), "queue");
     LifecycleHelper.prepare(cachedQueueURLs);
   }
 
@@ -232,7 +217,7 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
 
   @Override
   public String endpoint(AdaptrisMessage msg) throws ProduceException {
-    return resolveProduceDestination(getQueue(), getDestination(), msg);
+    return resolveProduceDestination(getQueue(), msg);
   }
 
   public AmazonSQSProducer withQueue(String s) {
