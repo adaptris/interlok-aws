@@ -19,7 +19,6 @@ package com.adaptris.aws.s3;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +41,6 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.MetadataElement;
 import com.adaptris.core.ServiceException;
-import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
 import com.adaptris.interlok.InterlokException;
@@ -56,9 +54,6 @@ public class S3OperationTest {
   @Test
   public void testKey() {
     MyS3Operation op = new MyS3Operation();
-    assertNull(op.getKey());
-    op.withKey(new ConstantDataInputParameter("hello"));
-    assertEquals(ConstantDataInputParameter.class, op.getKey().getClass());
     assertNull(op.getObjectName());
     op.withObjectName("hello");
     assertEquals("hello", op.getObjectName());
@@ -67,10 +62,6 @@ public class S3OperationTest {
   @Test
   public void testBucket() {
     MyS3Operation op = new MyS3Operation();
-    assertNull(op.getBucketName());
-    op.withBucketName(new ConstantDataInputParameter("hello"));
-    assertEquals(ConstantDataInputParameter.class, op.getBucketName().getClass());
-    op.setBucketName(null);
     assertNull(op.getBucket());
     op.withBucket("hello");
     assertEquals("hello", op.getBucket());
@@ -198,19 +189,6 @@ public class S3OperationTest {
     assertEquals("content type", meta.getContentType());
     assertEquals("expiration time rule id", meta.getExpirationTimeRuleId());
     assertEquals("content encoding", meta.getContentEncoding());
-  }
-
-  @Test
-  public void testMustHaveEither() throws Exception {
-    try {
-      S3OperationImpl.mustHaveEither(null, null);
-      fail();
-    } catch (IllegalArgumentException e) {
-
-    }
-    S3OperationImpl.mustHaveEither(new ConstantDataInputParameter("hello"), null);
-    S3OperationImpl.mustHaveEither(null, "hello");
-    S3OperationImpl.mustHaveEither(new ConstantDataInputParameter("hello"), "hello");
   }
 
   private static class MyS3Operation extends TransferOperation {

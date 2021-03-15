@@ -20,7 +20,6 @@ import org.mockito.Mockito;
 import com.adaptris.aws.s3.meta.S3ServerSideEncryption;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.lms.FileBackedMessageFactory;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.interlok.cloud.RemoteBlobFilterWrapper;
@@ -47,20 +46,6 @@ import com.amazonaws.services.s3.transfer.Upload;
 public class MockedOperationTest {
 
   @Test
-  public void testCopy_NoDestinationBucket_Legacy() throws Exception {
-    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
-    CopyObjectResult result = new CopyObjectResult();
-    Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString())).thenReturn(result);
-    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    CopyOperation op = new CopyOperation()
-        .withDestinationKey(new ConstantDataInputParameter("destKey"))
-        .withBucketName(new ConstantDataInputParameter("bucketName"))
-        .withKey(new ConstantDataInputParameter("key"));
-    ClientWrapper wrapper = new ClientWrapperImpl(client);
-    execute(op, wrapper, msg);
-  }
-
-  @Test
   public void testCopy_NoDestinationBucket() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
     CopyObjectResult result = new CopyObjectResult();
@@ -72,22 +57,6 @@ public class MockedOperationTest {
         new CopyOperation().withDestinationObjectName("destKey")
             .withObjectName("key")
             .withBucket("bucketName");
-    ClientWrapper wrapper = new ClientWrapperImpl(client);
-    execute(op, wrapper, msg);
-  }
-
-  @Test
-  public void testCopy_Legacy() throws Exception {
-    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
-    CopyObjectResult result = new CopyObjectResult();
-    Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString())).thenReturn(result);
-    Mockito.when(client.copyObject(any())).thenReturn(result);
-    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    CopyOperation op =
-    new CopyOperation().withDestinationBucketName(new ConstantDataInputParameter("destBucket"))
-        .withDestinationKey(new ConstantDataInputParameter("destKey"))
-        .withBucketName(new ConstantDataInputParameter("srcBucket"))
-        .withKey(new ConstantDataInputParameter("srcKey"));
     ClientWrapper wrapper = new ClientWrapperImpl(client);
     execute(op, wrapper, msg);
   }
@@ -141,8 +110,8 @@ public class MockedOperationTest {
     Mockito.doAnswer((i)-> {return null;}).when(client).deleteObject(anyString(), anyString());
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     DeleteOperation op = new DeleteOperation()
-        .withBucketName(new ConstantDataInputParameter("bucketName"))
-        .withKey(new ConstantDataInputParameter("key"));
+        .withObjectName("key")
+        .withBucket("bucketName");
     ClientWrapper wrapper = new ClientWrapperImpl(client);
     execute(op, wrapper, msg);
   }
@@ -161,8 +130,8 @@ public class MockedOperationTest {
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     S3GetOperation op = new S3GetOperation()
-        .withBucketName(new ConstantDataInputParameter("srcBucket"))
-        .withKey(new ConstantDataInputParameter("srcKey"));
+        .withObjectName("srcKey")
+        .withBucket("srcBucket");
     ClientWrapper wrapper = new ClientWrapperImpl(client);
     execute(op, wrapper, msg);
   }
@@ -178,8 +147,7 @@ public class MockedOperationTest {
 
     TagOperation tag = new TagOperation()
         .withTagMetadataFilter(new NoOpMetadataFilter())
-        .withBucketName(new ConstantDataInputParameter("srcBucket"))
-        .withKey(new ConstantDataInputParameter("srcKey"));
+        .withObjectName("srcKey").withBucket("srcBucket");
     ClientWrapper wrapper = new ClientWrapperImpl(client);
     execute(tag, wrapper, msg);
   }
@@ -192,8 +160,7 @@ public class MockedOperationTest {
     msg.addMessageHeader("hello", "world");
 
     TagOperation tag = new TagOperation()
-        .withBucketName(new ConstantDataInputParameter("srcBucket"))
-        .withKey(new ConstantDataInputParameter("srcKey"));
+        .withObjectName("srcKey").withBucket("srcBucket");
     ClientWrapper wrapper = new ClientWrapperImpl(client);
     execute(tag, wrapper, msg);
   }
@@ -221,8 +188,7 @@ public class MockedOperationTest {
     DownloadOperation downloader = new DownloadOperation()
         .withTempDirectory(new File(System.getProperty("java.io.tmpdir")).getCanonicalPath())
         .withUserMetadataFilter(new NoOpMetadataFilter())
-        .withBucketName(new ConstantDataInputParameter("srcBucket"))
-        .withKey(new ConstantDataInputParameter("srcKey"));
+        .withObjectName("srcKey").withBucket("srcBucket");
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
     execute(downloader, wrapper, msg);
   }
@@ -249,8 +215,7 @@ public class MockedOperationTest {
 
     DownloadOperation downloader = new DownloadOperation()
         .withUserMetadataFilter(new NoOpMetadataFilter())
-        .withBucketName(new ConstantDataInputParameter("srcBucket"))
-        .withKey(new ConstantDataInputParameter("srcKey"));
+        .withObjectName("srcKey").withBucket("srcBucket");
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
     execute(downloader, wrapper, msg);
   }
@@ -274,8 +239,7 @@ public class MockedOperationTest {
     msg.addMessageHeader("hello", "world");
     UploadOperation uploader = new UploadOperation()
         .withUserMetadataFilter(new NoOpMetadataFilter())
-        .withBucketName(new ConstantDataInputParameter("srcBucket"))
-        .withKey(new ConstantDataInputParameter("srcKey"));
+        .withObjectName("srcKey").withBucket("srcBucket");
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
     execute(uploader, wrapper, msg);
   }
@@ -299,8 +263,7 @@ public class MockedOperationTest {
 
     UploadOperation uploader = new UploadOperation()
         .withObjectMetadata(new S3ServerSideEncryption())
-        .withBucketName(new ConstantDataInputParameter("srcBucket"))
-        .withKey(new ConstantDataInputParameter("srcKey"));
+        .withObjectName("srcKey").withBucket("srcBucket");
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
     execute(uploader, wrapper, msg);
   }
@@ -325,8 +288,7 @@ public class MockedOperationTest {
     UploadOperation uploader = new UploadOperation()
       .withCannedObjectAcl(S3ObjectCannedAcl.BUCKET_OWNER_FULL_CONTROL.name())
       .withUserMetadataFilter(new NoOpMetadataFilter())
-      .withBucketName(new ConstantDataInputParameter("srcBucket"))
-      .withKey(new ConstantDataInputParameter("srcKey"));
+        .withObjectName("srcKey").withBucket("srcBucket");
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
     execute(uploader, wrapper, msg);
   }
@@ -338,8 +300,7 @@ public class MockedOperationTest {
     Mockito.when(client.doesObjectExist(anyString(), anyString())).thenReturn(false).thenReturn(true);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello");
     CheckFileExistsOperation checker = new CheckFileExistsOperation()
-        .withBucketName(new ConstantDataInputParameter("srcBucket"))
-        .withKey(new ConstantDataInputParameter("srcKey"));
+        .withObjectName("srcKey").withBucket("srcBucket");
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
     try {
       execute(checker, wrapper, msg);
@@ -361,7 +322,7 @@ public class MockedOperationTest {
 
     Mockito.when(client.getObjectTagging(anyObject())).thenReturn(result);
     GetTagOperation getTags = new GetTagOperation().withTagMetadataFilter(new NoOpMetadataFilter())
-        .withBucketName(new ConstantDataInputParameter("srcBucket")).withKey(new ConstantDataInputParameter("srcKey"));
+        .withObjectName("srcKey").withBucket("srcBucket");
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("");
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);

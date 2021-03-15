@@ -14,23 +14,18 @@
 
 package com.adaptris.aws.s3;
 
-import javax.validation.Valid;
 import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
-import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.interlok.InterlokException;
-import com.adaptris.interlok.config.DataInputParameter;
+import com.adaptris.interlok.util.Args;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 /**
  * Copy an object from S3 to another object
@@ -47,51 +42,14 @@ import lombok.Setter;
 @AdapterComponent
 @ComponentProfile(summary = "Copy an object in S3 to another Object")
 @XStreamAlias("amazon-s3-copy")
-@DisplayOrder(order = {"bucket", "objectName", "destinationBucket", "destinationObjectName",
-    "bucketName", "key", "destinationBucketName", "destinationKey"})
+@DisplayOrder(order = {"bucket", "objectName", "destinationBucket", "destinationObjectName"})
 @NoArgsConstructor
 public class CopyOperation extends CopyOperationImpl {
-  private transient boolean bucketNameWarningLogged = false;
-  private transient boolean keyNameWarningLogged = false;
-
-  /**
-   * The destination bucket.
-   * <p>
-   * If not explictly configured, then we use the bucket name instead making the assumption it's a
-   * copy within the same bucket.
-   * </p>
-   */
-  @Valid
-  @Getter
-  @Setter
-  @Deprecated
-  @ConfigDeprecated(removalVersion = "4.0.0", message = "Use an expression based bucket instead", groups = Deprecated.class)
-  private DataInputParameter<String> destinationBucketName;
-  /**
-   * The destination object.
-   */
-  @Valid
-  @Getter
-  @Setter
-  @Deprecated
-  @ConfigDeprecated(removalVersion = "4.0.0", message = "Use an expression based key instead", groups = Deprecated.class)
-  private DataInputParameter<String> destinationKey;
-
 
   @Override
   public void prepare() throws CoreException {
     super.prepare();
-    if (getDestinationBucketName() != null) {
-      LoggingHelper.logWarning(bucketNameWarningLogged, () -> bucketNameWarningLogged = true,
-          "[{}] uses [destination-bucket-name], use [destination-bucket] instead",
-          this.getClass().getSimpleName());
-    }
-    if (getDestinationKey() != null) {
-      LoggingHelper.logWarning(keyNameWarningLogged, () -> keyNameWarningLogged = true,
-          "[{}] uses [destination-key], use the alternative string-based expression instead",
-          this.getClass().getSimpleName());
-    }
-    mustHaveEither(getDestinationKey(), getDestinationObjectName());
+    Args.notBlank(getDestinationObjectName(), "destination-object-name");
   }
 
   @Override
@@ -102,25 +60,12 @@ public class CopyOperation extends CopyOperationImpl {
     return copyReq;
   }
 
-  @Deprecated
-  public CopyOperation withDestinationBucketName(DataInputParameter<String> bucket) {
-    setDestinationBucketName(bucket);
-    return this;
-  }
-
-
-  @Deprecated
-  public CopyOperation withDestinationKey(DataInputParameter<String> key) {
-    setDestinationKey(key);
-    return this;
-  }
 
   private String destinationKey(AdaptrisMessage msg) throws InterlokException {
-    return resolve(getDestinationKey(), getDestinationObjectName(), msg);
+    return resolve(getDestinationObjectName(), msg);
   }
 
   private String destinationBucket(AdaptrisMessage msg) throws InterlokException {
-    return ObjectUtils.defaultIfNull(
-        resolve(getDestinationBucketName(), getDestinationBucket(), msg), s3Bucket(msg));
+    return ObjectUtils.defaultIfNull(resolve(getDestinationBucket(), msg), s3Bucket(msg));
   }
 }
