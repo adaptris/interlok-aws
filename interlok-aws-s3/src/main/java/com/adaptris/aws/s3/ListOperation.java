@@ -95,7 +95,7 @@ public class ListOperation extends S3OperationImpl {
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     AmazonS3Client s3 = wrapper.amazonClient();
     String _bucket = s3Bucket(msg);
-    String _prefix = resolve(getPrefix(), msg);
+    String _prefix = msg.resolve(getPrefix(), true);
     ListObjectsV2Request request = new ListObjectsV2Request().withBucketName(_bucket).withPrefix(_prefix);
     if (getMaxKeys() != null) {
       request.setMaxKeys(getMaxKeys());

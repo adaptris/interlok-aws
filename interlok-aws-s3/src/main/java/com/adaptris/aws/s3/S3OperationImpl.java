@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
-import com.adaptris.interlok.InterlokException;
 import com.adaptris.interlok.util.Args;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -52,15 +51,15 @@ public abstract class S3OperationImpl implements S3Operation {
     Args.notBlank(getBucket(), "bucket");
   }
 
-  protected String s3Bucket(AdaptrisMessage msg) throws InterlokException {
-    return resolve(getBucket(), msg);
+  protected String s3Bucket(AdaptrisMessage msg) {
+    return msg.resolve(getBucket(), true);
   }
 
   /**
    * @deprecated just use msg.resolve() instead.
    */
   @Deprecated
-  protected static String resolve(String expression, AdaptrisMessage msg) throws InterlokException {
+  protected static String resolve(String expression, AdaptrisMessage msg) {
     return msg.resolve(expression, true);
   }
 }

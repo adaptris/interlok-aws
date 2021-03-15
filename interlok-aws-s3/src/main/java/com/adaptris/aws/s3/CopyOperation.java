@@ -61,11 +61,11 @@ public class CopyOperation extends CopyOperationImpl {
   }
 
 
-  private String destinationKey(AdaptrisMessage msg) throws InterlokException {
-    return resolve(getDestinationObjectName(), msg);
+  private String destinationKey(AdaptrisMessage msg) {
+    return msg.resolve(getDestinationObjectName(), true);
   }
 
   private String destinationBucket(AdaptrisMessage msg) throws InterlokException {
-    return ObjectUtils.defaultIfNull(resolve(getDestinationBucket(), msg), s3Bucket(msg));
+    return ObjectUtils.defaultIfNull(msg.resolve(getDestinationBucket(), true), s3Bucket(msg));
   }
 }

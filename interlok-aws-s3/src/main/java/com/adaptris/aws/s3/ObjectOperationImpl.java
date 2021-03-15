@@ -4,7 +4,6 @@ import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
-import com.adaptris.interlok.InterlokException;
 import com.adaptris.interlok.util.Args;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -52,7 +51,7 @@ public abstract class ObjectOperationImpl extends S3OperationImpl {
    * Get the key representing the S3 Object.
    *
    */
-  protected String s3ObjectKey(AdaptrisMessage msg) throws InterlokException {
-    return resolve(getObjectName(), msg);
+  protected String s3ObjectKey(AdaptrisMessage msg) {
+    return msg.resolve(getObjectName(), true);
   }
 }
