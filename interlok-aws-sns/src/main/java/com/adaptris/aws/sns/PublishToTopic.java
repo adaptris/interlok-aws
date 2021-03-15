@@ -16,10 +16,9 @@
 
 package com.adaptris.aws.sns;
 
-import static com.adaptris.core.util.DestinationHelper.logWarningIfNotNull;
-import static com.adaptris.core.util.DestinationHelper.mustHaveEither;
 import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdvancedConfig;
@@ -28,18 +27,15 @@ import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.validation.constraints.ConfigDeprecated;
-import com.adaptris.annotation.Removal;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.common.StringPayloadDataInputParameter;
 import com.adaptris.core.util.ExceptionHelper;
-import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.interlok.InterlokException;
 import com.adaptris.interlok.config.DataInputParameter;
 import com.adaptris.interlok.types.InterlokMessage;
+import com.adaptris.interlok.util.Args;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -94,20 +90,6 @@ public class PublishToTopic extends NotificationProducer {
   private DataInputParameter<String> source;
 
   /**
-   * Optional subject that can be specified.
-   *
-   * @deprecated since 3.11.0 use sns-subject instead.
-   */
-  @AutoPopulated
-  @Valid
-  @InputFieldDefault(value = "")
-  @AdvancedConfig
-  @Deprecated
-  @Getter
-  @Setter
-  private DataInputParameter<String> subject;
-
-  /**
    * *
    * <p>
    * The topic ARN (e.g. {@code arn:aws:sns:us-east-1:123456789012:MyNewTopic}). It is expected that
@@ -117,6 +99,7 @@ public class PublishToTopic extends NotificationProducer {
   @InputFieldHint(expression = true)
   @Getter
   @Setter
+  @NotBlank
   private String topicArn;
 
   /**
@@ -128,29 +111,9 @@ public class PublishToTopic extends NotificationProducer {
   @Setter
   private String snsSubject;
 
-  /**
-   * The destination is the topic
-   *
-   * @deprecated since 3.11.0 use 'topic-arn' instead
-   */
-  @Getter
-  @Setter
-  @Deprecated
-  @Valid
-  @ConfigDeprecated(removalVersion = "4.0.0", message = "Use 'topic-arn' instead", groups = Deprecated.class)
-  private ProduceDestination destination;
-
-  private transient boolean destWarning;
-  private transient boolean subjectWarning;
-
-
   @Override
   public void prepare() throws CoreException {
-    logWarningIfNotNull(destWarning, () -> destWarning = true, getDestination(),
-        "{} uses destination, use 'topic-arn' instead", LoggingHelper.friendlyName(this));
-    logWarningIfNotNull(subjectWarning, () -> subjectWarning = true, getSubject(),
-        "{} uses destination, use 'sns-subject' instead", LoggingHelper.friendlyName(this));
-    mustHaveEither(getTopicArn(), getDestination());
+    Args.notBlank(getTopicArn(), "topic-arn");
   }
 
   public DataInputParameter<String> getSource() {
@@ -158,7 +121,7 @@ public class PublishToTopic extends NotificationProducer {
   }
 
   /**
-   * St the contents of the message that will be published.
+   * The contents of the message that will be published.
    *
    * @param source the message contents; by default will the be payload of the message.
    */
@@ -168,13 +131,6 @@ public class PublishToTopic extends NotificationProducer {
 
   public <T extends PublishToTopic> T withSource(DataInputParameter<String> source) {
     setSource(source);
-    return (T)this;
-  }
-
-  @Deprecated
-  @Removal(version = "4.0.0")
-  public <T extends PublishToTopic> T withSubject(DataInputParameter<String> subject) {
-    setSubject(subject);
     return (T)this;
   }
 
@@ -193,9 +149,6 @@ public class PublishToTopic extends NotificationProducer {
   }
 
   protected String resolveSubject(AdaptrisMessage msg) throws Exception {
-    if (getSubject() != null) {
-      return getSubject().extract(msg);
-    }
     return msg.resolve(getSnsSubject());
   }
 
@@ -217,7 +170,7 @@ public class PublishToTopic extends NotificationProducer {
 
   @Override
   public String endpoint(AdaptrisMessage msg) throws ProduceException {
-    return resolveProduceDestination(getTopicArn(), getDestination(), msg);
+    return resolveProduceDestination(getTopicArn(), msg);
   }
 
 }

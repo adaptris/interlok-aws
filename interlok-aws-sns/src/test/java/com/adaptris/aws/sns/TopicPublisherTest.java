@@ -29,7 +29,6 @@ import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.StandaloneProducer;
-import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.common.MetadataDataInputParameter;
 import com.adaptris.interlok.InterlokException;
 import com.adaptris.interlok.config.DataInputParameter;
@@ -62,16 +61,11 @@ public class TopicPublisherTest extends ExampleProducerCase {
   public void testSubject() throws Exception {
     PublishToTopic producer =
         new PublishToTopic().withTopicArn("arn:aws:sns:us-east-1:123456789012:MyNewTopic");
-    assertNull(producer.getSubject());
     assertNull(producer.getSnsSubject());
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMetadata("hello", "world");
     assertNull(producer.resolveSubject(msg));
 
-    producer.withSubject(new ConstantDataInputParameter("constant"));
-    assertEquals("constant", producer.resolveSubject(msg));
-
-    producer.setSubject(null);
     producer.withSubject("%message{hello}");
     assertEquals("world", producer.resolveSubject(msg));
   }
