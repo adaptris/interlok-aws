@@ -90,9 +90,9 @@ public class PluggableRetryPolicyFactory implements RetryPolicyFactory {
   private Object newInstance(String s) {
     Object o = null;
     try {
-      return !isEmpty(s) ? Class.forName(s).newInstance() : null;
+      return !isEmpty(s) ? Class.forName(s).getDeclaredConstructor().newInstance() : null;
     }
-    catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+    catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
