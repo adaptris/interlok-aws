@@ -33,14 +33,14 @@ import lombok.NoArgsConstructor;
  * {@link ExceptionHandlingServiceWrapper} or similar if a missing S3 object is part of your
  * expected integration pipeline.
  * </p>
- * 
+ *
  * @config amazon-s3-check-file-exists
  */
 @AdapterComponent
 @ComponentProfile(summary = "Check a file exists in S3, throws exception if it doesn't",
     since = "3.8.4")
 @XStreamAlias("amazon-s3-check-file-exists")
-@DisplayOrder(order ={ "bucket", "objectName", "bucketName", "key"})
+@DisplayOrder(order = {"bucket", "objectName"})
 @NoArgsConstructor
 public class CheckFileExistsOperation extends ObjectOperationImpl {
 
@@ -50,11 +50,11 @@ public class CheckFileExistsOperation extends ObjectOperationImpl {
     AmazonS3Client s3 = wrapper.amazonClient();
     String bucket = s3Bucket(msg);
     String key = s3ObjectKey(msg);
-    if (!s3.doesObjectExist(bucket, key)) {      
+    if (!s3.doesObjectExist(bucket, key)) {
       throw new Exception(String.format("[%s:%s] does not exist", bucket, key));
     } else {
       log.trace("[{}:{}] exists", bucket, key);
     }
   }
-  
+
 }

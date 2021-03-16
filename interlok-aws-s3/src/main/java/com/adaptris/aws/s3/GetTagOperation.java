@@ -32,17 +32,17 @@ import lombok.NoArgsConstructor;
 
 /**
  * Get tags associated with a S3 Object
- * 
+ *
  * <p>
  * Uses {@code AmazonS3Client#getObjectTagging(GetObjectTaggingRequest)}
  * </p>
- * 
+ *
  * @config amazon-s3-tag-get
  */
 @AdapterComponent
 @ComponentProfile(summary = "Get tags associated with an object in S3", since = "3.8.4")
 @XStreamAlias("amazon-s3-tag-get")
-@DisplayOrder(order = {"bucket", "objectName", "bucketName", "key", "tagMetadataFilter"})
+@DisplayOrder(order = {"bucket", "objectName", "tagMetadataFilter"})
 @NoArgsConstructor
 public class GetTagOperation extends TagOperation {
 
@@ -53,7 +53,7 @@ public class GetTagOperation extends TagOperation {
     String srcKey = s3ObjectKey(msg);
     log.trace("Getting tags for [{}:{}]", srcBucket, srcKey);
     GetObjectTaggingRequest req = new GetObjectTaggingRequest(srcBucket, srcKey);
-    msg.setMetadata(filterTags(s3.getObjectTagging(req).getTagSet()));    
+    msg.setMetadata(filterTags(s3.getObjectTagging(req).getTagSet()));
   }
 
   protected Set<MetadataElement> filterTags(List<Tag> tags) {
@@ -63,5 +63,5 @@ public class GetTagOperation extends TagOperation {
     }
     return tagMetadataFilter().filter(msgMetadata).toSet();
   }
-  
+
 }

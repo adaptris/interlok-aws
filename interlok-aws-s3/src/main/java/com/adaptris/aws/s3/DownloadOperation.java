@@ -40,14 +40,14 @@ import lombok.NoArgsConstructor;
 
 /**
  * Download an object from S3 using {@link TransferManager}.
- * 
+ *
  * @author lchan
  * @config amazon-s3-download
  */
 @AdapterComponent
 @ComponentProfile(summary = "Amazon S3 Download using Transfer Manager")
 @XStreamAlias("amazon-s3-download")
-@DisplayOrder(order = {"bucket", "objectName", "bucketName","key","tempDirectory", "userMetadataFilter"})
+@DisplayOrder(order = {"bucket", "objectName", "tempDirectory", "userMetadataFilter"})
 @NoArgsConstructor
 public class DownloadOperation extends TransferOperation {
 
@@ -97,13 +97,13 @@ public class DownloadOperation extends TransferOperation {
 
   /**
    * Set the temp directory to store files.
-   * 
+   *
    * @param s the tempDirectory to set, if not specified defaults to {@code java.io.tmpdir}
    */
   public void setTempDirectory(String s) {
-    this.tempDirectory = s;
+    tempDirectory = s;
   }
-  
+
   public DownloadOperation withTempDirectory(String s) {
     setTempDirectory(s);
     return this;

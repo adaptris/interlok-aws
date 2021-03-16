@@ -26,14 +26,14 @@ import lombok.NoArgsConstructor;
 
 /**
  * Delete an object from S3.
- * 
+ *
  * @author lchan
  * @config amazon-s3-download
  */
 @AdapterComponent
 @ComponentProfile(summary = "Delete an object from S3")
 @XStreamAlias("amazon-s3-delete")
-@DisplayOrder(order ={ "bucket", "objectName", "bucketName", "key"})
+@DisplayOrder(order = {"bucket", "objectName"})
 @NoArgsConstructor
 public class DeleteOperation extends ObjectOperationImpl {
 
