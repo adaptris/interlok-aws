@@ -1,13 +1,14 @@
 ext {
   componentName='Interlok AWS/SQS'
+  componentDesc="Publishing & Consuming from AWS SQS natively or via their JMS provider"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.11.930'
+  awsSDKVersion = '1.11.974'
 }
 
 dependencies {
   compile ("com.amazonaws:aws-java-sdk-sqs:$awsSDKVersion")
   compile ("com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8")
-  compile ("com.fasterxml.jackson.core:jackson-databind:2.12.1")
+  compile ("com.fasterxml.jackson.core:jackson-databind:2.12.2")
   compile ("org.apache.httpcomponents:httpclient:4.5.13")
   compile ("commons-codec:commons-codec:1.15")
   compile project(':interlok-aws-common')
@@ -53,7 +54,7 @@ publishing {
           artifact examplesJar { classifier "examples" }
           artifact sourcesJar { classifier "sources" }
           pom.withXml {
-            asNode().appendNode("description", "Publishing & Consuming from AWS S3")
+            asNode().appendNode("description", componentDesc)
             asNode().appendNode("name", componentName)
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.3.0+")

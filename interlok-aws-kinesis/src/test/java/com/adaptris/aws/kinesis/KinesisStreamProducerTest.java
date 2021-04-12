@@ -7,7 +7,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
@@ -25,23 +24,6 @@ public class KinesisStreamProducerTest extends ExampleProducerCase {
         new KinesisStreamProducer().withStream("%message{myStreamName}").withPartitionKey("myPartitionKey");
     ConnectionFromProperties conn = new ConnectionFromProperties().withConfigLocation("/path/to/property/file");
     return new StandaloneProducer(conn, producer);
-  }
-
-  @Test
-  @SuppressWarnings("deprecation")
-  public void testProduce() throws Exception {
-    KinesisStreamProducer producer =
-        new KinesisStreamProducer().withPartitionKey("myPartitionKey");
-    producer.setDestination(new ConfiguredProduceDestination("myStreamName"));
-    KinesisProducer mock = Mockito.mock(KinesisProducer.class);
-    UserRecordResult mockResult = Mockito.mock(UserRecordResult.class);
-    ListenableFutureTask<UserRecordResult> future = ListenableFutureTask.create(() -> {
-      return mockResult;
-    });
-    Mockito.when(mock.addUserRecord(anyString(), anyString(), any())).thenReturn(future);
-    StandaloneProducer standalone = new StandaloneProducer(new MyConnection(mock), producer);
-    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    ExampleServiceCase.execute(standalone, msg);
   }
 
   @Test

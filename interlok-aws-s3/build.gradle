@@ -3,8 +3,9 @@ import org.apache.tools.ant.filters.*
 
 ext {
   componentName='Interlok AWS/S3'
+  componentDesc="Services that interact (upload/download/delete) with AWS S3 Buckets and artefacts"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.11.930'
+  awsSDKVersion = '1.11.974'
 }
 
 dependencies {
@@ -58,7 +59,7 @@ publishing {
           artifact sourcesJar { classifier "sources" }
           pom.withXml {
             asNode().appendNode("name", componentName)
-            asNode().appendNode("description", "Services that interact (upload/download/delete) with AWS S3 Buckets and artefacts")
+            asNode().appendNode("description", componentDesc)
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.3.0+")
             properties.appendNode("tags", "aws,s3")

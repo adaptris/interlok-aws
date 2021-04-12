@@ -1,21 +1,22 @@
 package com.adaptris.aws.s3;
 
+import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
-import com.adaptris.interlok.InterlokException;
+import com.adaptris.interlok.util.Args;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
  * Operation on a single S3 Object.
- * 
+ *
  * <p>
  * This was introduced to demarcate operations that do work on the bucket as a whole as opposed to a
  * single S3 Object in the bucket.
  * </p>
- * 
+ *
  * @since 3.10.2
  */
 @NoArgsConstructor
@@ -31,13 +32,14 @@ public abstract class ObjectOperationImpl extends S3OperationImpl {
   @Getter
   @Setter
   @InputFieldHint(expression = true)
+  @NotBlank
   private String objectName;
 
 
   @Override
   public void prepare() throws CoreException {
     super.prepare();
-    mustHaveEither(getKey(), getObjectName());
+    Args.notBlank(getObjectName(), "object-name");
   }
 
   public <T extends ObjectOperationImpl> T withObjectName(String b) {
@@ -47,9 +49,9 @@ public abstract class ObjectOperationImpl extends S3OperationImpl {
 
   /**
    * Get the key representing the S3 Object.
-   * 
+   *
    */
-  protected String s3ObjectKey(AdaptrisMessage msg) throws InterlokException {
-    return resolve(getKey(), getObjectName(), msg);
+  protected String s3ObjectKey(AdaptrisMessage msg) {
+    return msg.resolve(getObjectName(), true);
   }
 }

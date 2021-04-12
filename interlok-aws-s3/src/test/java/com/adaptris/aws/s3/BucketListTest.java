@@ -47,7 +47,7 @@ public class BucketListTest {
     // for coverage, we should use withPrefix().
     S3BucketList bucket =
         new S3BucketList().withConnection(mockConnection).withBucket("srcBucket")
-            .withKey("srcKeyPrefix").withOutputStyle(null);
+            .withPrefix("srcKeyPrefix").withOutputStyle(null);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     ServiceCase.execute(bucket, msg);
 

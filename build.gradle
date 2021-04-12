@@ -2,14 +2,15 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
 plugins {
-  id 'com.github.spotbugs' version '4.6.0' apply false
+  id 'com.github.spotbugs' version '4.7.0' apply false
   id "io.freefair.lombok" version "5.3.0" apply false
-  id 'org.owasp.dependencycheck' version '6.0.5' apply false
+  id 'org.owasp.dependencycheck' version '6.1.2' apply false
+  id "org.gradle.test-retry" version "1.2.0" apply false
 }
 
 ext {
-  interlokCoreVersion = project.findProperty('interlokCoreVersion') ?: '3.12-SNAPSHOT'
-  releaseVersion = project.findProperty('releaseVersion') ?: '3.12-SNAPSHOT'
+  interlokCoreVersion = project.findProperty('interlokCoreVersion') ?: '4.0-SNAPSHOT'
+  releaseVersion = project.findProperty('releaseVersion') ?: '4.0-SNAPSHOT'
   nexusBaseUrl = project.findProperty('nexusBaseUrl') ?: 'https://nexus.adaptris.net/nexus'
   mavenPublishUrl = project.findProperty('mavenPublishUrl') ?: nexusBaseUrl + '/content/repositories/snapshots'
   javadocsBaseUrl = nexusBaseUrl + "/content/sites/javadocs/com/adaptris"
@@ -23,7 +24,7 @@ ext {
   organizationName = "Adaptris Ltd"
 
   slf4jVersion = '1.7.30'
-  mockitoVersion = '3.7.0'
+  mockitoVersion = '3.8.0'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
@@ -34,30 +35,22 @@ if (JavaVersion.current().isJava8Compatible()) {
   }
 }
 
-ext.hostname = { ->
-  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-    return System.getenv("COMPUTERNAME")
-  }
-  return System.getenv("HOSTNAME")
-}
+ext.buildDetails = [
+  hostname: { ->
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+      return System.getenv("COMPUTERNAME")
+    }
+    return System.getenv("HOSTNAME")
+  },
 
-ext.hasGraphViz = { ->
-  def app = "dot"
-  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-    app = app + ".exe"
-  }
-  return System.getenv("PATH").split(File.pathSeparator).any{
-    java.nio.file.Paths.get("${it}").resolve(app).toFile().exists()
-  }
-}
-ext.gitBranchNameOrTimestamp = { branchName ->
-  if (branchName.equals("HEAD") || branchName.equals("develop") || branchName.startsWith("release")) {
-    return new Date().format('HH:mm:ss z');
-  }
-  return branchName;
-}
+  gitBranchNameOrTimestamp: { branchName ->
+    if (branchName.equals("HEAD") || branchName.equals("develop") || branchName.startsWith("release")) {
+      return new Date().format('HH:mm:ss z');
+    }
+    return branchName;
+  },
 
-ext.buildInfo = { ->
+  buildInfo: { ->
    new ByteArrayOutputStream().withStream { os ->
       exec {
         executable = "git"
@@ -65,12 +58,27 @@ ext.buildInfo = { ->
         standardOutput = os
       }
       def branchName = os.toString().replaceAll("\r", "").replaceAll("\n", "").trim();
-      return gitBranchNameOrTimestamp(branchName);
+      return buildDetails.gitBranchNameOrTimestamp(branchName);
     }
-}
+  },
+  hasGraphViz: { ->
+//  def app = "dot"
+//  if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+//    app = app + ".exe"
+//  }
+//  return System.getenv("PATH").split(File.pathSeparator).any{
+//    java.nio.file.Paths.get("${it}").resolve(app).toFile().exists()
+//  }
+    return false
+  },
+
+  is_ci_pipeline: { ->
+    return System.getenv().containsKey("CI");
+  }
+]
 
 def propertyTemplate(dir, filename) {
-  def file = new File(dir, filename + "." + hostname())
+  def file = new File(dir, filename + "." + buildDetails.hostname())
   if (file.exists()) {
     return file.getName()
   }
@@ -91,9 +99,10 @@ subprojects {
   apply plugin: "io.freefair.lombok"
   apply plugin: 'com.github.spotbugs'
   apply plugin: 'org.owasp.dependencycheck'
+  apply plugin: 'org.gradle.test-retry'
 
-  sourceCompatibility = JavaVersion.VERSION_1_8
-  targetCompatibility = JavaVersion.VERSION_1_8
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
   group   = 'com.adaptris'
   version = releaseVersion
   def versionDir = "$buildDir/version"
@@ -125,6 +134,9 @@ subprojects {
     all*.exclude group: 'javax.validation', module: 'validation-api'
     all*.exclude group: 'javax.activation', module: 'activation'
     all*.exclude group: 'javax.activation', module: 'javax.activation-api'
+
+    // INTERLOK-3740 switch from jcraft to com.github.mwiede jsch fork.
+    all*.exclude group: 'com.jcraft', module: 'jsch'
   }
 
   configurations.all {
@@ -139,7 +151,7 @@ subprojects {
       compile ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
 
       annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
-      testCompile ('junit:junit:4.13.1')
+      testCompile ('junit:junit:4.13.2')
       testCompile "org.slf4j:slf4j-simple:$slf4jVersion"
       // exclude any log4j dependencies so that we can just use slf4j simple.
       // works around INTERLOk-3233
@@ -160,13 +172,14 @@ subprojects {
 
   javadoc {
     onlyIf {
-      !hasGraphViz()
+      !buildDetails.hasGraphViz()
     }
     configure(options) {
       options.linksOffline(interlokJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-core-$interlokCoreVersion-javadoc.jar")
       options.linksOffline(interlokCommonJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-common-$interlokCoreVersion-javadoc.jar")
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
+      options.addBooleanOption "-no-module-directories", true
     }
   }
 
@@ -175,7 +188,7 @@ subprojects {
     description 'Build javadocs using plantuml + graphviz + umldoclet, if dot is available'
 
     onlyIf {
-      hasGraphViz()
+      buildDetails.hasGraphViz()
     }
     // Since we are using lombok, we have to switch the source.
     // c.f. https://github.com/freefair/gradle-plugins/issues/132
@@ -187,6 +200,7 @@ subprojects {
       options.linksOffline(interlokCommonJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-common-$interlokCoreVersion-javadoc.jar")
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
+      options.addBooleanOption "-no-module-directories", true
       options.docletpath = configurations.umlDoclet.files.asType(List)
       options.doclet = "nl.talsmasoftware.umldoclet.UMLDoclet"
       options.addStringOption "umlBasePath", destinationDir.getCanonicalPath()
@@ -228,11 +242,12 @@ subprojects {
       versionFile.getParentFile().mkdirs()
       ant.propertyfile(file: versionFile) {
         entry(key: 'component.name', value: componentName)
+        entry(key: 'component.description', value: componentDesc)
         entry(key: 'build.version', value: releaseVersion)
-        entry(key: 'groupId', value: "com.adaptris")
+        entry(key: 'groupId', value: project.group)
         entry(key: 'artifactId', value: project.name)
         entry(key: 'build.date', value: new Date().format('yyyy-MM-dd'))
-        entry(key: 'build.info', value: buildInfo())
+        entry(key: 'build.info', value: buildDetails.buildInfo())
       }
     }
   }
@@ -247,6 +262,7 @@ subprojects {
       }
     }
     include "package-list"
+    include "element-list"
     into offlineJavadocPackageDir
   }
 
@@ -316,6 +332,14 @@ subprojects {
     classpath = project.sourceSets.main.compileClasspath
   }
 
+  test {
+    if (buildDetails.is_ci_pipeline()) {
+      retry {
+        maxRetries = 3
+        maxFailures = 20
+      }
+    }
+  }
 
   check.dependsOn jacocoTestReport
   javadoc.dependsOn offlinePackageList, umlJavadoc

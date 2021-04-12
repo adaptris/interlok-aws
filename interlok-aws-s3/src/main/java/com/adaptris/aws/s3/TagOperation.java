@@ -16,6 +16,10 @@
 
 package com.adaptris.aws.s3;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.validation.Valid;
+import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
@@ -24,34 +28,26 @@ import com.adaptris.core.MetadataCollection;
 import com.adaptris.core.MetadataElement;
 import com.adaptris.core.metadata.MetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
-import com.adaptris.core.util.ExceptionHelper;
-import com.adaptris.interlok.InterlokException;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.ObjectTagging;
 import com.amazonaws.services.s3.model.SetObjectTaggingRequest;
 import com.amazonaws.services.s3.model.Tag;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.NoArgsConstructor;
-import javax.validation.Valid;
-
-import org.apache.commons.lang3.ObjectUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Add tags to an object from S3 to another object
- * 
+ *
  * <p>
  * Uses {@link AmazonS3Client#setObjectTagging(SetObjectTaggingRequest)}.
  * </p>
- * 
+ *
  * @config amazon-s3-copy
  */
 @AdapterComponent
 @ComponentProfile(summary = "Tag an object in S3")
 @XStreamAlias("amazon-s3-tag")
-@DisplayOrder(order ={ "bucket", "objectName", "bucketName", "key", "tagMetadataFilter"})
+@DisplayOrder(order = {"bucket", "objectName", "tagMetadataFilter"})
 @NoArgsConstructor
 public class TagOperation extends ObjectOperationImpl {
 
@@ -80,7 +76,7 @@ public class TagOperation extends ObjectOperationImpl {
    * @param mf the metadata filter; if not specified defaults to {@link RemoveAllMetadataFilter}.
    */
   public void setTagMetadataFilter(MetadataFilter mf) {
-    this.tagMetadataFilter = mf;
+    tagMetadataFilter = mf;
   }
 
   public <T extends TagOperation> T withTagMetadataFilter(MetadataFilter mf) {
@@ -88,11 +84,11 @@ public class TagOperation extends ObjectOperationImpl {
     return (T) this;
   }
 
-  
+
   protected MetadataFilter tagMetadataFilter() {
     return ObjectUtils.defaultIfNull(getTagMetadataFilter(), new RemoveAllMetadataFilter());
   }
-  
+
   protected List<Tag> filterTagMetadata(AdaptrisMessage msg) {
     MetadataCollection metadata = tagMetadataFilter().filter(msg);
     List<Tag> result = new ArrayList<>(metadata.size());

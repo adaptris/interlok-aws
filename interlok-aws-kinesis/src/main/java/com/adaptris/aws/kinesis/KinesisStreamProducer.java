@@ -1,22 +1,17 @@
 package com.adaptris.aws.kinesis;
 
-import static com.adaptris.core.util.DestinationHelper.logWarningIfNotNull;
-import static com.adaptris.core.util.DestinationHelper.mustHaveEither;
 import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination;
 import java.nio.ByteBuffer;
 import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.ProduceOnlyProducerImp;
 import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
-import com.adaptris.core.util.LoggingHelper;
 import com.amazonaws.services.kinesis.producer.KinesisProducer;
 import com.amazonaws.services.kinesis.producer.UserRecordResult;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -54,6 +49,7 @@ public class KinesisStreamProducer extends ProduceOnlyProducerImp {
   @InputFieldHint(expression = true)
   @Getter
   @Setter
+  @NotBlank
   private String stream;
   /**
    * The kinesis partition key.
@@ -64,25 +60,10 @@ public class KinesisStreamProducer extends ProduceOnlyProducerImp {
   @Getter
   private String partitionKey;
 
-  /**
-   * The ProduceDestination is the stream that we will used.
-   *
-   * @deprecated since 3.11.0 use 'stream' instead.
-   *
-   */
-  @Getter
-  @Setter
-  @Deprecated
-  @ConfigDeprecated(removalVersion = "4.0.0", message = "use 'stream' instead", groups = Deprecated.class)
-  private ProduceDestination destination;
-
-  private transient boolean destWarning;
-
   @Override
   public void prepare() throws CoreException {
-    logWarningIfNotNull(destWarning, () -> destWarning = true, getDestination(),
-        "{} uses destination, use 'stream' instead", LoggingHelper.friendlyName(this));
-    mustHaveEither(getStream(), getDestination());
+    Args.notBlank(getPartitionKey(), "partition-key");
+    Args.notBlank(getStream(), "stream");
   }
 
   ListenableFuture<UserRecordResult> addUserRecord(AdaptrisMessage msg, String endpoint)
@@ -117,7 +98,7 @@ public class KinesisStreamProducer extends ProduceOnlyProducerImp {
 
   @Override
   public String endpoint(AdaptrisMessage msg) throws ProduceException {
-    return resolveProduceDestination(getStream(), getDestination(), msg);
+    return resolveProduceDestination(getStream(), msg);
   }
 
 }

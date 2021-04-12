@@ -10,7 +10,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
@@ -29,25 +28,6 @@ public class KinesisSynchronousStreamProducerTest extends ExampleProducerCase {
         new KinesisSynchronousStreamProducer().withStream("%message{myStreamName}").withPartitionKey("myPartitionKey");
     ConnectionFromProperties conn = new ConnectionFromProperties().withConfigLocation("/path/to/property/file");
     return new StandaloneProducer(conn, producer);
-  }
-
-  @Test
-  @SuppressWarnings({"unchecked", "deprecation"})
-  public void testProduce() throws Exception {
-    KinesisSynchronousStreamProducer producer =
-        new KinesisSynchronousStreamProducer().withPartitionKey("myPartitionKey");
-    producer.setDestination(new ConfiguredProduceDestination("myStreamName"));
-    KinesisProducer mock = Mockito.mock(KinesisProducer.class);
-    UserRecordResult mockResult = Mockito.mock(UserRecordResult.class);
-    ListenableFutureTask<UserRecordResult> futureTask = Mockito.mock(ListenableFutureTask.class);
-    Mockito.when(futureTask.get()).thenReturn(mockResult);
-    Mockito.when(mockResult.isSuccessful()).thenReturn(true);
-    List<Attempt> list = Collections.singletonList(new Attempt(0, 0, "Success", "Success", true));
-    Mockito.when(mockResult.getAttempts()).thenReturn(list);
-    Mockito.when(mock.addUserRecord(anyString(), anyString(), any())).thenReturn(futureTask);
-    StandaloneProducer standalone = new StandaloneProducer(new MyConnection(mock), producer);
-    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    ExampleServiceCase.execute(standalone, msg);
   }
 
   @Test

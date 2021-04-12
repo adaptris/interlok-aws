@@ -27,17 +27,17 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
  * Create a bucket in S3.
- * 
+ *
  * @config amazon-s3-create-bucket
  */
 @AdapterComponent
 @ComponentProfile(summary = "Create a bucket in S3")
 @XStreamAlias("amazon-s3-create-bucket")
-@DisplayOrder(order = {"bucket", "bucketName"})
+@DisplayOrder(order = {"bucket"})
 public class CreateBucketOperation extends S3OperationImpl {
 
   protected transient Logger log = LoggerFactory.getLogger(this.getClass().getName());
-  
+
   public CreateBucketOperation() {
   }
 

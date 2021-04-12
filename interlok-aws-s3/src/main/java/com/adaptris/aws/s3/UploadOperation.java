@@ -16,19 +16,15 @@
 
 package com.adaptris.aws.s3;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import javax.validation.Valid;
-
-import lombok.Getter;
-import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
-
+import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -42,19 +38,20 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Upload an object to S3 using {@link TransferManager}.
- * 
+ *
  * @author lchan
  * @config amazon-s3-upload
  */
 @AdapterComponent
 @ComponentProfile(summary = "Amazon S3 Upload using Transfer Manager")
 @XStreamAlias("amazon-s3-upload")
-@DisplayOrder(order = {"bucket", "objectName", "bucketName", "key", "userMetadataFilter", "cannedObjectAcl", "objectMetadata"})
+@DisplayOrder(
+    order = {"bucket", "objectName", "userMetadataFilter", "cannedObjectAcl", "objectMetadata"})
 public class UploadOperation extends TransferOperation {
 
   private transient ManagedThreadFactory threadFactory = new ManagedThreadFactory();
@@ -70,7 +67,7 @@ public class UploadOperation extends TransferOperation {
   @AdvancedConfig
   @InputFieldHint(expression = true, style = "com.adaptris.aws.s3.S3ObjectCannedAcl")
   private String cannedObjectAcl;
-  
+
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     TransferManager tm = wrapper.transferManager();
@@ -101,11 +98,11 @@ public class UploadOperation extends TransferOperation {
     setObjectMetadata(objectMetadata);
     return this;
   }
-  
+
   public UploadOperation withObjectMetadata(S3ObjectMetadata... objectMetadata) {
     return withObjectMetadata(new ArrayList<>(Arrays.asList(objectMetadata)));
   }
-  
+
   private List<S3ObjectMetadata> objectMetadata() {
     return ObjectUtils.defaultIfNull(getObjectMetadata(), Collections.emptyList());
   }
@@ -124,6 +121,7 @@ public class UploadOperation extends TransferOperation {
       this.name = name;
     }
 
+    @Override
     public void run() {
       Thread.currentThread().setName(name);
       while (!upload.isDone()) {

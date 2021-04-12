@@ -22,10 +22,8 @@ import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.interlok.cloud.BlobListRenderer;
 import com.adaptris.interlok.cloud.RemoteBlobFilter;
 import com.amazonaws.services.s3.AmazonS3Client;
@@ -44,12 +42,9 @@ import lombok.Setter;
 @ComponentProfile(summary = "List of files based on S3 key",
     since = "3.9.1")
 @XStreamAlias("amazon-s3-list")
-@DisplayOrder(order = {"bucket", "prefix", "bucketName", "key", "pageResults", "maxKeys", "filter",
-    "filterSuffix"})
+@DisplayOrder(order = {"bucket", "prefix", "outputStyle", "maxKeys", "filter"})
 @NoArgsConstructor
 public class ListOperation extends S3OperationImpl {
-  private transient boolean pageWarningLogged;
-
   /**
    * Specific the prefix for use with the List operation.
    *
@@ -81,23 +76,6 @@ public class ListOperation extends S3OperationImpl {
   private BlobListRenderer outputStyle;
 
   /**
-   * Specify whether to page over results.
-   *
-   * <p>
-   *   If set to true will return all results, as oppose to the first n, where n is max-keys (AWS default: 1000).
-   *   Default is false for backwards compatibility reasons.
-   * </p>
-   * @deprecated since 3.10.2 due to interface changes; paging results is not explicitly configurable and will be ignored.
-   */
-  @AdvancedConfig(rare = true)
-  @Getter
-  @Setter
-  @Deprecated
-  @ConfigDeprecated(removalVersion = "4.0",
-      message = "due to interface changes; paging results is not explicitly configurable and will be ignored", groups = Deprecated.class)
-  private Boolean pageResults;
-
-  /**
    * Specify max number of keys to be returned per page when paging through results.
    */
   @AdvancedConfig(rare=true)
@@ -109,11 +87,6 @@ public class ListOperation extends S3OperationImpl {
   @Override
   public void prepare() throws CoreException {
     super.prepare();
-    if (getPageResults() != null) {
-      LoggingHelper.logWarning(pageWarningLogged, () -> pageWarningLogged = true,
-          "[{}] uses [page-results], this is ignored",
-          this.getClass().getSimpleName());
-    }
   }
 
   @Override
@@ -121,7 +94,7 @@ public class ListOperation extends S3OperationImpl {
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     AmazonS3Client s3 = wrapper.amazonClient();
     String _bucket = s3Bucket(msg);
-    String _prefix = resolve(getKey(), getPrefix(), msg);
+    String _prefix = msg.resolve(getPrefix(), true);
     ListObjectsV2Request request = new ListObjectsV2Request().withBucketName(_bucket).withPrefix(_prefix);
     if (getMaxKeys() != null) {
       request.setMaxKeys(getMaxKeys());

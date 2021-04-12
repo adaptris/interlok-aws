@@ -21,26 +21,24 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
 import javax.management.MalformedObjectNameException;
-import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import org.apache.commons.lang3.BooleanUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
-import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisComponent;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.AdaptrisPollingConsumer;
-import com.adaptris.core.ConsumeDestination;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.runtime.ParentRuntimeInfoComponent;
 import com.adaptris.core.runtime.RuntimeInfoComponent;
 import com.adaptris.core.runtime.RuntimeInfoComponentFactory;
 import com.adaptris.core.runtime.WorkflowManager;
 import com.adaptris.core.util.DestinationHelper;
-import com.adaptris.core.util.LoggingHelper;
+import com.adaptris.interlok.util.Args;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.DeleteMessageRequest;
 import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
@@ -104,29 +102,18 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
   private Boolean alwaysDelete;
 
   /**
-   * The consume destination represents the SQS Queue
-   *
-   */
-  @Deprecated
-  @Valid
-  @ConfigDeprecated(removalVersion = "4.0.0", message = "Use 'queue' instead", groups = Deprecated.class)
-  @Getter
-  @Setter
-  private ConsumeDestination destination;
-
-  /**
    * The SQS Queue name
    *
    */
   @Getter
   @Setter
+  @NotBlank
   private String queue;
 
 
   private transient String queueUrl = null;
   private transient List<String> receiveAttributes = Collections.singletonList("All");
   private transient List<String> receiveMessageAttributes = Collections.singletonList("All");
-  private transient boolean destinationWarningLogged = false;
 
   static {
     RuntimeInfoComponentFactory.registerComponentFactory(new AmazonSQSConsumer.JmxFactory());
@@ -211,12 +198,7 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
   @Override
   protected void prepareConsumer() throws CoreException {
-    if (getDestination() != null) {
-      LoggingHelper.logWarning(destinationWarningLogged, () -> destinationWarningLogged = true,
-          "{} uses destination, use queue instead",
-          LoggingHelper.friendlyName(this));
-    }
-    DestinationHelper.mustHaveEither(getQueue(), getDestination());
+    Args.notBlank(getQueue(), "queue");
   }
 
   public AmazonSQSConsumer withQueue(String s) {
@@ -231,7 +213,7 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
   }
 
   private String queueName() {
-    return DestinationHelper.consumeDestination(getQueue(), getDestination());
+    return getQueue();
   }
 
   @SneakyThrows(CoreException.class)
@@ -252,7 +234,7 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
   @Override
   protected String newThreadName() {
-    return DestinationHelper.threadName(retrieveAdaptrisMessageListener(), getDestination());
+    return DestinationHelper.threadName(retrieveAdaptrisMessageListener());
   }
 
   private static class JmxFactory extends RuntimeInfoComponentFactory {

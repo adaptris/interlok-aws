@@ -56,11 +56,7 @@ public class S3ObjectMetadataTest {
   public void testExpirationRuleId() throws Exception {
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     S3ExpirationTimeRuleId om = new S3ExpirationTimeRuleId();
-    om.setExpirationRuleId("deprecated expiration rule");
     ObjectMetadata meta = new ObjectMetadata();
-    om.apply(msg, meta);
-    assertEquals("deprecated expiration rule", meta.getExpirationTimeRuleId());
-    om.setExpirationRuleId(null);
     om.setExpirationTimeRuleId("proper rule id");
     om.apply(msg, meta);
     assertEquals("proper rule id", meta.getExpirationTimeRuleId());

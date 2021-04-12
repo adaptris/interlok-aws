@@ -19,7 +19,6 @@ package com.adaptris.aws.s3;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +41,6 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.MetadataElement;
 import com.adaptris.core.ServiceException;
-import com.adaptris.core.common.ConstantDataInputParameter;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
 import com.adaptris.interlok.InterlokException;
@@ -52,13 +50,18 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 @SuppressWarnings("deprecation")
 public class S3OperationTest {
 
+  @Test
+  public void testResolve() {
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
+    msg.addMessageHeader("hello", "world");
+    assertEquals("world", S3OperationImpl.resolve("%message{hello}", msg));
+    assertEquals("hello", S3OperationImpl.resolve("hello", msg));
+    assertNull(S3OperationImpl.resolve(null, msg));
+  }
 
   @Test
   public void testKey() {
     MyS3Operation op = new MyS3Operation();
-    assertNull(op.getKey());
-    op.withKey(new ConstantDataInputParameter("hello"));
-    assertEquals(ConstantDataInputParameter.class, op.getKey().getClass());
     assertNull(op.getObjectName());
     op.withObjectName("hello");
     assertEquals("hello", op.getObjectName());
@@ -67,10 +70,6 @@ public class S3OperationTest {
   @Test
   public void testBucket() {
     MyS3Operation op = new MyS3Operation();
-    assertNull(op.getBucketName());
-    op.withBucketName(new ConstantDataInputParameter("hello"));
-    assertEquals(ConstantDataInputParameter.class, op.getBucketName().getClass());
-    op.setBucketName(null);
     assertNull(op.getBucket());
     op.withBucket("hello");
     assertEquals("hello", op.getBucket());
@@ -106,10 +105,10 @@ public class S3OperationTest {
     Set<MetadataElement> result = op.filterUserMetadata(map);
     assertEquals(0, result.size());
   }
-  
+
   @Test
   public void testS3ObjectMetadata() throws UnsupportedEncodingException, ServiceException {
-    List<S3ObjectMetadata> allmetas = new ArrayList<S3ObjectMetadata>(); 
+    List<S3ObjectMetadata> allmetas = new ArrayList<S3ObjectMetadata>();
     {
       S3ContentDisposition cd = new S3ContentDisposition();
       cd.setContentDisposition("content disposition");
@@ -139,12 +138,12 @@ public class S3OperationTest {
     }
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("some content", "utf8");
-    
+
     ObjectMetadata meta = new ObjectMetadata();
     for(S3ObjectMetadata m: allmetas) {
       m.apply(msg, meta);
     }
-    
+
     assertEquals("content disposition", meta.getContentDisposition());
     assertEquals("content language", meta.getContentLanguage());
     assertEquals("content type", meta.getContentType());
@@ -155,10 +154,10 @@ public class S3OperationTest {
     assertTrue("Expiration date too large", expirationDate.getTime() < (new Date().getTime() + 11000));
     assertEquals(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION, meta.getSSEAlgorithm());
   }
-  
+
   @Test
   public void testS3ObjectMetadataFromMessage() throws UnsupportedEncodingException, ServiceException {
-    List<S3ObjectMetadata> allmetas = new ArrayList<S3ObjectMetadata>(); 
+    List<S3ObjectMetadata> allmetas = new ArrayList<S3ObjectMetadata>();
     {
       S3ContentDisposition cd = new S3ContentDisposition();
       cd.setContentDisposition("%message{cd}");
@@ -192,25 +191,12 @@ public class S3OperationTest {
     for(S3ObjectMetadata m: allmetas) {
       m.apply(msg, meta);
     }
-    
+
     assertEquals("content disposition", meta.getContentDisposition());
     assertEquals("content language", meta.getContentLanguage());
     assertEquals("content type", meta.getContentType());
     assertEquals("expiration time rule id", meta.getExpirationTimeRuleId());
     assertEquals("content encoding", meta.getContentEncoding());
-  }
-
-  @Test
-  public void testMustHaveEither() throws Exception {
-    try {
-      S3OperationImpl.mustHaveEither(null, null);
-      fail();
-    } catch (IllegalArgumentException e) {
-
-    }
-    S3OperationImpl.mustHaveEither(new ConstantDataInputParameter("hello"), null);
-    S3OperationImpl.mustHaveEither(null, "hello");
-    S3OperationImpl.mustHaveEither(new ConstantDataInputParameter("hello"), "hello");
   }
 
   private static class MyS3Operation extends TransferOperation {

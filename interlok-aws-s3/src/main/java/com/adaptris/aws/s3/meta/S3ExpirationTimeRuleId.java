@@ -39,19 +39,6 @@ public class S3ExpirationTimeRuleId extends S3ObjectMetadata {
 
   /**
    * Sets the BucketLifecycleConfiguration rule ID for this object's expiration.
-   *
-   * @deprecated since 3.10.2 naming mismatch, use {@link #setExpirationTimeRuleId(String)} instead.
-   *
-   */
-  @InputFieldHint(expression = true)
-  @Getter
-  @Setter
-  @Deprecated
-  @ConfigDeprecated(removalVersion = "4.0.0", message = "naming mismatch, use 'expiration-time-rule-id' instead", groups = Deprecated.class)
-  private String expirationRuleId;
-
-  /**
-   * Sets the BucketLifecycleConfiguration rule ID for this object's expiration.
    */
   @NotNull
   @InputFieldHint(expression = true)
@@ -67,11 +54,6 @@ public class S3ExpirationTimeRuleId extends S3ObjectMetadata {
   }
 
   private String ruleIdSelector() {
-    if (getExpirationRuleId() != null) {
-      LoggingHelper.logDeprecation(warningLogged, () -> warningLogged = true, "expiration-rule-id",
-          "expiration-time-rule-id");
-      return getExpirationRuleId();
-    }
     return getExpirationTimeRuleId();
   }
 
