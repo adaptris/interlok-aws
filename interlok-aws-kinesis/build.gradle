@@ -19,6 +19,7 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
   }
   compile ("commons-codec:commons-codec:1.15")
   // 0.13.0 doesn't contain the windows execuatble (bad?) so use the older version for now.
@@ -33,6 +34,9 @@ dependencies {
   compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
   compile ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
   compile ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
+  // It will probably march in lockstep, but since it's a different
+  // group I will make it separate.
+  compile ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3")
   compile project(':interlok-aws-common')
 }
 
