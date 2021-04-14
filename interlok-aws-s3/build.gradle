@@ -6,6 +6,7 @@ ext {
   componentDesc="Services that interact (upload/download/delete) with AWS S3 Buckets and artefacts"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   awsSDKVersion = '1.11.974'
+  jacksonVersion='2.12.3'
 }
 
 dependencies {
@@ -14,6 +15,14 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
   }
+  compile ("com.amazonaws:aws-java-sdk-core:$awsSDKVersion") {
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
+  }
+  compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+  compile ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
+  compile ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
   compile project(':interlok-aws-common')
 }
 

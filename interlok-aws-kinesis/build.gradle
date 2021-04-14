@@ -6,6 +6,7 @@ ext {
   componentDesc="Components that interact AWS Kinesis data streams"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   awsSDKVersion = '1.11.974'
+  jacksonVersion='2.12.3'
 }
 dependencies {
   compile ("com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion")
@@ -13,6 +14,11 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.google.protobuf", module: "protobuf-java"
+  }
+  compile ("com.amazonaws:aws-java-sdk-core:$awsSDKVersion") {
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
   }
   compile ("commons-codec:commons-codec:1.15")
   // 0.13.0 doesn't contain the windows execuatble (bad?) so use the older version for now.
@@ -24,8 +30,9 @@ dependencies {
     exclude group: "com.google.protobuf", module: "protobuf-java"
   }
   compile ("com.google.protobuf:protobuf-java:3.15.8")
-  compile ("com.fasterxml.jackson.core:jackson-databind:2.12.3")
-  compile ("com.fasterxml.jackson.core:jackson-core:2.12.3")
+  compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+  compile ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
+  compile ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
   compile project(':interlok-aws-common')
 }
 
