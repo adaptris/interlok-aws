@@ -6,15 +6,12 @@ import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
-import com.adaptris.core.ProduceDestination;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.ProduceOnlyProducerImp;
 import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
-import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.interlok.util.CloseableIterable;
 import com.adaptris.util.NumberUtils;
-import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.amazonaws.services.kinesis.AmazonKinesis;
 import com.amazonaws.services.kinesis.model.PutRecordsRequest;
 import com.amazonaws.services.kinesis.model.PutRecordsRequestEntry;
@@ -29,28 +26,14 @@ import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.adaptris.core.util.DestinationHelper.logWarningIfNotNull;
-import static com.adaptris.core.util.DestinationHelper.mustHaveEither;
-import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination;
-
 /**
  * Producer to amazon kinesis using the SDK.
- * <p>
- * This departs from a standard producer in the sense the {@link #getDestination()} can be regarded as optional. The reason
- * for this is that both {@code stream} and {@code partitionKey} are required elements, but {@link #getDestination()} only provides
- * a single method (of course we could change it to provide more). So the behaviour here is changed so that
- * <ul>
- * <li>if {@link #setStream(String)} is blank, then we use {@link #getDestination()}, otherwise
- * we use {@link #getStream()}.</li>
- * <li>{@link #setPartitionKey(String)} should always be populated with a non-blank value, which will be used.</li>
- * </ul>
- * </p>
  *
  * @config aws-kinesis-sdk-stream-producer
  */
 @ComponentProfile(summary = "Produce to Amazon Kinesis using the SDK", tag = "amazon,aws,kinesis,producer",
     recommended = {AWSKinesisSDKConnection.class})
-@DisplayOrder(order = {"stream", "partitionKey"})
+@DisplayOrder(order = {"stream", "partitionKey", "batchWindow", "requestBuilder"})
 @XStreamAlias("aws-kinesis-sdk-stream-producer")
 @NoArgsConstructor
 public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
@@ -61,6 +44,7 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
    * The kinesis stream name.
    *
    */
+  @NotBlank
   @InputFieldHint(expression = true)
   @Getter
   @Setter
@@ -75,21 +59,17 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
   private String partitionKey;
 
   /**
-   * The ProduceDestination is the stream that we will used.
-   *
-   * @deprecated since 3.11.0 use 'stream' instead.
-   *
+   * Request Builder enables the control on how the records are put, this is used in conjunction with batchWindow.
    */
   @Getter
   @Setter
-  @Deprecated
-  @ConfigDeprecated(removalVersion = "4.0.0", message = "use 'stream' instead", groups = Deprecated.class)
-  private ProduceDestination destination;
-
-  @Getter
-  @Setter
+  @InputFieldDefault(value = "DefaultRequestBuilder")
   private RequestBuilder requestBuilder;
 
+  /**
+   * Batch window controls on how the records are put to the stream, this used in conjunction with a splitting implementation
+   * of the request builder.
+   */
   @Min(0)
   @InputFieldDefault(value = "100")
   @Getter
@@ -100,9 +80,8 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
 
   @Override
   public void prepare() throws CoreException {
-    logWarningIfNotNull(destWarning, () -> destWarning = true, getDestination(),
-        "{} uses destination, use 'stream' instead", LoggingHelper.friendlyName(this));
-    mustHaveEither(getStream(), getDestination());
+    Args.notBlank(getPartitionKey(), "partition-key");
+    Args.notBlank(getStream(), "stream");
   }
 
   public <T extends KinesisSDKStreamProducer> T withStream(String s) {
@@ -168,7 +147,7 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
 
   @Override
   public String endpoint(AdaptrisMessage msg) throws ProduceException {
-    return resolveProduceDestination(getStream(), getDestination(), msg);
+    return msg.resolve(getStream());
   }
 
   RequestBuilder requestBuilder(){

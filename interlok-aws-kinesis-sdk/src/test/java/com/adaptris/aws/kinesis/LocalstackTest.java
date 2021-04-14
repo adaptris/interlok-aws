@@ -14,9 +14,8 @@ import com.amazonaws.services.kinesis.AmazonKinesis;
 import com.amazonaws.services.kinesis.model.GetRecordsRequest;
 import com.amazonaws.services.kinesis.model.GetRecordsResult;
 import com.amazonaws.services.kinesis.model.GetShardIteratorRequest;
-import com.amazonaws.services.kinesis.model.GetShardIteratorResult;
-import com.amazonaws.services.kinesis.model.ListShardsRequest;
-import com.amazonaws.services.kinesis.model.ListShardsResult;
+import com.amazonaws.services.kinesis.model.Shard;
+import com.amazonaws.services.kinesis.model.ShardIteratorType;
 import org.apache.commons.lang3.BooleanUtils;
 import org.junit.After;
 import org.junit.Assume;
@@ -25,10 +24,12 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LocalstackTest {
@@ -71,6 +72,8 @@ public class LocalstackTest {
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS);
 
     ExampleServiceCase.execute(sp, msg);
+
+    assertEquals(MSG_CONTENTS, getRecords(getProperty(KINESIS_STREAM)));
   }
 
   private static String getProperty(String key) {
@@ -88,14 +91,37 @@ public class LocalstackTest {
   private AWSKinesisSDKConnection connection() {
     String serviceEndpoint = getProperty(KINESIS_URL);
     String signingRegion = getProperty(KINESIS_SIGNING_REGION);
-    AWSKinesisSDKConnection connection = new AWSKinesisSDKConnection()
+    return new AWSKinesisSDKConnection()
       .withCredentialsProviderBuilder(
         new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("TEST", "TEST")))
       .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion));
-    return connection;
   }
 
-  private AmazonKinesis kinesisClient() throws Exception {
+  private AmazonKinesis kinesisClient() {
     return connection.kinesisClient();
+  }
+
+  private String getRecords(String streamName) {
+    AmazonKinesis client = kinesisClient();
+
+    List<Shard> initialShardData = client.describeStream(streamName).getStreamDescription().getShards();
+
+    List<String> initialShardIterators = initialShardData.stream().map(s ->
+      client.getShardIterator(new GetShardIteratorRequest()
+        .withStreamName(streamName)
+        .withShardId(s.getShardId())
+        .withStartingSequenceNumber(s.getSequenceNumberRange().getStartingSequenceNumber())
+        .withShardIteratorType(ShardIteratorType.AT_SEQUENCE_NUMBER)
+      ).getShardIterator()
+    ).collect(Collectors.toList());
+
+    String shardIterator = initialShardIterators.get(0);
+
+    GetRecordsRequest getRecordsRequest = new GetRecordsRequest();
+    getRecordsRequest.setShardIterator(shardIterator);
+    getRecordsRequest.setLimit(25);
+
+    GetRecordsResult recordResult = client.getRecords(getRecordsRequest);
+    return new String (recordResult.getRecords().get(0).getData().array(), StandardCharsets.UTF_8);
   }
 }

@@ -2,7 +2,8 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
 ext {
-  componentName='Interlok Kinesis SDK'
+  componentName='Interlok AWS/Kinesis SDK'
+  componentDesc="Components that interact AWS Kinesis data streams via SDK"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   awsSDKVersion = '1.11.930'
 }

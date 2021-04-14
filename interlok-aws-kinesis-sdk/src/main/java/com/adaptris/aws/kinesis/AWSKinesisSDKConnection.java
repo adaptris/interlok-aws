@@ -33,7 +33,7 @@ import lombok.NoArgsConstructor;
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon Kinesis using the SDK.
  *
- * <p>This may be the prefered approach over using KPL if you're running in environment where you don't want other
+ * <p>This may be the preferred approach over using KPL if you're running in environment where you don't want other
  * processes to be spawned (for example: containerised).</p>
  *
  * @config aws-kinesis-sdk-connection
@@ -51,6 +51,7 @@ public class AWSKinesisSDKConnection extends AWSConnection {
 
   @Override
   protected void prepareConnection() throws CoreException {
+    //not needed for connection
   }
 
   @Override
@@ -60,7 +61,9 @@ public class AWSKinesisSDKConnection extends AWSConnection {
   }
 
   @Override
-  protected void startConnection() throws CoreException {  }
+  protected void startConnection() throws CoreException {
+    //not needed for connection
+  }
 
   @Override
   protected void stopConnection() {
@@ -72,7 +75,9 @@ public class AWSKinesisSDKConnection extends AWSConnection {
 
 
   @Override
-  protected void closeConnection() {}
+  protected void closeConnection() {
+    //not needed for connection
+  }
 
   protected AmazonKinesisClientBuilder createBuilder() throws CoreException {
     AmazonKinesisClientBuilder builder;
@@ -87,7 +92,7 @@ public class AWSKinesisSDKConnection extends AWSConnection {
     return builder;
   }
 
-  public AmazonKinesis kinesisClient() throws Exception {
+  public AmazonKinesis kinesisClient() {
     return kinesis;
   }
 

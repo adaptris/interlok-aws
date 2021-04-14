@@ -7,17 +7,23 @@ import com.adaptris.interlok.util.CloseableIterable;
 import com.amazonaws.services.kinesis.model.PutRecordsRequestEntry;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.Setter;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Iterator;
 
-@XStreamAlias("splitting-request-builder")
+@XStreamAlias("aws-kinesis-splitting-request-builder")
 public class SplittingRequestBuilder implements RequestBuilder {
 
   @Getter
   @Setter
+  @Valid
+  @NonNull
+  @NotNull
   private MessageSplitter messageSplitter;
 
   public SplittingRequestBuilder withMessageSplitter(MessageSplitter s) {
@@ -27,7 +33,7 @@ public class SplittingRequestBuilder implements RequestBuilder {
 
   @Override
   public Iterable<PutRecordsRequestEntry> build(String partitionKey, AdaptrisMessage message) throws CoreException {
-    return new PutRecordsRequestEntryIterator(message, partitionKey, messageSplitter);
+    return new PutRecordsRequestEntryIterator(message, partitionKey, getMessageSplitter());
   }
 
   private static class PutRecordsRequestEntryIterator implements Iterator<PutRecordsRequestEntry>, CloseableIterable<PutRecordsRequestEntry> {
@@ -35,6 +41,8 @@ public class SplittingRequestBuilder implements RequestBuilder {
     private final String partitionKey;
     private final CloseableIterable<AdaptrisMessage> messages;
     private final  Iterator<AdaptrisMessage> messageIterator;
+
+    private boolean iteratorInvoked = false;
 
     PutRecordsRequestEntryIterator(AdaptrisMessage message, String partitionKey, MessageSplitter messageSplitter) throws CoreException {
       this.partitionKey = partitionKey;
@@ -63,6 +71,10 @@ public class SplittingRequestBuilder implements RequestBuilder {
 
     @Override
     public Iterator<PutRecordsRequestEntry> iterator() {
+      if (iteratorInvoked) {
+        throw new IllegalStateException("iterator already invoked");
+      }
+      iteratorInvoked = true;
       return this;
     }
   }

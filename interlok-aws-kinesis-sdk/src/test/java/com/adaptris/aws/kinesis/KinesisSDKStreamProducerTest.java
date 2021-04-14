@@ -4,7 +4,6 @@ import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.ConfiguredProduceDestination;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.StandaloneProducer;
@@ -40,16 +39,6 @@ public class KinesisSDKStreamProducerTest extends ExampleProducerCase {
     conn.setCredentials(new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey")));
     conn.setRegion("My AWS Region");
     return new StandaloneProducer(conn, producer);
-  }
-
-  @Test
-  @SuppressWarnings("deprecation")
-  public void testProduce() throws Exception {
-    KinesisSDKStreamProducer producer =
-        new KinesisSDKStreamProducer().withPartitionKey("myPartitionKey");
-    producer.setDestination(new ConfiguredProduceDestination("myStreamName"));
-
-    runTest(producer, Collections.singletonList("Record 1\nRecord 2"));
   }
 
   @Test
@@ -178,7 +167,7 @@ public class KinesisSDKStreamProducerTest extends ExampleProducerCase {
     }
 
     @Override
-    public AmazonKinesis kinesisClient() throws Exception {
+    public AmazonKinesis kinesisClient() {
       return producer;
     }
 

@@ -7,7 +7,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 
-@XStreamAlias("default-request-builder")
+@XStreamAlias("aws-kinesis-default-request-builder")
 public class DefaultRequestBuilder implements RequestBuilder {
 
   @Override
