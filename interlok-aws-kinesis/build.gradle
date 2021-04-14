@@ -13,13 +13,14 @@ dependencies {
   compile ("com.amazonaws:amazon-kinesis-client:1.14.2") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+    exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
     exclude group: "com.google.protobuf", module: "protobuf-java"
   }
   compile ("com.amazonaws:aws-java-sdk-core:$awsSDKVersion") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
+    exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
   }
   compile ("commons-codec:commons-codec:1.15")
   // 0.13.0 doesn't contain the windows execuatble (bad?) so use the older version for now.

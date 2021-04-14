@@ -11,11 +11,13 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
+    exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
   }
   compile ("com.amazonaws:aws-java-sdk-sts:$awsSDKVersion") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
+    exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
   }
   compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
   compile ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
