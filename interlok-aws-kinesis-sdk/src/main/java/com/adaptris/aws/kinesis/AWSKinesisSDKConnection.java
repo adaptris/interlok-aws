@@ -67,16 +67,16 @@ public class AWSKinesisSDKConnection extends AWSConnection {
 
   @Override
   protected void stopConnection() {
-    if(kinesis != null) {
-      kinesis.shutdown();
-      kinesis = null;
-    }
+    // not needed for connection
   }
 
 
   @Override
   protected void closeConnection() {
-    //not needed for connection
+    if (kinesis != null) {
+      kinesis.shutdown();
+      kinesis = null;
+    }
   }
 
   protected AmazonKinesisClientBuilder createBuilder() throws CoreException {
