@@ -3,6 +3,7 @@ package com.adaptris.aws.s3.retry;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,6 +25,7 @@ import com.adaptris.core.MetadataCollection;
 import com.adaptris.core.http.jetty.retry.RetryStore;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.core.util.MessageHelper;
 import com.adaptris.interlok.InterlokException;
 import com.adaptris.interlok.cloud.RemoteBlob;
 import com.adaptris.interlok.util.Args;
@@ -52,6 +54,7 @@ public class S3RetryStore implements RetryStore {
 
   protected static final String PAYLOAD_FILE_NAME = "payload.blob";
   protected static final String METADATA_FILE_NAME = "metadata.properties";
+  protected static final String STACKTRACE_FILENAME = "stacktrace.txt";
 
   /**
    * Set the connection to use to connect to S3.
@@ -137,34 +140,58 @@ public class S3RetryStore implements RetryStore {
 
   @Override
   public boolean delete(String msgId) throws InterlokException {
-    String payloadName = buildObjectName(msgId, PAYLOAD_FILE_NAME);
-    String metadataName = buildObjectName(msgId, METADATA_FILE_NAME);
-    log.trace("Deleting {} from bucket {}", metadataName, getBucket());
-    clientWrapper().amazonClient().deleteObject(getBucket(), metadataName);
-    log.trace("Deleting {} from bucket {}", payloadName, getBucket());
-    clientWrapper().amazonClient().deleteObject(getBucket(), payloadName);
+    deleteObject(buildObjectName(msgId, PAYLOAD_FILE_NAME));
+    deleteObject(buildObjectName(msgId, METADATA_FILE_NAME));
+    deleteObject(buildObjectName(msgId, STACKTRACE_FILENAME));
     return true;
   }
+
+  private void deleteObject(String objectName) throws InterlokException {
+    AmazonS3Client s3 = clientWrapper().amazonClient();
+    if (s3.doesObjectExist(getBucket(), objectName)) {
+      s3.deleteObject(getBucket(), objectName);
+      log.trace("Deleting {} from bucket {}", objectName, getBucket());
+    }
+  }
+
 
   @Override
   public void write(AdaptrisMessage msg) throws InterlokException {
     try {
-      String blob = buildObjectName(msg.getUniqueId(), PAYLOAD_FILE_NAME);
-      String metadata = buildObjectName(msg.getUniqueId(), METADATA_FILE_NAME);
-
-      UploadOperation payloadUpload = uploader(blob);
-      log.trace("Uploading {} to bucket {}", blob, getBucket());
-      payloadUpload.execute(clientWrapper(), msg);
-
-      UploadOperation metadataUpload = uploader(metadata);
-      AdaptrisMessage metadataMsg = metadataAsMessage(msg);
-      log.trace("Uploading {} to bucket {}", metadata, getBucket());
-      metadataUpload.execute(clientWrapper(), metadataMsg);
-
+      uploadPayload(msg);
+      uploadMetadata(msg);
+      uploadStacktrace(msg);
     } catch (Exception e) {
       throw ExceptionHelper.wrapInterlokException(e);
     }
 
+  }
+
+  private void uploadPayload(AdaptrisMessage msg) throws Exception {
+    String blob = buildObjectName(msg.getUniqueId(), PAYLOAD_FILE_NAME);
+    UploadOperation payloadUpload = uploader(blob);
+    log.trace("Uploading {} to bucket {}", blob, getBucket());
+    payloadUpload.execute(clientWrapper(), msg);
+  }
+
+  private void uploadMetadata(AdaptrisMessage msg) throws Exception {
+    String metadata = buildObjectName(msg.getUniqueId(), METADATA_FILE_NAME);
+    UploadOperation metadataUpload = uploader(metadata);
+    AdaptrisMessage metadataMsg = metadataAsMessage(msg);
+    log.trace("Uploading {} to bucket {}", metadata, getBucket());
+    metadataUpload.execute(clientWrapper(), metadataMsg);
+  }
+
+  private void uploadStacktrace(AdaptrisMessage msg) throws Exception {
+    String exception = buildObjectName(msg.getUniqueId(), STACKTRACE_FILENAME);
+    Optional<String> stacktrace = MessageHelper.stackTraceAsString(msg);
+    if (stacktrace.isPresent()) {
+      UploadOperation stacktraceUpload = uploader(exception);
+      AdaptrisMessage stacktraceMsg =
+          AdaptrisMessageFactory.getDefaultInstance().newMessage(stacktrace.get());
+      log.trace("Uploading {} to bucket {}", exception, getBucket());
+      stacktraceUpload.execute(clientWrapper(), stacktraceMsg);
+    }
   }
 
   @Override
@@ -201,7 +228,7 @@ public class S3RetryStore implements RetryStore {
     }
   }
 
-  public InputStream getInputStream(String objectName) throws Exception {
+  private InputStream getInputStream(String objectName) throws Exception {
     AmazonS3Client s3 = clientWrapper().amazonClient();
     GetObjectRequest request = new GetObjectRequest(getBucket(), objectName);
     log.trace("Getting {} from bucket {}", request.getKey(), request.getBucketName());
