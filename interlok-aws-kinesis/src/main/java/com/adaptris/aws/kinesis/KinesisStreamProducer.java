@@ -22,16 +22,6 @@ import lombok.Setter;
 
 /**
  * Producer to amazon kinesis using the Kinesis Producer Library.
- * <p>
- * This departs from a standard producer in the sense the {@link #getDestination()} can be regarded as optional. The reason
- * for this is that both {@code stream} and {@code partitionKey} are required elements, but {@link #getDestination()} only provides
- * a single method (of course we could change it to provide more). So the behaviour here is changed so that
- * <ul>
- * <li>if {@link #setStream(String)} is blank, then we use {@link #getDestination()}, otherwise
- * we use {@link #getStream()}.</li>
- * <li>{@link #setPartitionKey(String)} should always be populated with a non-blank value, which will be used.</li>
- * </ul>
- * </p>
  *
  * @config aws-kinesis-stream-producer
  */
@@ -98,7 +88,7 @@ public class KinesisStreamProducer extends ProduceOnlyProducerImp {
 
   @Override
   public String endpoint(AdaptrisMessage msg) throws ProduceException {
-    return resolveProduceDestination(getStream(), msg);
+    return msg.resolve(getStream());
   }
 
 }
