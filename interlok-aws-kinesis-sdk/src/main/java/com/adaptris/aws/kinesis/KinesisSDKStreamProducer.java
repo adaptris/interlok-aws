@@ -1,5 +1,9 @@
 package com.adaptris.aws.kinesis;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
@@ -21,14 +25,13 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Producer to amazon kinesis using the SDK.
- *
+ * <p>
+ * This may be the preferred approach over using KPL if you're running in environment where you
+ * don't want other processes to be spawned (for example: containerised).
+ * </p>
+ * 
  * @config aws-kinesis-sdk-stream-producer
  */
 @ComponentProfile(summary = "Produce to Amazon Kinesis using the SDK", tag = "amazon,aws,kinesis,producer",
@@ -75,8 +78,6 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
   @Getter
   @Setter
   private Integer batchWindow;
-
-  private transient boolean destWarning;
 
   @Override
   public void prepare() throws CoreException {

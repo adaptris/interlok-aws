@@ -1,5 +1,10 @@
 package com.adaptris.aws.kinesis;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.Iterator;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.services.splitter.MessageSplitter;
@@ -10,15 +15,19 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Iterator;
-
+/**
+ * Request Builder implementation that allows you to split the message into a number of
+ * {@code PutRecordsRequestEntry} records.
+ *
+ * @config aws-kinesis-splitting-request-builder
+ */
 @XStreamAlias("aws-kinesis-splitting-request-builder")
 public class SplittingRequestBuilder implements RequestBuilder {
 
+  /**
+   * The message splitter implementation that splits the message into appropriate kinesis records.
+   *
+   */
   @Getter
   @Setter
   @Valid
@@ -46,8 +55,8 @@ public class SplittingRequestBuilder implements RequestBuilder {
 
     PutRecordsRequestEntryIterator(AdaptrisMessage message, String partitionKey, MessageSplitter messageSplitter) throws CoreException {
       this.partitionKey = partitionKey;
-      this.messages = CloseableIterable.ensureCloseable(messageSplitter.splitMessage(message));
-      this.messageIterator = messages.iterator();
+      messages = CloseableIterable.ensureCloseable(messageSplitter.splitMessage(message));
+      messageIterator = messages.iterator();
     }
 
     @Override
