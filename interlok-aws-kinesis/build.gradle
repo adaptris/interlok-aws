@@ -7,6 +7,7 @@ ext {
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   awsSDKVersion = '1.11.1015'
   jacksonVersion='2.12.3'
+  nettyVersion="4.1.63.Final"
 }
 dependencies {
   compile ("com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion")
@@ -30,7 +31,21 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.google.protobuf", module: "protobuf-java"
+    // Exclude netty so we can pin the version.
+    exclude group: "io.netty"
   }
+
+  compile ("com.google.guava:guava:30.1.1-jre")
+  implementation ("io.netty:netty-buffer:$nettyVersion")
+  implementation ("io.netty:netty-common:$nettyVersion")
+  implementation ("io.netty:netty-handler:$nettyVersion")
+  implementation ("io.netty:netty-transport:$nettyVersion")
+  implementation ("io.netty:netty-transport-native-epoll:$nettyVersion")
+  implementation ("io.netty:netty-transport-native-unix-common:$nettyVersion")
+  implementation ("io.netty:netty-transport-native-kqueue:$nettyVersion")
+  implementation ("io.netty:netty-codec:$nettyVersion")
+  implementation ("io.netty:netty-codec-http:$nettyVersion")
+
   compile ("com.google.protobuf:protobuf-java:3.16.0")
   compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
   compile ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
