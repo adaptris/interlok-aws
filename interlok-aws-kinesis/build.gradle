@@ -46,7 +46,7 @@ dependencies {
   implementation ("io.netty:netty-codec:$nettyVersion")
   implementation ("io.netty:netty-codec-http:$nettyVersion")
 
-  compile ("com.google.protobuf:protobuf-java:3.16.0")
+  compile ("com.google.protobuf:protobuf-java:3.17.0")
   compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
   compile ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
   compile ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
