@@ -24,7 +24,7 @@ ext {
   organizationName = "Adaptris Ltd"
 
   slf4jVersion = '1.7.30'
-  mockitoVersion = '3.10.0'
+  mockitoVersion = '3.11.0'
 }
 
 if (JavaVersion.current().isJava8Compatible()) {
