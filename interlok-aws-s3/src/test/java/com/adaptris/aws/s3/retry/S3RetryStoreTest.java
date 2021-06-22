@@ -25,6 +25,7 @@ import com.adaptris.aws.s3.AmazonS3Connection;
 import com.adaptris.aws.s3.ClientWrapper;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
+import com.adaptris.core.CoreConstants;
 import com.adaptris.interlok.InterlokException;
 import com.adaptris.interlok.cloud.RemoteBlob;
 import com.adaptris.interlok.junit.scaffolding.BaseCase;
@@ -117,7 +118,7 @@ public class S3RetryStoreTest {
   }
 
   @Test
-  public void testWrite() throws Exception {
+  public void testWrite_PayloadMetadata() throws Exception {
     Upload uploadObject = Mockito.mock(Upload.class);
     TransferProgress progress = new TransferProgress();
 
@@ -152,6 +153,42 @@ public class S3RetryStoreTest {
     }
   }
 
+  @Test
+  public void testWrite_PayloadMetadataStacktracen() throws Exception {
+    Upload uploadObject = Mockito.mock(Upload.class);
+    TransferProgress progress = new TransferProgress();
+
+    Map<String, String> userMetadata = new HashMap<>();
+    userMetadata.put("hello", "world");
+    Mockito.when(uploadObject.isDone()).thenReturn(false, false, true);
+    Mockito.when(uploadObject.getProgress()).thenReturn(progress);
+    Mockito.doAnswer((i) -> {
+      return null;
+    }).when(uploadObject).waitForCompletion();
+
+    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    TransferManager transferManager = Mockito.mock(TransferManager.class);
+    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
+    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    Mockito.when(wrapper.transferManager()).thenReturn(transferManager);
+
+    AmazonS3Connection conn = buildConnection(wrapper);
+
+    Mockito.when(transferManager.upload((PutObjectRequest) any())).thenReturn(uploadObject);
+
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
+    msg.addObjectHeader(CoreConstants.OBJ_METADATA_EXCEPTION, new Exception());
+    msg.addMessageHeader("hello", "world");
+
+    S3RetryStore store =
+        new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+    try {
+      BaseCase.start(store);
+      store.write(msg);
+    } finally {
+      BaseCase.stop(store);
+    }
+  }
 
   @Test(expected = InterlokException.class)
   public void testWrite_Exception() throws Exception {
@@ -189,7 +226,7 @@ public class S3RetryStoreTest {
     Mockito.doAnswer((i) -> {
       return null;
     }).when(client).deleteObject(anyString(), anyString());
-
+    Mockito.when(client.doesObjectExist(anyString(), anyString())).thenReturn(false, true);
 
     AmazonS3Connection conn = buildConnection(wrapper);
 

@@ -1,0 +1,11 @@
+version: "2.2"
+services:
+  localstack:
+    image: localstack/localstack
+    environment:
+      - SERVICES=kinesis
+      - USE_SSL=1
+    ports:
+      - "4566:4566"
+    volumes:
+      - ./src/test/resources/aws_build:/docker-entrypoint-initaws.d

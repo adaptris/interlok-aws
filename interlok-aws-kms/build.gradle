@@ -5,7 +5,8 @@ ext {
   componentName='Interlok AWS/KMS'
   componentDesc="Components that interact with AWS KMS to perform sign/encrypt/decrypt/verify operations"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.11.974'
+  awsSDKVersion = '1.11.1034'
+  jacksonVersion='2.12.3'
 }
 
 dependencies {
@@ -14,7 +15,20 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
+    exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
   }
+  compile ("com.amazonaws:aws-java-sdk-core:$awsSDKVersion") {
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
+    exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
+  }
+  compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+  compile ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
+  compile ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
+  // It will probably march in lockstep, but since it's a different
+  // group I will make it separate.
+  compile ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
