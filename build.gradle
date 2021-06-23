@@ -163,7 +163,7 @@ subprojects {
       testCompile ("org.mockito:mockito-core:$mockitoVersion")
       testCompile ("org.mockito:mockito-inline:$mockitoVersion")
       javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
-      umlDoclet("nl.talsmasoftware:umldoclet:1.1.4")
+      umlDoclet("nl.talsmasoftware:umldoclet:2.0.12")
 
       offlineJavadocPackages ("com.adaptris:interlok-core:$interlokCoreVersion:javadoc@jar") { changing= true}
       offlineJavadocPackages ("com.adaptris:interlok-common:$interlokCoreVersion:javadoc@jar") { changing= true}
