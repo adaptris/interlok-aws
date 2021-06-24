@@ -10,24 +10,24 @@ ext {
   nettyVersion="4.1.65.Final"
 }
 dependencies {
-  compile ("com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion")
-  compile ("com.amazonaws:amazon-kinesis-client:1.14.4") {
+  api ("com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion")
+  api ("com.amazonaws:amazon-kinesis-client:1.14.4") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
     exclude group: "com.google.protobuf", module: "protobuf-java"
   }
-  compile ("com.amazonaws:aws-java-sdk-core:$awsSDKVersion") {
+  api ("com.amazonaws:aws-java-sdk-core:$awsSDKVersion") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
     exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
   }
-  compile ("commons-codec:commons-codec:1.15")
+  api ("commons-codec:commons-codec:1.15")
   // 0.13.0 doesn't contain the windows execuatble (bad?) so use the older version for now.
   // 0.13.1 does containthe windows binaries
   // 0.14 does not contain the windows binary.
-  compile ("com.amazonaws:amazon-kinesis-producer:0.14.7") {
+  api ("com.amazonaws:amazon-kinesis-producer:0.14.7") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.google.protobuf", module: "protobuf-java"
@@ -35,7 +35,7 @@ dependencies {
     exclude group: "io.netty"
   }
 
-  compile ("com.google.guava:guava:30.1.1-jre")
+  api ("com.google.guava:guava:30.1.1-jre")
   implementation ("io.netty:netty-buffer:$nettyVersion")
   implementation ("io.netty:netty-common:$nettyVersion")
   implementation ("io.netty:netty-handler:$nettyVersion")
@@ -46,14 +46,14 @@ dependencies {
   implementation ("io.netty:netty-codec:$nettyVersion")
   implementation ("io.netty:netty-codec-http:$nettyVersion")
 
-  compile ("com.google.protobuf:protobuf-java:3.17.3")
-  compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
-  compile ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
-  compile ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
+  api ("com.google.protobuf:protobuf-java:3.17.3")
+  api ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+  api ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
+  api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
-  compile ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3")
-  compile project(':interlok-aws-common')
+  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3")
+  api project(':interlok-aws-common')
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {

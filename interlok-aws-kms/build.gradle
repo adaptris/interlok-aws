@@ -10,25 +10,25 @@ ext {
 }
 
 dependencies {
-  compile project(':interlok-aws-common')
-  compile ("com.amazonaws:aws-java-sdk-kms:$awsSDKVersion") {
+  api project(':interlok-aws-common')
+  api ("com.amazonaws:aws-java-sdk-kms:$awsSDKVersion") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
     exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
   }
-  compile ("com.amazonaws:aws-java-sdk-core:$awsSDKVersion") {
+  api ("com.amazonaws:aws-java-sdk-core:$awsSDKVersion") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
     exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
   }
-  compile ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
-  compile ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
-  compile ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
+  api ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+  api ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
+  api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
-  compile ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3")
+  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
