@@ -6,7 +6,7 @@ ext {
   componentDesc="Components that interact with AWS KMS to perform sign/encrypt/decrypt/verify operations"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   awsSDKVersion = '1.12.17'
-  jacksonVersion='2.12.3'
+  jacksonVersion='2.12.4'
 }
 
 dependencies {
@@ -28,7 +28,7 @@ dependencies {
   api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
-  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3")
+  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.4")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
