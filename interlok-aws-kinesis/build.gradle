@@ -22,6 +22,7 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
     exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
+    exclude group: "org.apache.avro"
   }
   api ("commons-codec:commons-codec:1.15")
   // 0.13.0 doesn't contain the windows execuatble (bad?) so use the older version for now.
@@ -33,7 +34,10 @@ dependencies {
     exclude group: "com.google.protobuf", module: "protobuf-java"
     // Exclude netty so we can pin the version.
     exclude group: "io.netty"
+    exclude group: "org.apache.avro"
   }
+
+  implementation ("org.apache.avro:avro:1.10.0")
 
   api ("com.google.guava:guava:30.1.1-jre")
   implementation ("io.netty:netty-buffer:$nettyVersion")
