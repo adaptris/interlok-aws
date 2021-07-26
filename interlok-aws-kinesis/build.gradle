@@ -37,7 +37,11 @@ dependencies {
     exclude group: "org.apache.avro"
   }
 
-  implementation ("org.apache.avro:avro:1.10.2")
+  implementation ("org.apache.avro:avro:1.10.2") {
+    exclude group: "org.apache.commons", module: "commons-compress"
+  }
+  
+  implementation ("org.apache.commons:commons-compress:1.21")
 
   api ("com.google.guava:guava:30.1.1-jre")
   implementation ("io.netty:netty-buffer:$nettyVersion")
