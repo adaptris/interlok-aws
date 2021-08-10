@@ -17,6 +17,11 @@ import java.util.Map;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.junit.Test;
 import org.mockito.Mockito;
+
+import com.adaptris.aws.s3.acl.S3ObjectAcl;
+import com.adaptris.aws.s3.acl.S3ObjectAclGrant;
+import com.adaptris.aws.s3.acl.S3ObjectAclGranteeCanonicalUser;
+import com.adaptris.aws.s3.acl.S3ObjectAclPermission;
 import com.adaptris.aws.s3.meta.S3ServerSideEncryption;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -31,6 +36,7 @@ import com.amazonaws.services.s3.model.GetObjectTaggingResult;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.Owner;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.model.S3ObjectInputStream;
@@ -269,7 +275,7 @@ public class MockedOperationTest {
   }
 
   @Test
-  public void testUpload_withAcl() throws Exception {
+  public void testUpload_withCannedAcl() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
     TransferManager transferManager = Mockito.mock(TransferManager.class);
     Upload uploadObject = Mockito.mock(Upload.class);
@@ -287,6 +293,39 @@ public class MockedOperationTest {
     msg.addMessageHeader("hello", "world");
     UploadOperation uploader = new UploadOperation()
       .withCannedObjectAcl(S3ObjectCannedAcl.BUCKET_OWNER_FULL_CONTROL.name())
+      .withUserMetadataFilter(new NoOpMetadataFilter())
+        .withObjectName("srcKey").withBucket("srcBucket");
+    ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);
+    execute(uploader, wrapper, msg);
+  }
+
+  @Test
+  public void testUpload_withAcl() throws Exception {
+    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    TransferManager transferManager = Mockito.mock(TransferManager.class);
+    Upload uploadObject = Mockito.mock(Upload.class);
+    TransferProgress progress = new TransferProgress();
+
+    Map<String,String> userMetadata = new HashMap<>();
+    userMetadata.put("hello", "world");
+    Mockito.when(uploadObject.isDone()).thenReturn(false, false, true);
+    Mockito.when(uploadObject.getProgress()).thenReturn(progress);
+    Mockito.doAnswer((i)-> {return null;}).when(uploadObject).waitForCompletion();
+
+    Mockito.when(transferManager.upload((PutObjectRequest) anyObject())).thenReturn(uploadObject);
+
+    Mockito.when(client.getS3AccountOwner()).thenReturn(new Owner("234", "alias"));
+
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
+    msg.addMessageHeader("hello", "world");
+    UploadOperation uploader = new UploadOperation()
+      .withObjectAcl(
+        new S3ObjectAcl(Arrays.asList(
+          new S3ObjectAclGrant(new S3ObjectAclGranteeCanonicalUser("123"), S3ObjectAclPermission.READ),
+          new S3ObjectAclGrant(new S3ObjectAclGranteeCanonicalUser(), S3ObjectAclPermission.READ)
+          )
+        )
+      )
       .withUserMetadataFilter(new NoOpMetadataFilter())
         .withObjectName("srcKey").withBucket("srcBucket");
     ClientWrapper wrapper = new ClientWrapperImpl(client, transferManager);

@@ -30,10 +30,12 @@ import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
+import com.adaptris.aws.s3.acl.S3ObjectAcl;
 import com.adaptris.aws.s3.meta.S3ObjectMetadata;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.util.ManagedThreadFactory;
 import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.Owner;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
@@ -51,7 +53,7 @@ import lombok.Setter;
 @ComponentProfile(summary = "Amazon S3 Upload using Transfer Manager")
 @XStreamAlias("amazon-s3-upload")
 @DisplayOrder(
-    order = {"bucket", "objectName", "userMetadataFilter", "cannedObjectAcl", "objectMetadata"})
+    order = {"bucket", "objectName", "userMetadataFilter", "cannedObjectAcl", "objectAcl", "objectMetadata"})
 public class UploadOperation extends TransferOperation {
 
   private transient ManagedThreadFactory threadFactory = new ManagedThreadFactory();
@@ -67,6 +69,16 @@ public class UploadOperation extends TransferOperation {
   @AdvancedConfig
   @InputFieldHint(expression = true, style = "com.adaptris.aws.s3.S3ObjectCannedAcl")
   private String cannedObjectAcl;
+
+  /**
+   * Sets the optional access control list for the new object. If specified,
+   * cannedObjectAcl will be ignored.
+   */
+  @Getter
+  @Setter
+  @AdvancedConfig
+  @Valid
+  private S3ObjectAcl objectAcl;
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
@@ -87,6 +99,9 @@ public class UploadOperation extends TransferOperation {
       PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, in, s3meta);
       if(!isEmpty(getCannedObjectAcl())) {
         putObjectRequest.setCannedAcl(S3ObjectCannedAcl.valueOf(msg.resolve(getCannedObjectAcl())).getCannedAccessControl());
+      }
+      if(getObjectAcl() != null) {
+        putObjectRequest.setAccessControlList(getObjectAcl().create());
       }
       Upload upload = tm.upload(putObjectRequest);
       threadFactory.newThread(new MyProgressListener(Thread.currentThread().getName(), upload)).start();
@@ -109,6 +124,11 @@ public class UploadOperation extends TransferOperation {
 
   public UploadOperation withCannedObjectAcl(String objectAcl) {
     setCannedObjectAcl(objectAcl);
+    return this;
+  }
+
+  public UploadOperation withObjectAcl(S3ObjectAcl objectAcl) {
+    setObjectAcl(objectAcl);
     return this;
   }
 
