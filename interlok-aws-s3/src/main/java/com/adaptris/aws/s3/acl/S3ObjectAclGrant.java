@@ -4,7 +4,6 @@ package com.adaptris.aws.s3.acl;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
 import com.amazonaws.services.s3.model.Grant;
-import com.amazonaws.services.s3.model.Owner;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 import lombok.AllArgsConstructor;
@@ -30,6 +29,13 @@ public class S3ObjectAclGrant {
 
   /**
    * The permission being granted to the grantee by this grant.
+   * <ul>
+   * <li><b>FULL_CONTROL:</b> Allows grantee the READ, READ_ACP, and WRITE_ACP permissions on the object.</li>
+   * <li><b>READ:</b> Allows grantee to read the object data and its metadata.</li>
+   * <li><b>READ_ACP:</b> Allows grantee to read the object ACL.</li>
+   * <li><b>WRITE:</b> Not applicable for objects, only for buckets.</li>
+   * <li><b>WRITE_ACP:</b> Allows grantee to write the ACL for the applicable object.</li>
+   * </ul>
    */
   @Getter
   @Setter

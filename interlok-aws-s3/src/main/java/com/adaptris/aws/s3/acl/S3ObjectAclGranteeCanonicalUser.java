@@ -1,11 +1,10 @@
 package com.adaptris.aws.s3.acl;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.amazonaws.services.s3.model.CanonicalGrantee;
 import com.amazonaws.services.s3.model.Grantee;
-import com.amazonaws.services.s3.model.Owner;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-
-import org.apache.commons.lang3.StringUtils;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

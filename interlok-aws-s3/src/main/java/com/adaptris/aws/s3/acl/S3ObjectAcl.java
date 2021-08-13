@@ -2,8 +2,9 @@ package com.adaptris.aws.s3.acl;
 
 import java.util.List;
 
+import org.apache.commons.collections4.ListUtils;
+
 import com.amazonaws.services.s3.model.AccessControlList;
-import com.amazonaws.services.s3.model.Owner;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 
@@ -29,8 +30,7 @@ public class S3ObjectAcl {
   public AccessControlList create() {
     AccessControlList objectAcl = new AccessControlList();
 
-
-    for (S3ObjectAclGrant grant : getGrants()){
+    for (S3ObjectAclGrant grant : ListUtils.emptyIfNull(getGrants())) {
       if(grant.grant()){
         objectAcl.grantAllPermissions(grant.create());
       }

@@ -17,14 +17,18 @@
 package com.adaptris.aws.s3;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
 import javax.validation.Valid;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -35,11 +39,11 @@ import com.adaptris.aws.s3.meta.S3ObjectMetadata;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.util.ManagedThreadFactory;
 import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.Owner;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -145,7 +149,7 @@ public class UploadOperation extends TransferOperation {
     public void run() {
       Thread.currentThread().setName(name);
       while (!upload.isDone()) {
-        log.trace("Uploaded : {}%", (upload.getProgress().getPercentTransferred() / 1));
+        log.trace("Uploaded : {}%", upload.getProgress().getPercentTransferred() / 1);
         try {
           Thread.sleep(2000);
         } catch (InterruptedException e) {
