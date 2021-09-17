@@ -16,17 +16,17 @@
 
 package com.adaptris.aws;
 
-import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.interlok.resolver.ExternalResolver;
 import com.adaptris.security.exc.AdaptrisSecurityException;
 import com.adaptris.security.password.Password;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 
 /**
  * Specify explicit keys for AWS access. Either the root keys for the AWS account (not recommended) or IAM keys.
@@ -67,11 +67,11 @@ public class AWSKeysAuthentication implements AWSAuthentication {
   }
 
   @Override
-  public AWSCredentials getAWSCredentials() throws AdaptrisSecurityException {
+  public AwsCredentials getAWSCredentials() throws AdaptrisSecurityException {
     if (StringUtils.isBlank(getAccessKey()) && StringUtils.isEmpty(getSecretKey())) {
       return null;
     }
-    return new BasicAWSCredentials(getAccessKey(), Password.decode(ExternalResolver.resolve(getSecretKey())));
+    return AwsBasicCredentials.create(getAccessKey(), Password.decode(ExternalResolver.resolve(getSecretKey())));
   }
 
 }

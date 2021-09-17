@@ -1,17 +1,19 @@
 package com.adaptris.aws;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldDefault;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
 
 /**
  * A static set of credentials for AWS.
@@ -35,12 +37,12 @@ public class StaticCredentialsBuilder implements AWSCredentialsProviderBuilder {
   }
 
   @Override
-  public AWSCredentialsProvider build() throws Exception {
-    AWSCredentials credentials = getAuthentication().getAWSCredentials();
+  public AwsCredentialsProvider build() throws Exception {
+    AwsCredentials credentials = getAuthentication().getAWSCredentials();
     if (credentials == null) {
-      return DefaultAWSCredentialsProviderChain.getInstance();
+      return DefaultCredentialsProvider.create();
     }
-    return new AWSStaticCredentialsProvider(credentials);
+    return StaticCredentialsProvider.create(credentials);
   }
 
   public StaticCredentialsBuilder withAuthentication(AWSAuthentication a) {

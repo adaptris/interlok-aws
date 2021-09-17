@@ -16,11 +16,11 @@
 
 package com.adaptris.aws;
 
-import com.amazonaws.auth.AWSCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 
 @FunctionalInterface
 public interface AWSAuthentication {
     
-  public AWSCredentials getAWSCredentials() throws Exception;
+  AwsCredentials getAWSCredentials() throws Exception;
   
 }

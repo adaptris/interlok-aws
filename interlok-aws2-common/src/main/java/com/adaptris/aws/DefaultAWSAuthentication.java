@@ -17,8 +17,8 @@
 package com.adaptris.aws;
 
 import com.adaptris.annotation.ComponentProfile;
-import com.amazonaws.auth.AWSCredentials;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 
 /**
  * Use the default authentication logic of the AWS SDK (IAM Roles, System Properties, Environment variables, etc
@@ -28,7 +28,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 public class DefaultAWSAuthentication implements AWSAuthentication {
 
   @Override
-  public AWSCredentials getAWSCredentials() {
+  public AwsCredentials getAWSCredentials() {
     return null;
   }
 

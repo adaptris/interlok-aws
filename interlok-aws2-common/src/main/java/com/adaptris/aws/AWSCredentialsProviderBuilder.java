@@ -1,21 +1,20 @@
 package com.adaptris.aws;
 
-import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.util.KeyValuePairSet;
-import com.amazonaws.auth.AWSCredentialsProvider;
+import org.apache.commons.lang3.ObjectUtils;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 @FunctionalInterface
 public interface AWSCredentialsProviderBuilder {
 
-  AWSCredentialsProvider build() throws Exception;
+  AwsCredentialsProvider build() throws Exception;
 
-  default AWSCredentialsProvider build(BuilderConfig conf) throws Exception {
+  default AwsCredentialsProvider build(BuilderConfig conf) throws Exception {
     return build();
   }
 
   static AWSCredentialsProviderBuilder defaultIfNull(AWSCredentialsProviderBuilder builder) {
-    return ObjectUtils.defaultIfNull(builder,
-        new StaticCredentialsBuilder().withAuthentication(new DefaultAWSAuthentication()));
+    return ObjectUtils.defaultIfNull(builder, new StaticCredentialsBuilder().withAuthentication(new DefaultAWSAuthentication()));
   }
 
   interface BuilderConfig {
