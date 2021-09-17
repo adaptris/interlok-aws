@@ -1,13 +1,15 @@
 package com.adaptris.aws;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.regions.Region;
+
+import java.net.URI;
 
 /** Wraps {@code AwsClientBuilder.EndpointConfiguration} for configuration purposes.
  *  @config aws-custom-endpoint
@@ -31,7 +33,7 @@ public class CustomEndpoint implements EndpointBuilder {
   private String signingRegion;
   
   public CustomEndpoint() {
-    
+
   }
   
   /**
@@ -45,8 +47,9 @@ public class CustomEndpoint implements EndpointBuilder {
 
   @Override
   public <T extends AwsClientBuilder<?, ?>> T rebuild(T builder) {
-    log.trace("Setting EndpointConfiguration to {}:{}", getServiceEndpoint(), getSigningRegion());    
-    builder.setEndpointConfiguration(new EndpointConfiguration(getServiceEndpoint(), getSigningRegion()));
+    log.trace("Setting EndpointConfiguration to {}:{}", getServiceEndpoint(), getSigningRegion());
+    builder.endpointOverride(URI.create(getServiceEndpoint()));
+    builder.region(Region.of(getSigningRegion()));
     return builder;
   }
   

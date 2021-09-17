@@ -26,6 +26,8 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.protocol.HttpContext;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.signer.Signer;
 
 import java.io.IOException;
 import java.net.URI;
@@ -39,7 +41,7 @@ import static org.apache.http.protocol.HttpCoreContext.HTTP_TARGET_HOST;
 
 /**
  * An {@link HttpRequestInterceptor} that signs requests using any AWS {@link Signer}
- * and {@link AWSCredentialsProvider}.
+ * and {@link AwsCredentialsProvider}.
  */
 // Since we use lombok, we abuse the Generated annotation to exclude this from jacoco (!)
 @lombok.Generated
@@ -58,7 +60,7 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
     /**
      * The source of AWS credentials for signing.
      */
-    private final AWSCredentialsProvider awsCredentialsProvider;
+    private final AwsCredentialsProvider awsCredentialsProvider;
 
     /**
      *
@@ -68,7 +70,7 @@ public class AWSRequestSigningApacheInterceptor implements HttpRequestIntercepto
      */
     public AWSRequestSigningApacheInterceptor(final String service,
                                 final Signer signer,
-                                final AWSCredentialsProvider awsCredentialsProvider) {
+                                final AwsCredentialsProvider awsCredentialsProvider) {
         this.service = service;
         this.signer = signer;
         this.awsCredentialsProvider = awsCredentialsProvider;

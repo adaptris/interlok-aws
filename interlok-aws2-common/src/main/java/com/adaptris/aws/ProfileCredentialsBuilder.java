@@ -3,12 +3,14 @@ package com.adaptris.aws;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldDefault;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
-import com.amazonaws.auth.profile.ProfilesConfigFile;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.profiles.ProfileFile;
+
+import java.io.File;
 
 /**
  * Credentials provider based on AWS configuration profiles
@@ -62,17 +64,20 @@ public class ProfileCredentialsBuilder implements AWSCredentialsProviderBuilder 
   }
 
   @Override
-  public AWSCredentialsProvider build() throws Exception {
-    ProfileCredentialsProvider credentials = new ProfileCredentialsProvider(configFile(), getProfileName());
-    if (getRefreshIntervalNanos() != null) {
-      credentials.setRefreshIntervalNanos(getRefreshIntervalNanos().longValue());
-      credentials.setRefreshForceIntervalNanos(getRefreshIntervalNanos().longValue() * 2);
-    }
-    return credentials;
+  public AwsCredentialsProvider build() throws Exception {
+
+    ProfileCredentialsProvider.Builder builder = ProfileCredentialsProvider.builder();
+    builder.profileFile(configFile()).profileName(profileName);
+    return builder.build();
   }
 
-  private ProfilesConfigFile configFile() {
-    return getConfigFile() != null ? new ProfilesConfigFile(getConfigFile()) : null;
+  private ProfileFile configFile() {
+    if (configFile == null) {
+      return null;
+    }
+    ProfileFile.Builder builder = ProfileFile.builder();
+    builder.content(new File(configFile).toPath());
+    return builder.build();
   }
 
   public ProfileCredentialsBuilder withConfigFile(String s) {

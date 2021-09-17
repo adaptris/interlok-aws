@@ -12,6 +12,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 /**
  * Credentials provider that loads credentials from a property file either from the filesystem or
@@ -53,7 +54,7 @@ public class PropertiesFileCredentialsBuilder implements AWSCredentialsProviderB
   }
 
   @Override
-  public AWSCredentialsProvider build() throws Exception {
+  public AwsCredentialsProvider build() throws Exception {
     File file = new File(Args.notBlank(getPropertyFile(), "property-file"));
     if (isReadable(file)) {
       return new PropertiesFileCredentialsProvider(file.getCanonicalPath());

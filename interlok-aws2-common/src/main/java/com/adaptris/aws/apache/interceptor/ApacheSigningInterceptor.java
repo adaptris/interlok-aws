@@ -1,10 +1,5 @@
 package com.adaptris.aws.apache.interceptor;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpRequestInterceptor;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -19,8 +14,6 @@ import com.adaptris.aws.RetryPolicyFactory;
 import com.adaptris.core.http.apache.request.RequestInterceptorBuilder;
 import com.adaptris.interlok.util.Args;
 import com.adaptris.util.KeyValuePairSet;
-import com.amazonaws.auth.AWS4Signer;
-import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.http.AWSRequestSigningApacheInterceptor;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
@@ -28,6 +21,14 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpRequestInterceptor;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.signer.Aws4Signer;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 /**
  * {@code RequestInterceptorBuilder} implementation that creates an interceptor to sign requests
@@ -127,13 +128,13 @@ public class ApacheSigningInterceptor
   public HttpRequestInterceptor build() {
     String service = Args.notBlank(getServiceName(), "service-name");
     String region = Args.notBlank(getRegionName(), "region-name");
-    AWS4Signer signer = new AWS4Signer();
+    Aws4Signer signer = Aws4Signer.create();
     signer.setServiceName(service);
     signer.setRegionName(region);
     return new AWSRequestSigningApacheInterceptor(service, signer, credentials());
   }
 
-  protected AWSCredentialsProvider credentials() throws Exception {
+  protected AwsCredentialsProvider credentials() throws Exception {
     return AWSCredentialsProviderBuilder.defaultIfNull(getCredentials()).build(this);
   }
 

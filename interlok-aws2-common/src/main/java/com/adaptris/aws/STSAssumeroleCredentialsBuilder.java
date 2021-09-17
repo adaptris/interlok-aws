@@ -25,6 +25,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.services.sts.model.Tag;
 
 /**
  * AWS credentials that makes use of AWS STS
@@ -128,20 +130,19 @@ public class STSAssumeroleCredentialsBuilder implements AWSCredentialsProviderBu
   private String scopeDownPolicy;
 
   @Override
-  public AWSCredentialsProvider build() throws Exception {
+  public AwsCredentialsProvider build() throws Exception {
     return build(null);
   }
 
   @Override
-  public AWSCredentialsProvider build(BuilderConfig conf) throws Exception {
+  public AwsCredentialsProvider build(BuilderConfig conf) throws Exception {
     return configure(new Builder(getRoleArn(), getRoleSessionName()), securityToken(conf)).build();
   }
 
   private AWSSecurityTokenService securityToken(BuilderConfig conf) throws Exception {
     AWSCredentialsProviderBuilder longlived =
         AWSCredentialsProviderBuilder.defaultIfNull(getCredentials());
-    AWSSecurityTokenServiceClientBuilder stsBuilder =
-        AWSSecurityTokenServiceClientBuilder.standard();
+    AWSSecurityTokenServiceClientBuilder stsBuilder = AWSSecurityTokenServiceClientBuilder.standard();
 
     // additional builder setters from the API that we're not exposing.
     // stsBuilder.setClientSideMonitoringConfigurationProvider(csmConfig);
@@ -174,7 +175,7 @@ public class STSAssumeroleCredentialsBuilder implements AWSCredentialsProviderBu
   private Collection<Tag> sessionTags() {
     KeyValuePairSet tags = ObjectUtils.defaultIfNull(getSessionTags(), new KeyValuePairSet());
     return tags.stream()
-        .map((kvp) -> new Tag().withKey(kvp.getKey()).withValue(kvp.getValue()))
+        .map((kvp) -> Tag.builder().key(kvp.getKey()).value(kvp.getValue()).build())
         .collect(Collectors.toList());
   }
 

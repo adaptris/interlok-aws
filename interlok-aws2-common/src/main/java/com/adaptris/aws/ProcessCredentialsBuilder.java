@@ -1,17 +1,17 @@
 package com.adaptris.aws;
 
-import java.util.concurrent.TimeUnit;
-import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldDefault;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.ProcessCredentialsProvider;
-import com.amazonaws.auth.ProcessCredentialsProvider.Builder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ProcessCredentialsProvider;
+
+import javax.validation.constraints.NotBlank;
+import java.time.Duration;
 
 /**
  * Credentials provider that can load credentials from an external process.
@@ -77,13 +77,13 @@ public class ProcessCredentialsBuilder implements AWSCredentialsProviderBuilder 
   }
 
   @Override
-  public AWSCredentialsProvider build() throws Exception {
-    Builder builder = ProcessCredentialsProvider.builder().withCommand(getCommand());
+  public AwsCredentialsProvider build() throws Exception {
+    ProcessCredentialsProvider.Builder builder = ProcessCredentialsProvider.builder().command(getCommand());
     if (getProcessOutputLimitBytes() != null) {
-      builder.withProcessOutputLimit(getProcessOutputLimitBytes().longValue());
+      builder.processOutputLimit(getProcessOutputLimitBytes().longValue());
     }
     if (getExpirationBufferSeconds() != null) {
-      builder.withCredentialExpirationBuffer(getExpirationBufferSeconds().intValue(), TimeUnit.SECONDS);
+      builder.credentialRefreshThreshold(Duration.ofSeconds(getExpirationBufferSeconds().intValue()));
     }
     return builder.build();
   }

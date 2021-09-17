@@ -16,15 +16,16 @@
 
 package com.adaptris.aws;
 
-import javax.validation.Valid;
-import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisConnectionImp;
 import com.adaptris.util.KeyValuePairSet;
-import com.amazonaws.regions.DefaultAwsRegionProviderChain;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.ObjectUtils;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
+
+import javax.validation.Valid;
 
 public abstract class AWSConnection extends AdaptrisConnectionImp
     implements AWSCredentialsProviderBuilder.BuilderConfig {

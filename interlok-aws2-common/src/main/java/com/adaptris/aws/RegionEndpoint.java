@@ -1,11 +1,12 @@
 package com.adaptris.aws;
 
+import lombok.AccessLevel;
+import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import lombok.AccessLevel;
-import lombok.Getter;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.regions.Region;
 
 public class RegionEndpoint implements EndpointBuilder {
 
@@ -22,7 +23,7 @@ public class RegionEndpoint implements EndpointBuilder {
   public <T extends AwsClientBuilder<?, ?>> T rebuild(T builder) {
     if (StringUtils.isNotBlank(getRegion())) {
       log.trace("Setting Region to {}", getRegion());
-      builder.setRegion(getRegion());
+      builder.region(Region.of(getRegion()));
     }
     return builder;
   }
