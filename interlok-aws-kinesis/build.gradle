@@ -5,7 +5,7 @@ ext {
   componentName='Interlok AWS/Kinesis'
   componentDesc="Components that interact AWS Kinesis data streams"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.12.66'
+  awsSDKVersion = '1.12.69'
   jacksonVersion='2.12.5'
   nettyVersion="4.1.68.Final"
 }
