@@ -16,22 +16,26 @@
 
 package com.adaptris.aws;
 
-import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.AutoPopulated;
-import com.amazonaws.retry.PredefinedRetryPolicies;
-import com.amazonaws.retry.RetryPolicy;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
+import software.amazon.awssdk.core.retry.conditions.RetryCondition;
+
+import javax.validation.constraints.NotNull;
 
 /**
- * The default retry policy builder using one of the predefined policies from {@link PredefinedRetryPolicies}.
+ * The default retry policy builder using one of the predefined policies from {@link RetryPolicy}.
  * 
  * @config aws-default-retry-policy-factory
  */
 @XStreamAlias("aws-default-retry-policy-factory")
 public class DefaultRetryPolicyFactory implements RetryPolicyFactory {
+
+  private static final int DYNAMODB_STANDARD_DEFAULT_MAX_ERROR_RETRY = 10; /* Was PredefinedRetryPolicies.DYNAMODB_STANDARD_DEFAULT_MAX_ERROR_RETRY */
 
   public enum PredefinedPolicy {
     /**
@@ -42,7 +46,7 @@ public class DefaultRetryPolicyFactory implements RetryPolicyFactory {
 
       @Override
       RetryPolicy build() {
-        return PredefinedRetryPolicies.getDefaultRetryPolicy();
+        return RetryPolicy.defaultRetryPolicy();
       }
       
     },
@@ -53,14 +57,19 @@ public class DefaultRetryPolicyFactory implements RetryPolicyFactory {
     DYNAMO_DB {
       @Override
       RetryPolicy build() {
-        return PredefinedRetryPolicies.getDynamoDBDefaultRetryPolicy();
 
+        RetryPolicy.Builder builder = RetryPolicy.builder();
+        builder.retryCondition(RetryCondition.defaultRetryCondition());
+        builder.backoffStrategy(BackoffStrategy.defaultThrottlingStrategy());
+        builder.numRetries(DYNAMODB_STANDARD_DEFAULT_MAX_ERROR_RETRY);
+
+        return builder.build();
       }
     },
     NONE {
       @Override
       RetryPolicy build() {
-        return PredefinedRetryPolicies.NO_RETRY_POLICY;
+        return RetryPolicy.none();
       }
     };
     abstract RetryPolicy build();

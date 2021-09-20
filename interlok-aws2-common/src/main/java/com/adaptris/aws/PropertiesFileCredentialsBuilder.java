@@ -1,18 +1,21 @@
 package com.adaptris.aws;
 
-import java.io.File;
-import javax.validation.constraints.NotBlank;
-import org.apache.commons.lang3.BooleanUtils;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.core.util.Args;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider;
-import com.amazonaws.auth.PropertiesFileCredentialsProvider;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.apache.commons.lang3.BooleanUtils;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+
+import javax.validation.constraints.NotBlank;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * Credentials provider that loads credentials from a property file either from the filesystem or
@@ -56,10 +59,41 @@ public class PropertiesFileCredentialsBuilder implements AWSCredentialsProviderB
   @Override
   public AwsCredentialsProvider build() throws Exception {
     File file = new File(Args.notBlank(getPropertyFile(), "property-file"));
-    if (isReadable(file)) {
-      return new PropertiesFileCredentialsProvider(file.getCanonicalPath());
+
+    Properties properties = new Properties();
+
+    if (isReadable(file))
+    {
+      try (FileInputStream stream = new FileInputStream(file))
+      {
+        properties.load(stream);
+      }
     }
-    return new ClasspathPropertiesFileCredentialsProvider(getPropertyFile());
+    else
+    {
+      String credentialsFilePath = getPropertyFile();
+      if (!credentialsFilePath.startsWith("/"))
+      {
+        credentialsFilePath = "/" + credentialsFilePath;
+      }
+      try (InputStream inputStream = getClass().getResourceAsStream(credentialsFilePath))
+      {
+        if (inputStream == null)
+        {
+          throw new IOException("Unable to load AWS credentials from the " + credentialsFilePath + " file on the classpath");
+        }
+        properties.load(inputStream);
+      }
+    }
+
+    if (properties.getProperty("accessKey") == null || properties.getProperty("secretKey") == null)
+    {
+      throw new IllegalArgumentException("The specified properties data doesn't contain the expected properties 'accessKey' and 'secretKey'.");
+    }
+    final String accessKey = properties.getProperty("accessKey");
+    final String secretAccessKey = properties.getProperty("secretKey");
+
+    return () -> AwsBasicCredentials.create(accessKey, secretAccessKey);
   }
 
 
