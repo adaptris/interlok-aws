@@ -16,10 +16,6 @@
 
 package com.adaptris.aws.s3;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.validation.Valid;
-import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
@@ -28,18 +24,23 @@ import com.adaptris.core.MetadataCollection;
 import com.adaptris.core.MetadataElement;
 import com.adaptris.core.metadata.MetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ObjectTagging;
-import com.amazonaws.services.s3.model.SetObjectTaggingRequest;
-import com.amazonaws.services.s3.model.Tag;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectTaggingRequest;
+import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.services.s3.model.Tagging;
+
+import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Add tags to an object from S3 to another object
  *
  * <p>
- * Uses {@link AmazonS3Client#setObjectTagging(SetObjectTaggingRequest)}.
+ * Uses {@link S3Client#putObjectTagging(PutObjectTaggingRequest)}.
  * </p>
  *
  * @config amazon-s3-copy
@@ -56,13 +57,19 @@ public class TagOperation extends ObjectOperationImpl {
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
-    AmazonS3Client s3 = wrapper.amazonClient();
+    S3Client s3 = wrapper.amazonClient();
     String srcBucket = s3Bucket(msg);
     String srcKey = s3ObjectKey(msg);
     List<Tag> tags = filterTagMetadata(msg);
     if (!tags.isEmpty()) {
       log.trace("Tagging [{}:{}]", srcBucket, srcKey);
-      s3.setObjectTagging(new SetObjectTaggingRequest(srcBucket, srcKey, new ObjectTagging(tags)));
+
+      PutObjectTaggingRequest.Builder builder = PutObjectTaggingRequest.builder();
+      builder.bucket(srcBucket);
+      builder.key(srcKey);
+      builder.tagging(Tagging.builder().tagSet(tags).build());
+
+      s3.putObjectTagging(builder.build());
     }
   }
 
@@ -93,7 +100,10 @@ public class TagOperation extends ObjectOperationImpl {
     MetadataCollection metadata = tagMetadataFilter().filter(msg);
     List<Tag> result = new ArrayList<>(metadata.size());
     for (MetadataElement e : metadata) {
-      result.add(new Tag(e.getKey(), e.getValue()));
+      Tag.Builder builder = Tag.builder();
+      builder.key(e.getKey());
+      builder.value(e.getValue());
+      result.add(builder.build());
     }
     return result;
   }

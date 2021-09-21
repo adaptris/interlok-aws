@@ -18,7 +18,8 @@ package com.adaptris.aws.s3.meta;
 
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
-import com.amazonaws.services.s3.model.ObjectMetadata;
+
+import java.util.Map;
 
 /**
  * ObjectMetadata is the base class for all the different ObjectMetadata an S3 
@@ -27,7 +28,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
  */
 public abstract class S3ObjectMetadata implements Comparable<S3ObjectMetadata> {
   
-  public abstract void apply(AdaptrisMessage msg, ObjectMetadata meta) throws ServiceException;
+  public abstract void apply(AdaptrisMessage msg, Map<String, String> meta) throws ServiceException;
 
   @Override
   public final int compareTo(S3ObjectMetadata o) {

@@ -14,13 +14,14 @@
 
 package com.adaptris.aws.s3;
 
-import javax.validation.constraints.NotBlank;
 import com.adaptris.core.AdaptrisMessage;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.CopyObjectRequest;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+
+import javax.validation.constraints.NotBlank;
 
 /**
  * Copy an object from S3 to another object
@@ -52,10 +53,9 @@ public abstract class CopyOperationImpl extends ObjectOperationImpl {
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
-    AmazonS3Client s3 = wrapper.amazonClient();
+    S3Client s3 = wrapper.amazonClient();
     CopyObjectRequest copyReq = createCopyRequest(wrapper, msg);
-    log.trace("Copying [{}:{}] to [{}:{}]", copyReq.getSourceBucketName(), copyReq.getSourceKey(),
-        copyReq.getDestinationBucketName(), copyReq.getDestinationKey());
+    log.trace("Copying [{}:{}] to [{}:{}]", copyReq.sourceBucket(), copyReq.sourceKey(), copyReq.destinationBucket(), copyReq.destinationKey());
     s3.copyObject(copyReq);
   }
 

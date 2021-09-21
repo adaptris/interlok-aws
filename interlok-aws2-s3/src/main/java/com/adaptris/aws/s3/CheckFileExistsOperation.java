@@ -21,9 +21,11 @@ import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.services.exception.ExceptionHandlingServiceWrapper;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.NoArgsConstructor;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 
 /**
  * Check an exists in S3 and throw an exception if it doesn't.
@@ -47,14 +49,23 @@ public class CheckFileExistsOperation extends ObjectOperationImpl {
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
-    AmazonS3Client s3 = wrapper.amazonClient();
+    S3Client s3 = wrapper.amazonClient();
     String bucket = s3Bucket(msg);
     String key = s3ObjectKey(msg);
-    if (!s3.doesObjectExist(bucket, key)) {
-      throw new Exception(String.format("[%s:%s] does not exist", bucket, key));
-    } else {
+
+    HeadObjectRequest.Builder builder = HeadObjectRequest.builder();
+    builder.bucket(bucket);
+    builder.key(key);
+
+    HeadObjectResponse response = s3.headObject(builder.build());
+
+    if (response.sdkHttpResponse().isSuccessful())
+    {
       log.trace("[{}:{}] exists", bucket, key);
     }
+    else
+    {
+      throw new Exception(String.format("[%s:%s] does not exist", bucket, key));
+    }
   }
-
 }

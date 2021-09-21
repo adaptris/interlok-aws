@@ -1,36 +1,35 @@
 package com.adaptris.aws.s3;
 
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
 import com.adaptris.interlok.cloud.RemoteBlob;
 import com.adaptris.interlok.cloud.RemoteBlobFilter;
 import com.adaptris.interlok.cloud.RemoteBlobIterableImpl;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ListObjectsV2Request;
-import com.amazonaws.services.s3.model.ListObjectsV2Result;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
-public class RemoteBlobIterable extends RemoteBlobIterableImpl<S3ObjectSummary> {
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
-  private AmazonS3Client s3Client = null;
+public class RemoteBlobIterable extends RemoteBlobIterableImpl<S3Object> {
+
+  private S3Client s3Client = null;
   private ListObjectsV2Request listRequest = null;
   private RemoteBlobFilter blobFilter = null;
 
-  private ListObjectsV2Result currentListing;
-  private Iterator<S3ObjectSummary> currentListingIterator;
+  private ListObjectsV2Response currentListing;
+  private Iterator<S3Object> currentListingIterator;
 
 
-  public RemoteBlobIterable(AmazonS3Client s3, ListObjectsV2Request request,
-      RemoteBlobFilter filter) {
+  public RemoteBlobIterable(S3Client s3, ListObjectsV2Request request, RemoteBlobFilter filter) {
     s3Client = s3;
     listRequest = request;
     blobFilter = filter;
   }
 
   @Override
-  protected Optional<S3ObjectSummary> nextStorageItem() throws NoSuchElementException {
+  protected Optional<S3Object> nextStorageItem() throws NoSuchElementException {
     if (!currentListingIterator.hasNext()) {
       advanceToNextPage();
     }
@@ -42,17 +41,19 @@ public class RemoteBlobIterable extends RemoteBlobIterableImpl<S3ObjectSummary> 
       // it's not truncated so there's nothing else to get
       throw new NoSuchElementException();
     }
-    String token = currentListing.getNextContinuationToken();
-    listRequest.setContinuationToken(token);
+    String token = currentListing.nextContinuationToken();
+    ListObjectsV2Request.Builder builder = listRequest.toBuilder();
+    builder.continuationToken(token);
+    listRequest = builder.build();
     currentListing = s3Client.listObjectsV2(listRequest);
-    currentListingIterator = currentListing.getObjectSummaries().iterator();
+    currentListingIterator = currentListing.contents().iterator();
   }
 
   @Override
-  protected Optional<RemoteBlob> accept(S3ObjectSummary summary) {
-    String bucket = StringUtils.defaultIfEmpty(summary.getBucketName(), listRequest.getBucketName());
-    RemoteBlob blob = new RemoteBlob.Builder().setBucket(bucket).setLastModified(summary.getLastModified().getTime())
-        .setName(summary.getKey()).setSize(summary.getSize()).build();
+  protected Optional<RemoteBlob> accept(S3Object summary) {
+    String bucket = listRequest.bucket();
+    RemoteBlob blob = new RemoteBlob.Builder().setBucket(bucket).setLastModified(summary.lastModified().getEpochSecond())
+        .setName(summary.key()).setSize(summary.size()).build();
     if (blobFilter.accept(blob)) {
       return Optional.of(blob);
     }
@@ -62,6 +63,6 @@ public class RemoteBlobIterable extends RemoteBlobIterableImpl<S3ObjectSummary> 
   @Override
   protected void iteratorInit() {
     currentListing = s3Client.listObjectsV2(listRequest);
-    currentListingIterator = currentListing.getObjectSummaries().iterator();
+    currentListingIterator = currentListing.contents().iterator();
   }
 }

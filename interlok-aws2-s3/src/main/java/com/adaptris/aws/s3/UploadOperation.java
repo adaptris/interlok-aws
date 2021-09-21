@@ -16,19 +16,6 @@
 
 package com.adaptris.aws.s3;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import javax.validation.Valid;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -38,17 +25,25 @@ import com.adaptris.aws.s3.acl.S3ObjectAcl;
 import com.adaptris.aws.s3.meta.S3ObjectMetadata;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.util.ManagedThreadFactory;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.Upload;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.ObjectUtils;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+
+import javax.validation.Valid;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
- * Upload an object to S3 using {@link TransferManager}.
+ * Upload an object to S3.
  *
  * @author lchan
  * @config amazon-s3-upload
@@ -86,30 +81,33 @@ public class UploadOperation extends TransferOperation {
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
-    TransferManager tm = wrapper.transferManager();
+
+    S3Client s3Client = wrapper.amazonClient();
+
     String bucketName = s3Bucket(msg);
     String key = s3ObjectKey(msg);
-    ObjectMetadata s3meta = new ObjectMetadata();
-    s3meta.setContentLength(msg.getSize());
-    if(StringUtils.isNotEmpty(msg.getContentEncoding())) {
-      s3meta.setContentEncoding(msg.getContentEncoding());
-    }
-    s3meta.setUserMetadata(filterMetadata(msg));
-    for(S3ObjectMetadata m: objectMetadata()) {
-      m.apply(msg, s3meta);
-    }
+
     try (InputStream in = msg.getInputStream()) {
       log.debug("Uploading to {} in bucket {}", key, bucketName);
-      PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, in, s3meta);
+
+      PutObjectRequest.Builder builder = PutObjectRequest.builder();
+
+      builder.bucket(bucketName);
+      builder.key(key);
+      builder.contentLength(msg.getSize());
+      builder.contentEncoding(msg.getContentEncoding());
+      builder.metadata(filterMetadata(msg));
+
       if(!isEmpty(getCannedObjectAcl())) {
-        putObjectRequest.setCannedAcl(S3ObjectCannedAcl.valueOf(msg.resolve(getCannedObjectAcl())).getCannedAccessControl());
+        builder.acl(S3ObjectCannedAcl.valueOf(msg.resolve(getCannedObjectAcl())).getCannedAccessControl());
       }
-      if(getObjectAcl() != null) {
-        putObjectRequest.setAccessControlList(getObjectAcl().create());
-      }
-      Upload upload = tm.upload(putObjectRequest);
-      threadFactory.newThread(new MyProgressListener(Thread.currentThread().getName(), upload)).start();
-      upload.waitForCompletion();
+//      if(getObjectAcl() != null) {
+//        builder.acl(getObjectAcl().create());
+//      }
+
+      RequestBody requestBody = RequestBody.fromInputStream(in, msg.getSize());
+
+      s3Client.putObject(builder.build(), requestBody);
     }
   }
 
@@ -134,28 +132,5 @@ public class UploadOperation extends TransferOperation {
   public UploadOperation withObjectAcl(S3ObjectAcl objectAcl) {
     setObjectAcl(objectAcl);
     return this;
-  }
-
-  private class MyProgressListener implements Runnable {
-    private Upload upload;
-    private String name;
-
-    MyProgressListener(String name, Upload upload) {
-      this.upload = upload;
-      this.name = name;
-    }
-
-    @Override
-    public void run() {
-      Thread.currentThread().setName(name);
-      while (!upload.isDone()) {
-        log.trace("Uploaded : {}%", upload.getProgress().getPercentTransferred() / 1);
-        try {
-          Thread.sleep(2000);
-        } catch (InterruptedException e) {
-          break;
-        }
-      }
-    }
   }
 }

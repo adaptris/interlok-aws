@@ -16,7 +16,6 @@
 
 package com.adaptris.aws.s3;
 
-import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -26,12 +25,13 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.interlok.cloud.BlobListRenderer;
 import com.adaptris.interlok.cloud.RemoteBlobFilter;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.ObjectUtils;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 
 /**
  * List of files based on S3 key.
@@ -92,14 +92,19 @@ public class ListOperation extends S3OperationImpl {
   @Override
   @SuppressWarnings("deprecation")
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
-    AmazonS3Client s3 = wrapper.amazonClient();
+    S3Client s3 = wrapper.amazonClient();
     String _bucket = s3Bucket(msg);
     String _prefix = msg.resolve(getPrefix(), true);
-    ListObjectsV2Request request = new ListObjectsV2Request().withBucketName(_bucket).withPrefix(_prefix);
+
+    ListObjectsV2Request.Builder requestBuilder = ListObjectsV2Request.builder();
+    requestBuilder.bucket(_bucket);
+    requestBuilder.prefix(_prefix);
+
     if (getMaxKeys() != null) {
-      request.setMaxKeys(getMaxKeys());
+      requestBuilder.maxKeys(getMaxKeys());
     }
-    outputStyle().render(new RemoteBlobIterable(s3, request, blobFilter(msg)), msg);
+
+    outputStyle().render(new RemoteBlobIterable(s3, requestBuilder.build(), blobFilter(msg)), msg);
   }
 
   private BlobListRenderer outputStyle() {

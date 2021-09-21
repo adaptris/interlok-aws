@@ -16,23 +16,32 @@
 
 package com.adaptris.aws.s3.meta;
 
-import java.util.Calendar;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
 import com.adaptris.interlok.util.Args;
 import com.adaptris.util.TimeInterval;
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+import java.util.Map;
+
 @XStreamAlias("s3-http-expires-date")
 @NoArgsConstructor
 public class S3HttpExpiresDate extends S3ObjectMetadata {
+
+  private static final DateTimeFormatter rfc822DateFormat =
+          DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'")
+                  .withLocale(Locale.US)
+                  .withZone(ZoneId.of("GMT"));
 
   /**
    * Set how long after upload the object should remain cachable
@@ -46,11 +55,9 @@ public class S3HttpExpiresDate extends S3ObjectMetadata {
   private TimeInterval timeToLive;
 
   @Override
-  public void apply(AdaptrisMessage msg, ObjectMetadata meta) throws ServiceException {
+  public void apply(AdaptrisMessage msg, Map<String, String> meta) throws ServiceException {
     Args.notNull(getTimeToLive(), "time-to-live");
-    Calendar cal = Calendar.getInstance();
-    cal.add(Calendar.MILLISECOND, (int)getTimeToLive().toMilliseconds());
-    meta.setHttpExpiresDate(cal.getTime());
+    meta.put("Expires", rfc822DateFormat.format(LocalDate.ofEpochDay(getTimeToLive().toMilliseconds())));
   }
 
 }

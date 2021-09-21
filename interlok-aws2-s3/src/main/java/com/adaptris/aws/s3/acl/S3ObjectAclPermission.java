@@ -1,8 +1,7 @@
 package com.adaptris.aws.s3.acl;
 
-import com.amazonaws.services.s3.model.Permission;
-
 import lombok.AllArgsConstructor;
+import software.amazon.awssdk.services.s3.model.Permission;
 
 /**
  * Specifies constants defining an access permission.
@@ -10,11 +9,11 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public enum S3ObjectAclPermission {
 
-  FULL_CONTROL(Permission.FullControl),
-  READ(Permission.Read),
-  READ_ACP(Permission.ReadAcp),
-  WRITE(Permission.Write),
-  WRITE_ACP(Permission.WriteAcp);
+  FULL_CONTROL(Permission.FULL_CONTROL),
+  READ(Permission.READ),
+  READ_ACP(Permission.READ_ACP),
+  WRITE(Permission.WRITE),
+  WRITE_ACP(Permission.WRITE_ACP);
 
   private Permission permission;
 

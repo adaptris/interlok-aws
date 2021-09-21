@@ -1,17 +1,5 @@
 package com.adaptris.aws.s3.retry;
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.aws.s3.AmazonS3Connection;
 import com.adaptris.aws.s3.ClientWrapper;
@@ -29,16 +17,29 @@ import com.adaptris.core.util.MessageHelper;
 import com.adaptris.interlok.InterlokException;
 import com.adaptris.interlok.cloud.RemoteBlob;
 import com.adaptris.interlok.util.Args;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ListObjectsV2Request;
-import com.amazonaws.services.s3.model.S3Object;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -130,12 +131,10 @@ public class S3RetryStore implements RetryStore {
   // attempt to retry it.
   @Override
   public Iterable<RemoteBlob> report() throws InterlokException {
-    AmazonS3Client s3 = clientWrapper().amazonClient();
-    ListObjectsV2Request request =
-        new ListObjectsV2Request().withBucketName(getBucket()).withPrefix(getPrefix());
-    return new RetryableBlobIterable(
-        new RemoteBlobIterable(s3, request, (blob) -> blob.getName().endsWith(PAYLOAD_FILE_NAME)),
-        (name) -> toMessageID(name));
+    S3Client s3 = clientWrapper().amazonClient();
+    ListObjectsV2Request.Builder requestBuilder = ListObjectsV2Request.builder();
+    requestBuilder.bucket(getBucket()).prefix(getPrefix());
+    return new RetryableBlobIterable(new RemoteBlobIterable(s3, requestBuilder.build(), (blob) -> blob.getName().endsWith(PAYLOAD_FILE_NAME)), (name) -> toMessageID(name));
   }
 
   @Override
@@ -147,11 +146,12 @@ public class S3RetryStore implements RetryStore {
   }
 
   private void deleteObject(String objectName) throws InterlokException {
-    AmazonS3Client s3 = clientWrapper().amazonClient();
-    if (s3.doesObjectExist(getBucket(), objectName)) {
-      s3.deleteObject(getBucket(), objectName);
-      log.trace("Deleting {} from bucket {}", objectName, getBucket());
-    }
+    S3Client s3 = clientWrapper().amazonClient();
+    DeleteObjectRequest.Builder builder = DeleteObjectRequest.builder();
+    builder.bucket(getBucket());
+    builder.key(objectName);
+    s3.deleteObject(builder.build());
+    log.trace("Deleting {} from bucket {}", objectName, getBucket());
   }
 
 
@@ -229,11 +229,12 @@ public class S3RetryStore implements RetryStore {
   }
 
   private InputStream getInputStream(String objectName) throws Exception {
-    AmazonS3Client s3 = clientWrapper().amazonClient();
-    GetObjectRequest request = new GetObjectRequest(getBucket(), objectName);
-    log.trace("Getting {} from bucket {}", request.getKey(), request.getBucketName());
-    S3Object response = s3.getObject(request);
-    return response.getObjectContent();
+    S3Client s3 = clientWrapper().amazonClient();
+    GetObjectRequest.Builder builder = GetObjectRequest.builder();
+    builder.bucket(getBucket());
+    builder.key(objectName);
+    log.trace("Getting {} from bucket {}", objectName, getBucket());
+    return s3.getObject(builder.build());
   }
 
   private ClientWrapper clientWrapper() {

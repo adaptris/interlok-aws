@@ -3,13 +3,12 @@ package com.adaptris.aws.s3.acl;
 
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldHint;
-import com.amazonaws.services.s3.model.Grant;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import software.amazon.awssdk.services.s3.model.Grant;
 
 /**
  * Specifies a grant, consisting of one grantee and one permission.
@@ -47,7 +46,10 @@ public class S3ObjectAclGrant {
   }
 
   Grant create() {
-    return new Grant(getGrantee().create(), getPermission().create());
+    Grant.Builder builder = Grant.builder();
+    builder.grantee(grantee.create());
+    builder.permission(permission.create());
+    return builder.build();
   }
 
 }

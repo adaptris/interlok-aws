@@ -14,12 +14,6 @@
 
 package com.adaptris.aws.s3;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import javax.validation.Valid;
-import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -30,16 +24,27 @@ import com.adaptris.core.CoreException;
 import com.adaptris.interlok.util.Args;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.CopyObjectRequest;
-import com.amazonaws.services.s3.model.GetObjectTaggingRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.ObjectTagging;
-import com.amazonaws.services.s3.model.Tag;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.ObjectUtils;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectTaggingRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectTaggingResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.services.s3.model.Tagging;
+
+import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Copy an object from S3 to another object
@@ -89,34 +94,51 @@ public class ExtendedCopyOperation extends CopyOperationImpl {
   @Override
   protected CopyObjectRequest createCopyRequest(ClientWrapper wrapper, AdaptrisMessage msg)
       throws Exception {
-    AmazonS3Client s3 = wrapper.amazonClient();
+    S3Client s3 = wrapper.amazonClient();
     String srcBucket = s3Bucket(msg);
     String srcKey = s3ObjectKey(msg);
     String destBucket = ObjectUtils.defaultIfNull(msg.resolve(getDestinationBucket()), srcBucket);
     String destKey = msg.resolve(getDestinationObjectName());
-    CopyObjectRequest copyReq = new CopyObjectRequest(srcBucket, srcKey, destBucket, destKey)
-        .withNewObjectMetadata(buildNewMetadata(s3, msg, srcBucket, srcKey))
-        .withNewObjectTagging(new ObjectTagging(buildNewTags(s3, srcBucket, srcKey)));
-    return copyReq;
+
+    CopyObjectRequest.Builder builder = CopyObjectRequest.builder();
+    builder.sourceBucket(srcBucket);
+    builder.sourceKey(srcKey);
+    builder.destinationBucket(destBucket);
+    builder.destinationKey(destKey);
+    builder.metadata(buildNewMetadata(s3, msg, srcBucket, srcKey));
+    builder.tagging(buildNewTags(s3, srcBucket, srcKey));
+
+    return builder.build();
   }
 
-  private List<Tag> buildNewTags(AmazonS3Client s3, String srcBucket, String srcKey) {
-    GetObjectTaggingRequest req = new GetObjectTaggingRequest(srcBucket, srcKey);
-    List<Tag> result = new ArrayList<>(s3.getObjectTagging(req).getTagSet());
+  private Tagging buildNewTags(S3Client s3, String srcBucket, String srcKey) {
+    GetObjectTaggingRequest.Builder taggingRequestBuilder = GetObjectTaggingRequest.builder();
+    taggingRequestBuilder.bucket(srcBucket);
+    taggingRequestBuilder.key(srcKey);
+    GetObjectTaggingResponse taggingResponse = s3.getObjectTagging(taggingRequestBuilder.build());
+
+    List<Tag> combined = new ArrayList<>(taggingResponse.tagSet());
+    Tagging.Builder tagging = Tagging.builder();
     for (KeyValuePair k : overrideTags()) {
-      result.add(new Tag(k.getKey(), k.getValue()));
+      combined.add(Tag.builder().key(k.getKey()).value(k.getValue()).build());
     }
-    return result;
+    tagging.tagSet(combined);
+    return tagging.build();
   }
 
-  private ObjectMetadata buildNewMetadata(AmazonS3Client s3, AdaptrisMessage msg,
-      String srcBucket,
-      String srcKey) throws Exception {
-    ObjectMetadata result = s3.getObjectMetadata(srcBucket, srcKey).clone();
+  private Map<String, String> buildNewMetadata(S3Client s3, AdaptrisMessage msg, String srcBucket, String srcKey) throws Exception {
+
+    HeadObjectRequest.Builder builder = HeadObjectRequest.builder();
+    builder.bucket(srcBucket);
+    builder.key(srcKey);
+
+    HeadObjectResponse response = s3.headObject(builder.build());
+    Map<String, String> combined = new HashMap<>(response.metadata());
+
     for (S3ObjectMetadata m : overrideMetadata()) {
-      m.apply(msg, result);
+      m.apply(msg, combined);
     }
-    return result;
+    return combined;
   }
 
   public ExtendedCopyOperation withObjectMetadata(List<S3ObjectMetadata> meta) {

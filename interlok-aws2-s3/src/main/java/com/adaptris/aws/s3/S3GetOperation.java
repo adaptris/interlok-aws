@@ -14,20 +14,22 @@
 
 package com.adaptris.aws.s3;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.common.InputStreamWithEncoding;
 import com.adaptris.core.common.PayloadStreamOutputParameter;
 import com.adaptris.interlok.config.DataOutputParameter;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.S3Object;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 /**
  * Get an object from S3 and store the contents of the object either in the message payload or
@@ -61,12 +63,19 @@ public class S3GetOperation extends TransferOperation {
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
-    AmazonS3Client s3 = wrapper.amazonClient();
-    GetObjectRequest request = new GetObjectRequest(s3Bucket(msg), s3ObjectKey(msg));
-    log.debug("Getting {} from bucket {}", request.getKey(), request.getBucketName());
-    S3Object response = s3.getObject(request);
-    log.trace("Object is {} bytes", response.getObjectMetadata().getContentLength());
-    getResponseBody().insert(new InputStreamWithEncoding(response.getObjectContent(), null), msg);
-    msg.setMetadata(filterUserMetadata(response.getObjectMetadata().getUserMetadata()));
+    S3Client s3 = wrapper.amazonClient();
+
+    GetObjectRequest.Builder builder = GetObjectRequest.builder();
+    builder.bucket(s3Bucket(msg));
+    builder.key(s3ObjectKey(msg));
+    GetObjectRequest request = builder.build();
+    log.debug("Getting {} from bucket {}", request.key(), request.bucket());
+
+    ResponseInputStream<GetObjectResponse> responseStream = s3.getObject(request);
+    GetObjectResponse response = responseStream.response();
+
+    log.trace("Object is {} bytes", response.contentLength());
+    getResponseBody().insert(new InputStreamWithEncoding(responseStream, null), msg);
+    msg.setMetadata(filterUserMetadata(response.metadata()));
   }
 }

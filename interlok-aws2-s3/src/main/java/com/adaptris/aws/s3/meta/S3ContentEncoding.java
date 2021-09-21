@@ -16,17 +16,18 @@
 
 package com.adaptris.aws.s3.meta;
 
-import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
 import com.adaptris.interlok.util.Args;
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+
+import javax.validation.constraints.NotNull;
+import java.util.Map;
 
 @XStreamAlias("s3-content-encoding")
 // @XStreamConverter(value = ToAttributedValueConverter.class, strings = { "contentEncoding" })
@@ -47,8 +48,8 @@ public class S3ContentEncoding extends S3ObjectMetadata {
   private String contentEncoding;
 
   @Override
-  public void apply(AdaptrisMessage msg, ObjectMetadata meta) throws ServiceException {
+  public void apply(AdaptrisMessage msg, Map<String, String> meta) throws ServiceException {
     Args.notNull(getContentEncoding(), "content-encoding");
-    meta.setContentEncoding(msg.resolve(getContentEncoding()));
+    meta.put("Content-Encoding", msg.resolve(getContentEncoding()));
   }
 }

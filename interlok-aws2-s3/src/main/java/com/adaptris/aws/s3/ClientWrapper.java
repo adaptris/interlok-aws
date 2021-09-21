@@ -16,8 +16,7 @@
 
 package com.adaptris.aws.s3;
 
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.transfer.TransferManager;
+import software.amazon.awssdk.services.s3.S3Client;
 
 /**
  * interface that wraps the amazon s3 client and high level transfer manager instances.
@@ -26,8 +25,7 @@ import com.amazonaws.services.s3.transfer.TransferManager;
  */
 public interface ClientWrapper {
 
-  public AmazonS3Client amazonClient();
+  S3Client amazonClient();
 
-  public TransferManager transferManager();
 
 }

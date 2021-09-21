@@ -20,9 +20,10 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.NoArgsConstructor;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 
 /**
  * Delete an object from S3.
@@ -39,11 +40,14 @@ public class DeleteOperation extends ObjectOperationImpl {
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
-    AmazonS3Client s3 = wrapper.amazonClient();
+    S3Client s3 = wrapper.amazonClient();
     String bucket = s3Bucket(msg);
     String key = s3ObjectKey(msg);
+    DeleteObjectRequest.Builder builder = DeleteObjectRequest.builder();
+    builder.bucket(bucket);
+    builder.key(key);
     log.trace("Deleting [{}:{}]", bucket, key);
-    s3.deleteObject(bucket, key);
+    s3.deleteObject(builder.build());
   }
 
 }

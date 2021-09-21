@@ -16,19 +16,18 @@
 
 package com.adaptris.aws.s3.meta;
 
-import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.InputFieldHint;
-import com.adaptris.validation.constraints.ConfigDeprecated;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
-import com.adaptris.core.util.LoggingHelper;
 import com.adaptris.interlok.util.Args;
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+
+import javax.validation.constraints.NotNull;
+import java.util.Map;
 
 @XStreamAlias("s3-expiration-rule-id")
 // @XStreamConverter(value = ToAttributedValueConverter.class, strings = { "expirationRuleId" })
@@ -48,9 +47,10 @@ public class S3ExpirationTimeRuleId extends S3ObjectMetadata {
   private String expirationTimeRuleId;
 
   @Override
-  public void apply(AdaptrisMessage msg, ObjectMetadata meta) throws ServiceException {
+  public void apply(AdaptrisMessage msg, Map<String, String> meta) throws ServiceException {
     String ruleId = Args.notNull(ruleIdSelector(), "expiration rule");
-    meta.setExpirationTimeRuleId(msg.resolve(ruleId));
+    //meta.setExpirationTimeRuleId(msg.resolve(ruleId));
+    meta.put("x-amz-expiration", msg.resolve(ruleId)); // this is likely wrong, but there's no obvious alternative
   }
 
   private String ruleIdSelector() {

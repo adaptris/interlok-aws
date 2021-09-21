@@ -16,17 +16,19 @@
 
 package com.adaptris.aws.s3.meta;
 
-import javax.validation.constraints.NotNull;
-import org.apache.commons.lang3.BooleanUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.core.AdaptrisMessage;
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.apache.commons.lang3.BooleanUtils;
+import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
+
+import javax.validation.constraints.NotNull;
+import java.util.Map;
 
 /**
  * Enable S3 Server Side Encryption with AWS managed keys
@@ -34,17 +36,19 @@ import lombok.Setter;
 @XStreamAlias("s3-serverside-encryption")
 public class S3ServerSideEncryption extends S3ObjectMetadata {
 
+  private static final String SERVER_SIDE_ENCRYPTION = "x-amz-server-side-encryption"; // From Headers.SERVER_SIDE_ENCRYPTION
+
   public enum Algorithm {
-    AES_256(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+    AES_256(ServerSideEncryption.AES256);
 
-    private final String name;
+    private final ServerSideEncryption name;
 
-    private Algorithm(String name) {
+    Algorithm(ServerSideEncryption name) {
       this.name = name;
     }
 
-    public void apply(ObjectMetadata meta) {
-      meta.setSSEAlgorithm(name);
+    public void apply(Map<String, String> meta) {
+      meta.put(SERVER_SIDE_ENCRYPTION, name.toString());
     }
   }
 
@@ -80,7 +84,7 @@ public class S3ServerSideEncryption extends S3ObjectMetadata {
   }
 
   @Override
-  public void apply(AdaptrisMessage msg, ObjectMetadata meta) {
+  public void apply(AdaptrisMessage msg, Map<String, String> meta) {
     if (enabled()) {
       getAlgorithm().apply(meta);
     }

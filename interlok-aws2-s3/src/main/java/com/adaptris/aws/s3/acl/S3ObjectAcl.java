@@ -1,17 +1,15 @@
 package com.adaptris.aws.s3.acl;
 
-import java.util.List;
-
-import org.apache.commons.collections4.ListUtils;
-
-import com.amazonaws.services.s3.model.AccessControlList;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.collections4.ListUtils;
+import software.amazon.awssdk.services.s3.model.AccessControlPolicy;
+
+import java.util.List;
 
 /**
  * Represents an Amazon S3 Access Control List (ACL), including the ACL's set of
@@ -27,16 +25,16 @@ public class S3ObjectAcl {
   @XStreamImplicit
   private List<S3ObjectAclGrant> grants;
 
-  public AccessControlList create() {
-    AccessControlList objectAcl = new AccessControlList();
+  public AccessControlPolicy create() {
+    AccessControlPolicy.Builder builder = AccessControlPolicy.builder();
 
     for (S3ObjectAclGrant grant : ListUtils.emptyIfNull(getGrants())) {
       if(grant.grant()){
-        objectAcl.grantAllPermissions(grant.create());
+        builder.grants(grant.create());
       }
     }
 
-    return objectAcl;
+    return builder.build();
   }
 
 }

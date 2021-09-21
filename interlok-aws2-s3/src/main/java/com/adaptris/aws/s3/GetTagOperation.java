@@ -16,19 +16,20 @@
 
 package com.adaptris.aws.s3;
 
-import java.util.List;
-import java.util.Set;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.MetadataCollection;
 import com.adaptris.core.MetadataElement;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.GetObjectTaggingRequest;
-import com.amazonaws.services.s3.model.Tag;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.NoArgsConstructor;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectTaggingRequest;
+import software.amazon.awssdk.services.s3.model.Tag;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * Get tags associated with a S3 Object
@@ -48,18 +49,20 @@ public class GetTagOperation extends TagOperation {
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
-    AmazonS3Client s3 = wrapper.amazonClient();
+    S3Client s3 = wrapper.amazonClient();
     String srcBucket = s3Bucket(msg);
     String srcKey = s3ObjectKey(msg);
     log.trace("Getting tags for [{}:{}]", srcBucket, srcKey);
-    GetObjectTaggingRequest req = new GetObjectTaggingRequest(srcBucket, srcKey);
-    msg.setMetadata(filterTags(s3.getObjectTagging(req).getTagSet()));
+    GetObjectTaggingRequest.Builder builder = GetObjectTaggingRequest.builder();
+    builder.bucket(srcBucket);
+    builder.key(srcKey);
+    msg.setMetadata(filterTags(s3.getObjectTagging(builder.build()).tagSet()));
   }
 
   protected Set<MetadataElement> filterTags(List<Tag> tags) {
     MetadataCollection msgMetadata = new MetadataCollection();
     for (Tag tag : tags) {
-      msgMetadata.add(new MetadataElement(tag.getKey(), tag.getValue()));
+      msgMetadata.add(new MetadataElement(tag.key(), tag.value()));
     }
     return tagMetadataFilter().filter(msgMetadata).toSet();
   }

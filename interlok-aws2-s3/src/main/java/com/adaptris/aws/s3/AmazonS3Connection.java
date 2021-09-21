@@ -26,20 +26,18 @@ import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.ExceptionHelper;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3Configuration;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon S3.
  *
  * <p>
- * This class directly exposes almost all the getter and setters that are available in {@link ClientConfiguration} via the
+ * This class directly exposes almost all the getter and setters that are available in {@link software.amazon.awssdk.core.client.config.ClientOverrideConfiguration} via the
  * {@link #getClientConfiguration()} property for maximum flexibility in configuration.
  * </p>
  * <p>
@@ -68,8 +66,7 @@ import lombok.Setter;
     "customEndpoint", "forcePathStyleAccess"})
 public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
 
-  private transient AmazonS3Client s3;
-  private transient TransferManager transferManager;
+  private transient S3Client s3;
 
   /**
    * Configures the client to use path-style access for all requests.
@@ -94,21 +91,25 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
 
   @Override
   protected void initConnection() throws CoreException {
-    AmazonS3ClientBuilder builder = createBuilder();
-    s3 = (AmazonS3Client) builder.build();
-    transferManager = TransferManagerBuilder.standard().withS3Client(s3).build();
+    S3ClientBuilder builder = createBuilder();
+    s3 = builder.build();
   }
 
-  protected AmazonS3ClientBuilder createBuilder() throws CoreException {
-    AmazonS3ClientBuilder builder = null;
+  protected S3ClientBuilder createBuilder() throws CoreException {
+    S3ClientBuilder builder;
     try {
-      ClientConfiguration cc =
-          ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
-      builder = endpointBuilder().rebuild(AmazonS3ClientBuilder.standard().withClientConfiguration(cc));
+      builder = S3Client.builder();
+
+      S3Configuration.Builder s3ConfigurationBuilder = S3Configuration.builder();
+
       if (getForcePathStyleAccess() != null) {
-        builder.setPathStyleAccessEnabled(getForcePathStyleAccess());
+        s3ConfigurationBuilder.pathStyleAccessEnabled(getForcePathStyleAccess());
       }
-      builder.withCredentials(credentialsProvider().build(this));
+
+      builder.serviceConfiguration(s3ConfigurationBuilder.build());
+      builder.overrideConfiguration(ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy()));
+
+      builder.credentialsProvider(credentialsProvider().build(this));
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }
@@ -128,32 +129,19 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
 
   @Override
   protected void closeConnection() {
-    shutdownQuietly(transferManager);
     shutdownQuietly(s3);
-    transferManager = null;
     s3 = null;
   }
 
-  protected static void shutdownQuietly(TransferManager tm) {
-    if (tm != null) {
-      tm.shutdownNow(false);
-    }
-  }
-
-  protected static void shutdownQuietly(AmazonS3Client client) {
+  protected static void shutdownQuietly(S3Client client) {
     if (client != null) {
-      client.shutdown();
+      client.close();
     }
   }
 
   @Override
-  public AmazonS3Client amazonClient() {
+  public S3Client amazonClient() {
     return s3;
-  }
-
-  @Override
-  public TransferManager transferManager() {
-    return transferManager;
   }
 
 }

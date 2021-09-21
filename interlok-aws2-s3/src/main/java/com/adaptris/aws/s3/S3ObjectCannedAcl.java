@@ -1,24 +1,24 @@
 package com.adaptris.aws.s3;
 
-import com.amazonaws.services.s3.model.CannedAccessControlList;
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
 
 public enum S3ObjectCannedAcl {
-  PRIVATE(CannedAccessControlList.Private),
-  PUBLIC_READ(CannedAccessControlList.PublicRead),
-  PUBLIC_READ_WRITE(CannedAccessControlList.PublicReadWrite),
-  AUTHENTICATED_READ(CannedAccessControlList.AuthenticatedRead),
-  LOG_DELIVERY_WRITE(CannedAccessControlList.LogDeliveryWrite),
-  BUCKET_OWNER_READ(CannedAccessControlList.BucketOwnerRead),
-  BUCKET_OWNER_FULL_CONTROL(CannedAccessControlList.BucketOwnerFullControl),
-  AWS_EXEC_READ(CannedAccessControlList.AwsExecRead);
+  PRIVATE(ObjectCannedACL.PRIVATE),
+  PUBLIC_READ(ObjectCannedACL.PUBLIC_READ),
+  PUBLIC_READ_WRITE(ObjectCannedACL.PUBLIC_READ_WRITE),
+  AUTHENTICATED_READ(ObjectCannedACL.AUTHENTICATED_READ),
+//  LOG_DELIVERY_WRITE(CannedAccessControlList.LogDeliveryWrite),
+  BUCKET_OWNER_READ(ObjectCannedACL.BUCKET_OWNER_READ),
+  BUCKET_OWNER_FULL_CONTROL(ObjectCannedACL.BUCKET_OWNER_FULL_CONTROL),
+  AWS_EXEC_READ(ObjectCannedACL.AWS_EXEC_READ);
 
-  private CannedAccessControlList cannedAccessControl;
+  private ObjectCannedACL cannedAccessControl;
 
-  S3ObjectCannedAcl(CannedAccessControlList cannedAccessControl){
+  S3ObjectCannedAcl(ObjectCannedACL cannedAccessControl){
     this.cannedAccessControl = cannedAccessControl;
   }
 
-  public CannedAccessControlList getCannedAccessControl() {
+  public ObjectCannedACL getCannedAccessControl() {
     return cannedAccessControl;
   }
 }

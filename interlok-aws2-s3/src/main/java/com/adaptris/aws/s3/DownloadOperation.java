@@ -16,13 +16,6 @@
 
 package com.adaptris.aws.s3;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import org.apache.commons.io.FileCleaningTracker;
-import org.apache.commons.io.FileDeleteStrategy;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -31,15 +24,26 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.lms.FileBackedMessage;
 import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ManagedThreadFactory;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.transfer.Download;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.util.IOUtils;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.NoArgsConstructor;
+import org.apache.commons.io.FileCleaningTracker;
+import org.apache.commons.io.FileDeleteStrategy;
+import org.apache.commons.io.IOUtils;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
- * Download an object from S3 using {@link TransferManager}.
+ * Download an object from S3.
  *
  * @author lchan
  * @config amazon-s3-download
@@ -60,21 +64,30 @@ public class DownloadOperation extends TransferOperation {
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
-    TransferManager tm = wrapper.transferManager();
     File tempDir = null;
     if (!isEmpty(getTempDirectory())) {
       tempDir = new File(getTempDirectory());
     }
-    GetObjectRequest request = new GetObjectRequest(s3Bucket(msg), s3ObjectKey(msg));
-    log.debug("Getting {} from bucket {}", request.getKey(), request.getBucketName());
+
+    GetObjectRequest.Builder builder = GetObjectRequest.builder();
+    builder.bucket(s3Bucket(msg));
+    builder.key(s3ObjectKey(msg));
+    GetObjectRequest request = builder.build();
+
+    log.debug("Getting {} from bucket {}", request.key(), request.bucket());
     File destFile = createTempFile(tempDir, msg);
-    Download download = tm.download(request, destFile);
-    threadFactory.newThread(new MyProgressListener(Thread.currentThread().getName(), download)).start();
-    download.waitForCompletion();
-    msg.setMetadata(filterUserMetadata(download.getObjectMetadata().getUserMetadata()));
+
+    S3Client s3Client = wrapper.amazonClient();
+    ResponseInputStream<GetObjectResponse> responseStream = s3Client.getObject(request);
+
+    try (FileOutputStream outputStream = new FileOutputStream(destFile))
+    {
+      IOUtils.copy(responseStream, outputStream);
+    }
+
+    msg.setMetadata(filterUserMetadata(responseStream.response().metadata()));
     write(destFile, msg);
   }
-
 
   private void write(File f, AdaptrisMessage msg) throws IOException {
     if (msg instanceof FileBackedMessage) {
@@ -113,29 +126,6 @@ public class DownloadOperation extends TransferOperation {
     File f = File.createTempFile(this.getClass().getSimpleName(), "", tempDir);
     cleaner.track(f, Args.notNull(marker, "marker"), FileDeleteStrategy.FORCE);
     return f;
-  }
-
-  private class MyProgressListener implements Runnable {
-    private Download download;
-    private String name;
-
-    MyProgressListener(String name, Download download) {
-      this.download = download;
-      this.name = name;
-    }
-
-    @Override
-    public void run() {
-      Thread.currentThread().setName(name);
-      while (!download.isDone()) {
-        log.trace("Downloaded : {}%", (download.getProgress().getPercentTransferred() / 1));
-        try {
-          Thread.sleep(2000);
-        } catch (InterruptedException e) {
-          break;
-        }
-      }
-    }
   }
 
 }

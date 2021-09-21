@@ -14,7 +14,6 @@
 
 package com.adaptris.aws.s3;
 
-import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
@@ -22,16 +21,17 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.interlok.InterlokException;
 import com.adaptris.interlok.util.Args;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.ObjectUtils;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 
 /**
  * Copy an object from S3 to another object
  *
  * <p>
- * Effectively uses {@link AmazonS3Client#copyObject(String, String, String, String)} using only the
+ * Effectively uses {@link S3Client#copyObject(CopyObjectRequest)} using only the
  * default behaviour. Note that by default the {@code server-side-encryption, storage-class} and
  * {@code website-redirect-location} are not copied to the destination object. If you need those
  * settings then you should probably think about using {@link ExtendedCopyOperation} instead.
@@ -55,9 +55,12 @@ public class CopyOperation extends CopyOperationImpl {
   @Override
   protected CopyObjectRequest createCopyRequest(ClientWrapper wrapper, AdaptrisMessage msg)
       throws Exception {
-    CopyObjectRequest copyReq = new CopyObjectRequest(s3Bucket(msg), s3ObjectKey(msg),
-        destinationBucket(msg), destinationKey(msg));
-    return copyReq;
+    CopyObjectRequest.Builder builder = CopyObjectRequest.builder();
+    builder.sourceBucket(s3Bucket(msg));
+    builder.sourceKey(s3ObjectKey(msg));
+    builder.destinationBucket(destinationBucket(msg));
+    builder.destinationKey(destinationKey(msg));
+    return builder.build();
   }
 
 

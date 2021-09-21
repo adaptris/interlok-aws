@@ -1,6 +1,6 @@
 package com.adaptris.aws.s3.acl;
 
-import com.amazonaws.services.s3.model.Grantee;
+import software.amazon.awssdk.services.s3.model.Grantee;
 
 public interface S3ObjectAclGrantee {
 

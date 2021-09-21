@@ -1,15 +1,12 @@
 package com.adaptris.aws.s3.acl;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.amazonaws.services.s3.model.CanonicalGrantee;
-import com.amazonaws.services.s3.model.Grantee;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.services.s3.model.Grantee;
 
 /**
  * Represents a grantee identified by their canonical Amazon ID.
@@ -33,7 +30,9 @@ public class S3ObjectAclGranteeCanonicalUser implements S3ObjectAclGrantee {
 
   @Override
   public Grantee create() {
-    return new CanonicalGrantee(getId());
+    Grantee.Builder builder = Grantee.builder();
+    builder.id(getId());
+    return builder.build();
   }
 
 }
