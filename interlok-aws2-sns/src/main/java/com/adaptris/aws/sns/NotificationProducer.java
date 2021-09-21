@@ -17,11 +17,11 @@
 package com.adaptris.aws.sns;
 
 import com.adaptris.core.ProduceOnlyProducerImp;
-import com.amazonaws.services.sns.AmazonSNSClient;
+import software.amazon.awssdk.services.sns.SnsClient;
 
 public abstract class NotificationProducer extends ProduceOnlyProducerImp {
 
-  protected AmazonSNSClient client() {
+  protected SnsClient client() {
     return retrieveConnection(AmazonSNSConnection.class).amazonClient();
   }
 

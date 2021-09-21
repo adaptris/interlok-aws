@@ -24,16 +24,16 @@ import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.ExceptionHelper;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.services.sns.AmazonSNSClient;
-import com.amazonaws.services.sns.AmazonSNSClientBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.SnsClientBuilder;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon SNS.
  *
  * <p>
- * This class directly exposes almost all the getter and setters that are available in {@link ClientConfiguration} via the
+ * This class directly exposes almost all the getter and setters that are available in {@link ClientOverrideConfiguration} via the
  * {@link #getClientConfiguration()} property for maximum flexibility in configuration.
  * </p>
  * <p>
@@ -61,7 +61,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 @DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy", "customEndpoint"})
 public class AmazonSNSConnection extends AWSConnection {
 
-  private transient AmazonSNSClient snsClient;
+  private transient SnsClient snsClient;
 
   public AmazonSNSConnection() {
   }
@@ -74,10 +74,11 @@ public class AmazonSNSConnection extends AWSConnection {
   @Override
   protected void initConnection() throws CoreException {
     try {
-      ClientConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
-      AmazonSNSClientBuilder builder = endpointBuilder().rebuild(AmazonSNSClientBuilder.standard().withClientConfiguration(cc));
-      builder.withCredentials(credentialsProvider().build(this));
-      snsClient = (AmazonSNSClient) builder.build();
+      ClientOverrideConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
+      SnsClientBuilder builder = SnsClient.builder();//endpointBuilder().rebuild(AmazonSNSClientBuilder.standard().withClientConfiguration(cc));
+      builder.overrideConfiguration(cc);
+      builder.credentialsProvider(credentialsProvider().build(this));
+      snsClient = builder.build();
     }
     catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
@@ -99,13 +100,13 @@ public class AmazonSNSConnection extends AWSConnection {
     snsClient = null;
   }
 
-  public AmazonSNSClient amazonClient() {
+  public SnsClient amazonClient() {
     return snsClient;
   }
 
-  protected static void closeQuietly(AmazonSNSClient c) {
+  protected static void closeQuietly(SnsClient c) {
     if (c != null) {
-      c.shutdown();
+      c.close();
     }
   }
 }

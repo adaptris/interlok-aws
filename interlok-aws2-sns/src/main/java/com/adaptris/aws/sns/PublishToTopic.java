@@ -16,11 +16,6 @@
 
 package com.adaptris.aws.sns;
 
-import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination;
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
@@ -36,12 +31,19 @@ import com.adaptris.interlok.InterlokException;
 import com.adaptris.interlok.config.DataInputParameter;
 import com.adaptris.interlok.types.InterlokMessage;
 import com.adaptris.interlok.util.Args;
-import com.amazonaws.services.sns.model.PublishRequest;
-import com.amazonaws.services.sns.model.PublishResult;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.services.sns.model.PublishRequest;
+import software.amazon.awssdk.services.sns.model.PublishResponse;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+
+import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination;
 
 /**
  * Publish a message to the SNS topic.
@@ -156,13 +158,15 @@ public class PublishToTopic extends NotificationProducer {
   @Override
   protected void doProduce(AdaptrisMessage msg, String endpoint) throws ProduceException {
     try {
-      PublishRequest request = new PublishRequest(endpoint, source().extract(msg));
+      PublishRequest.Builder builder = PublishRequest.builder();
+      builder.topicArn(endpoint);
+      builder.message(source().extract(msg));
       String subject = resolveSubject(msg);
       if (!StringUtils.isBlank(subject)) {
-        request.setSubject(subject);
+        builder.subject(subject);
       }
-      PublishResult result = client().publish(request);
-      msg.addMetadata(SNS_MSG_ID_KEY, result.getMessageId());
+      PublishResponse result = client().publish(builder.build());
+      msg.addMetadata(SNS_MSG_ID_KEY, result.messageId());
     } catch (Exception e) {
       throw ExceptionHelper.wrapProduceException(e);
     }
