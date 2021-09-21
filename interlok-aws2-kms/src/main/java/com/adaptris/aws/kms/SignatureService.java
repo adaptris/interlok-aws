@@ -1,18 +1,19 @@
 package com.adaptris.aws.kms;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
-import com.amazonaws.services.kms.model.MessageType;
-import com.amazonaws.services.kms.model.SigningAlgorithmSpec;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.services.kms.model.MessageType;
+import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 
 @NoArgsConstructor
 public abstract class SignatureService extends AWSKMSServiceImpl {

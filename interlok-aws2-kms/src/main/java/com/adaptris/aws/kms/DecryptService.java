@@ -1,17 +1,19 @@
 package com.adaptris.aws.kms;
 
-import java.nio.ByteBuffer;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.util.ExceptionHelper;
-import com.amazonaws.services.kms.AWSKMSClient;
-import com.amazonaws.services.kms.model.DecryptRequest;
-import com.amazonaws.services.kms.model.DecryptResult;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.NoArgsConstructor;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.DecryptRequest;
+import software.amazon.awssdk.services.kms.model.DecryptResponse;
+
+import java.nio.ByteBuffer;
 
 /**
  * Decrypt data using AWS KMS
@@ -28,18 +30,19 @@ public class DecryptService extends EncryptDecrypt {
   @Override
   public void doService(AdaptrisMessage msg) throws ServiceException {
     try {
-      AWSKMSClient client = awsClient();
+      KmsClient client = awsClient();
       String key = msg.resolve(getKeyId());
       ByteBuffer toBeDecrypted = toByteBuffer(msg);
-      DecryptRequest request = new DecryptRequest()
-          .withKeyId(key)
-          // Default in the internal SDK is null; so this resolving to null should be OK.
-          .withEncryptionAlgorithm(encryptionAlgorithm(msg))
-          // Default in the internal SDK has null protection... is defaulting to an empty Map<String,String> a problem?
-          .withEncryptionContext(encryptionContext())
-          .withCiphertextBlob(toBeDecrypted);
-      DecryptResult response = client.decrypt(request);
-      writeOutput(response.getPlaintext(), msg);
+      DecryptRequest.Builder builder = DecryptRequest.builder();
+      builder.keyId(key);
+      // Default in the internal SDK is null; so this resolving to null should be OK.
+      builder.encryptionAlgorithm(encryptionAlgorithm(msg));
+      // Default in the internal SDK has null protection... is defaulting to an empty Map<String,String> a problem?
+      builder.encryptionContext(encryptionContext());
+      builder.ciphertextBlob(SdkBytes.fromByteBuffer(toBeDecrypted));
+
+      DecryptResponse response = client.decrypt(builder.build());
+      writeOutput(response.plaintext().asByteBuffer(), msg);
     } catch (Exception e) {
       throw ExceptionHelper.wrapServiceException(e);
     }

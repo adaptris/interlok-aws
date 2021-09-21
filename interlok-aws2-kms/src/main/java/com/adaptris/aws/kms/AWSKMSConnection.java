@@ -24,17 +24,17 @@ import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.ExceptionHelper;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.services.kms.AWSKMSClient;
-import com.amazonaws.services.kms.AWSKMSClientBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.NoArgsConstructor;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.KmsClientBuilder;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon KMS
  *
  * <p>
- * This class directly exposes almost all the getter and setters that are available in {@link ClientConfiguration} via the
+ * This class directly exposes almost all the getter and setters that are available in {@link ClientOverrideConfiguration} via the
  * {@link #getClientConfiguration()} property for maximum flexibility in configuration.
  * </p>
  * <p>
@@ -63,9 +63,9 @@ import lombok.NoArgsConstructor;
 @DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy",
     "customEndpoint"})
 @NoArgsConstructor
-public class AWSKMSConnection extends AWSConnection implements ClientWrapper<AWSKMSClient> {
+public class AWSKMSConnection extends AWSConnection implements ClientWrapper<KmsClient> {
 
-  private transient AWSKMSClient kms;
+  private transient KmsClient kms;
 
   @Override
   protected void prepareConnection() throws CoreException {
@@ -73,11 +73,9 @@ public class AWSKMSConnection extends AWSConnection implements ClientWrapper<AWS
 
   @Override
   protected void initConnection() throws CoreException {
-    AWSKMSClientBuilder builder = createBuilder();
-    kms = (AWSKMSClient) builder.build();
+    KmsClientBuilder builder = createBuilder();
+    kms = builder.build();
   }
-
-
 
   @Override
   protected void startConnection() throws CoreException {  }
@@ -87,20 +85,21 @@ public class AWSKMSConnection extends AWSConnection implements ClientWrapper<AWS
     // Nothing to do
   }
 
-
   @Override
   protected void closeConnection() {
     ClientWrapper.shutdownQuietly(kms);
     kms = null;
   }
 
-  protected AWSKMSClientBuilder createBuilder() throws CoreException {
-    AWSKMSClientBuilder builder = null;
+  protected KmsClientBuilder createBuilder() throws CoreException {
+    KmsClientBuilder builder;
     try {
-      ClientConfiguration cc =
-          ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
-      builder = endpointBuilder().rebuild(AWSKMSClientBuilder.standard().withClientConfiguration(cc));
-      builder.withCredentials(credentialsProvider().build(this));
+      ClientOverrideConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
+
+      builder = KmsClient.builder();
+      builder.overrideConfiguration(cc);
+
+      builder.credentialsProvider(credentialsProvider().build(this));
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }
@@ -108,7 +107,7 @@ public class AWSKMSConnection extends AWSConnection implements ClientWrapper<AWS
   }
 
   @Override
-  public AWSKMSClient awsClient() throws Exception {
+  public KmsClient awsClient() throws Exception {
     return kms;
   }
 

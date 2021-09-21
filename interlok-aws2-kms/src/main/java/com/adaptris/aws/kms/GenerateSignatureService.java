@@ -1,10 +1,5 @@
 package com.adaptris.aws.kms;
 
-import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import org.apache.commons.io.IOUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
@@ -17,15 +12,22 @@ import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.interlok.types.MessageWrapper;
 import com.adaptris.interlok.util.Args;
 import com.adaptris.util.text.HexDump;
-import com.amazonaws.services.kms.AWSKMSClient;
-import com.amazonaws.services.kms.model.MessageType;
-import com.amazonaws.services.kms.model.SignRequest;
-import com.amazonaws.services.kms.model.SignResult;
-import com.amazonaws.services.kms.model.SigningAlgorithmSpec;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.apache.commons.io.IOUtils;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.MessageType;
+import software.amazon.awssdk.services.kms.model.SignRequest;
+import software.amazon.awssdk.services.kms.model.SignResponse;
+import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.io.OutputStream;
+import java.nio.ByteBuffer;
 
 /**
  * Generate a signature using AWS KMS.
@@ -77,20 +79,19 @@ public class GenerateSignatureService extends SignatureService {
   @Override
   public void doService(AdaptrisMessage msg) throws ServiceException {
     try {
-      AWSKMSClient client = awsClient();
+      KmsClient client = awsClient();
       String key = msg.resolve(getKeyId());
       SigningAlgorithmSpec signingAlg = signingAlgorithm(msg);
       MessageType type = messageType(msg);
       byte[] dataToBeSigned = getInput().wrap(msg);
-      ByteBuffer toBeSigned = ByteBuffer.wrap(dataToBeSigned);
 
-      SignRequest request =  new SignRequest()
-          .withKeyId(key)
-          .withSigningAlgorithm(signingAlg)
-          .withMessageType(type)
-          .withMessage(toBeSigned);
-      SignResult response = client.sign(request);
-      ByteBuffer signedData = response.getSignature();
+      SignRequest.Builder request = SignRequest.builder()
+          .keyId(key)
+          .signingAlgorithm(signingAlg)
+          .messageType(type)
+          .message(SdkBytes.fromByteArray(dataToBeSigned));
+      SignResponse response = client.sign(request.build());
+      ByteBuffer signedData = response.signature().asByteBuffer();
       if (extendedLogging()) {
         log.trace("Data:\n{}", HexDump.parse(dataToBeSigned));
         log.trace("Signature:\n{}", HexDump.parse(signedData.array()));

@@ -1,8 +1,5 @@
 package com.adaptris.aws.kms;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.ConnectedService;
@@ -10,9 +7,13 @@ import com.adaptris.core.CoreException;
 import com.adaptris.core.ServiceImp;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.util.Args;
-import com.amazonaws.services.kms.AWSKMSClient;
 import lombok.Getter;
 import lombok.Setter;
+import software.amazon.awssdk.services.kms.KmsClient;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 public abstract class AWSKMSServiceImpl extends ServiceImp implements ConnectedService {
 
@@ -85,7 +86,7 @@ public abstract class AWSKMSServiceImpl extends ServiceImp implements ConnectedS
     return (T) this;
   }
 
-  protected AWSKMSClient awsClient() throws Exception {
+  protected KmsClient awsClient() throws Exception {
     return getConnection().retrieveConnection(AWSKMSConnection.class).awsClient();
   }
 }

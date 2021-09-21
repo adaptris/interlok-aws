@@ -1,8 +1,5 @@
 package com.adaptris.aws.kms;
 
-import java.nio.ByteBuffer;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
@@ -14,15 +11,19 @@ import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.interlok.types.MessageWrapper;
 import com.adaptris.interlok.util.Args;
 import com.adaptris.util.text.HexDump;
-import com.amazonaws.services.kms.AWSKMSClient;
-import com.amazonaws.services.kms.model.MessageType;
-import com.amazonaws.services.kms.model.SigningAlgorithmSpec;
-import com.amazonaws.services.kms.model.VerifyRequest;
-import com.amazonaws.services.kms.model.VerifyResult;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.MessageType;
+import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
+import software.amazon.awssdk.services.kms.model.VerifyRequest;
+import software.amazon.awssdk.services.kms.model.VerifyResponse;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 /**
  * Verify a signature using AWS KMS.
@@ -76,7 +77,7 @@ public class VerifySignatureService extends SignatureService {
   @Override
   public void doService(AdaptrisMessage msg) throws ServiceException {
     try {
-      AWSKMSClient client = awsClient();
+      KmsClient client = awsClient();
       String key = msg.resolve(getKeyId());
       SigningAlgorithmSpec signingAlg = signingAlgorithm(msg);
       MessageType type = messageType(msg);
@@ -87,15 +88,15 @@ public class VerifySignatureService extends SignatureService {
         log.trace("Data:\n{}", HexDump.parse(toVerify));
         log.trace("Signature:\n{}", HexDump.parse(signature));
       }
-      VerifyRequest request = new VerifyRequest()
-              .withKeyId(key)
-              .withSignature(ByteBuffer.wrap(signature))
-              .withMessageType(messageType(msg))
-              .withMessage(ByteBuffer.wrap(toVerify))
-              .withSigningAlgorithm(signingAlgorithm(msg));
+      VerifyRequest.Builder request = VerifyRequest.builder()
+              .keyId(key)
+              .signature(SdkBytes.fromByteArray(signature))
+              .messageType(messageType(msg))
+              .message(SdkBytes.fromByteArray(toVerify))
+              .signingAlgorithm(signingAlgorithm(msg));
       
-      VerifyResult response = client.verify(request);
-      if (!response.isSignatureValid()) {
+      VerifyResponse response = client.verify(request.build());
+      if (!response.signatureValid()) {
         throw new ServiceException("Signature was not verified; VerifyResult#isSignatureValid() is false");
       }
     } catch (Exception e) {
