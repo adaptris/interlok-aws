@@ -16,17 +16,6 @@
 
 package com.adaptris.aws.sqs;
 
-import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import org.apache.commons.lang3.StringUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
@@ -43,17 +32,29 @@ import com.adaptris.core.cache.ExpiringMapCache;
 import com.adaptris.core.util.Args;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.util.TimeInterval;
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.model.MessageAttributeValue;
-import com.amazonaws.services.sqs.model.SendMessageRequest;
-import com.amazonaws.services.sqs.model.SendMessageResult;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
+import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination;
 
 /**
  * {@link AdaptrisMessageProducer} implementation that sends messages to an Amazon Web Services (AWS) SQS queue.
@@ -141,7 +142,7 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
     Args.notNull(retrieveConnection(AmazonSQSConnection.class), "connection");
   }
 
-  private AmazonSQSAsync getSQS() throws CoreException {
+  private SqsAsyncClient getSQS() throws CoreException {
     return retrieveConnection(AmazonSQSConnection.class).getASyncClient();
   }
 
@@ -164,10 +165,12 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
   public void doProduce(AdaptrisMessage msg, String endpoint) throws ProduceException {
     try {
       String queueUrl = resolveQueueURL(endpoint);
-      SendMessageRequest sendMessageRequest =
-          configureDelay(new SendMessageRequest(queueUrl, msg.getContent()));
-      applyMetadata(sendMessageRequest, msg);
-      Future<SendMessageResult> future = getSQS().sendMessageAsync(sendMessageRequest);
+      SendMessageRequest.Builder builder = SendMessageRequest.builder();
+      builder.queueUrl(queueUrl);
+      builder.messageBody(msg.getContent());
+      builder = configureDelay(builder);
+      builder = applyMetadata(builder, msg);
+      Future<SendMessageResponse> future = getSQS().sendMessage(builder.build());
       callback.handleResult(future);
     }
     catch (Exception e) {
@@ -175,30 +178,29 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
     }
   }
 
-  private SendMessageRequest configureDelay(SendMessageRequest req) {
-    Optional.ofNullable(getDelaySeconds()).ifPresent((secs) -> req.setDelaySeconds(secs));
+  private SendMessageRequest.Builder configureDelay(SendMessageRequest.Builder req) {
+    Optional.ofNullable(getDelaySeconds()).ifPresent((secs) -> req.delaySeconds(secs));
     return req;
   }
 
-  private SendMessageRequest applyMetadata(SendMessageRequest sendMessageRequest, AdaptrisMessage msg) {
+  private SendMessageRequest.Builder applyMetadata(SendMessageRequest.Builder sendMessageRequestBuilder, AdaptrisMessage msg) {
     if(getSendAttributes().size() > 0) {
       Map<String, MessageAttributeValue> attributes = new HashMap<>();
       for(String attribute : getSendAttributes()) {
         String adpMetadataValue = msg.getMetadataValue(attribute);
         if (!StringUtils.isEmpty(adpMetadataValue)) {
-          MessageAttributeValue mav = new MessageAttributeValue();
-          mav.setDataType("String");
-          mav.setStringValue(msg.getMetadataValue(attribute));
-          attributes.put(attribute, mav);
+          MessageAttributeValue.Builder mav = MessageAttributeValue.builder();
+          mav.dataType("String");
+          mav.stringValue(msg.getMetadataValue(attribute));
+          attributes.put(attribute, mav.build());
         }
       }
-      sendMessageRequest.withMessageAttributes(attributes);
+      sendMessageRequestBuilder.messageAttributes(attributes);
     }
-    return sendMessageRequest;
+    return sendMessageRequestBuilder;
   }
 
-  private String resolveQueueURL(String queueName)
-      throws AmazonServiceException, AmazonClientException, CoreException {
+  private String resolveQueueURL(String queueName) throws AwsServiceException, CoreException {
     String queueURL = (String) cachedQueueURLs.get(queueName);
     // It's not in the cache. Look up the queue url from Amazon and cache it.
     if(queueURL == null) {
@@ -228,7 +230,7 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
 
   @FunctionalInterface
   public interface SendMessageAsyncCallback {
-    void handleResult(Future<SendMessageResult> future);
+    void handleResult(Future<SendMessageResponse> future);
   }
 
 }

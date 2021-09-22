@@ -17,11 +17,11 @@
 package com.adaptris.aws.sqs;
 
 import com.adaptris.aws.EndpointBuilder;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 
 /**
  * 
@@ -37,9 +37,13 @@ public class UnbufferedSQSClientFactory implements SQSClientFactory {
   }
   
   @Override
-  public AmazonSQSAsync createClient(AWSCredentialsProvider creds, ClientConfiguration conf, EndpointBuilder endpoint) {
-    AmazonSQSAsyncClientBuilder builder =
-        endpoint.rebuild(AmazonSQSAsyncClientBuilder.standard().withClientConfiguration(conf)).withCredentials(creds);
+  public SqsAsyncClient createClient(AwsCredentialsProvider creds, ClientOverrideConfiguration conf, EndpointBuilder endpoint) {
+
+    SqsAsyncClientBuilder builder = endpoint.rebuild(SqsAsyncClient.builder());
+
+    builder.credentialsProvider(creds);
+    builder.overrideConfiguration(conf);
+
     return builder.build();
   }
 }

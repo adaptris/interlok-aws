@@ -16,8 +16,6 @@
 
 package com.adaptris.aws.sqs;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
@@ -29,19 +27,23 @@ import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.util.KeyValuePairSet;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.SqsClientBuilder;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon SQS.
  *
  * <p>
- * This class directly exposes almost all the getter and setters that are available in {@link ClientConfiguration} via the
+ * This class directly exposes almost all the getter and setters that are available in {@link ClientOverrideConfiguration} via the
  * {@link #getClientConfiguration()} property for maximum flexibility in configuration.
  * </p>
  * <p>
@@ -85,8 +87,8 @@ public class AmazonSQSConnection extends AWSConnection {
   @NonNull
   private SQSClientFactory sqsClientFactory;
 
-  private transient AmazonSQSAsync sqsClient;
-
+  private transient SqsAsyncClient sqsAClient;
+  private transient SqsClient sqsClient;
 
   public AmazonSQSConnection() {
     setSqsClientFactory(new UnbufferedSQSClientFactory());
@@ -107,9 +109,14 @@ public class AmazonSQSConnection extends AWSConnection {
   @Override
   protected synchronized void initConnection() throws CoreException {
     try {
-      ClientConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
-      sqsClient = getSqsClientFactory().createClient(credentialsProvider().build(this), cc,
-          endpointBuilder());
+      ClientOverrideConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
+
+      SqsClientBuilder builder = endpointBuilder().rebuild(SqsClient.builder());
+      builder.credentialsProvider(credentialsProvider().build(this));
+      sqsClient = builder.build();
+
+      sqsAClient = getSqsClientFactory().createClient(credentialsProvider().build(this), cc, endpointBuilder());
+
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }
@@ -123,15 +130,19 @@ public class AmazonSQSConnection extends AWSConnection {
   @Override
   protected void stopConnection() {
     if(sqsClient != null) {
-      sqsClient.shutdown();
+      sqsClient.close();
       sqsClient = null;
+    }
+    if(sqsAClient != null) {
+      sqsAClient.close();
+      sqsAClient = null;
     }
   }
 
   /**
    * Access method for getting the synchronous SQSClient for producer/consumer
    */
-  AmazonSQS getSyncClient() throws CoreException {
+  SqsClient getSyncClient() throws CoreException {
     if(sqsClient == null) {
       throw new CoreException("Amazon SQS Connection is not initialized");
     }
@@ -142,11 +153,11 @@ public class AmazonSQSConnection extends AWSConnection {
   /**
    * Access method for getting the asynchronous SQSClient for producer/consumer
    */
-  AmazonSQSAsync getASyncClient() throws CoreException {
+  SqsAsyncClient getASyncClient() throws CoreException {
     if(sqsClient == null) {
       throw new CoreException("Amazon SQS Connection is not initialized");
     }
 
-    return sqsClient;
+    return sqsAClient;
   }
 }

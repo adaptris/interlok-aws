@@ -16,12 +16,15 @@
 
 package com.adaptris.aws.sqs;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import java.net.URI;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
 import lombok.NoArgsConstructor;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
+
+import java.net.URI;
+import java.util.concurrent.ExecutionException;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * Adaptris helper class for Amazon SQS services.
@@ -42,9 +45,9 @@ class AwsHelper {
       actual = regionSplit[1];
     }
     
-    for (Regions r : Regions.values()) {
-      if (r.getName().equalsIgnoreCase(actual)){
-        return r.getName();
+    for (Region r : Region.regions()) {
+      if (r.id().equalsIgnoreCase(actual)){
+        return r.id();
       }
     }
     return region;
@@ -53,15 +56,17 @@ class AwsHelper {
   // If it's RFC2396 then make the assumption that the configurator has been quite explicit
   // about it all and we don't have to issue a GetQueueUrlRequest since that has "permissions"
   // associated with it.
-  public static String buildQueueUrl(String queueName, String ownerAccount, AmazonSQS sqs) {
+  public static String buildQueueUrl(String queueName, String ownerAccount, SqsAsyncClient sqs) throws ExecutionException, InterruptedException
+  {
     if (isValidURL(queueName)) {
       return queueName;
     }
-    GetQueueUrlRequest queueUrlRequest = new GetQueueUrlRequest(queueName);
+    GetQueueUrlRequest.Builder queueUrlRequest = GetQueueUrlRequest.builder();
+    queueUrlRequest.queueName(queueName);
     if (!isEmpty(ownerAccount)) {
-      queueUrlRequest.withQueueOwnerAWSAccountId(ownerAccount);
+      queueUrlRequest.queueOwnerAWSAccountId(ownerAccount);
     }
-    return sqs.getQueueUrl(queueUrlRequest).getQueueUrl();
+    return sqs.getQueueUrl(queueUrlRequest.build()).get().queueUrl();
   }
 
   // while it isn't foolproof, it's probably enough...

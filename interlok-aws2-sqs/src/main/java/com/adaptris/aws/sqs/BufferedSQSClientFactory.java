@@ -27,6 +27,10 @@ import com.amazonaws.services.sqs.buffered.QueueBufferConfig;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.SendMessageBatchRequest;
 
 /**
  * Buffered SQS Client Factory.
@@ -161,7 +165,7 @@ public class BufferedSQSClientFactory extends UnbufferedSQSClientFactory {
   }
   
   @Override
-  public AmazonSQSAsync createClient(AWSCredentialsProvider creds, ClientConfiguration conf, EndpointBuilder endpoint) {
+  public SqsAsyncClient createClient(AwsCredentialsProvider creds, ClientOverrideConfiguration conf, EndpointBuilder endpoint) {
     QueueBufferConfig config = new QueueBufferConfig()
       .withLongPoll(getLongPoll())
       .withLongPollWaitTimeoutSeconds(getLongPollWaitTimeoutSeconds())
@@ -172,7 +176,8 @@ public class BufferedSQSClientFactory extends UnbufferedSQSClientFactory {
       .withMaxInflightOutboundBatches(getMaxInflightOutboundBatches())
       .withMaxInflightReceiveBatches(getMaxInflightReceiveBatches())
       .withVisibilityTimeoutSeconds(getVisibilityTimeoutSeconds());
-    AmazonSQSAsync realClient = super.createClient(creds, conf, endpoint);
+    SqsAsyncClient realClient = super.createClient(creds, conf, endpoint);
+
     return new AmazonSQSBufferedAsyncClient(realClient, config);
   }
 }
