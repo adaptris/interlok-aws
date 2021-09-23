@@ -19,6 +19,7 @@ package com.adaptris.aws.sqs;
 import lombok.NoArgsConstructor;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 
 import java.net.URI;
@@ -67,6 +68,19 @@ class AwsHelper {
       queueUrlRequest.queueOwnerAWSAccountId(ownerAccount);
     }
     return sqs.getQueueUrl(queueUrlRequest.build()).get().queueUrl();
+  }
+
+  public static String buildQueueUrl(String queueName, String ownerAccount, SqsClient sqs) throws ExecutionException, InterruptedException
+  {
+    if (isValidURL(queueName)) {
+      return queueName;
+    }
+    GetQueueUrlRequest.Builder queueUrlRequest = GetQueueUrlRequest.builder();
+    queueUrlRequest.queueName(queueName);
+    if (!isEmpty(ownerAccount)) {
+      queueUrlRequest.queueOwnerAWSAccountId(ownerAccount);
+    }
+    return sqs.getQueueUrl(queueUrlRequest.build()).queueUrl();
   }
 
   // while it isn't foolproof, it's probably enough...

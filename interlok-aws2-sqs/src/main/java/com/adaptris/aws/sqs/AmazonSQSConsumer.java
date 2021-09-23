@@ -16,13 +16,6 @@
 
 package com.adaptris.aws.sqs;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map.Entry;
-import javax.management.MalformedObjectNameException;
-import javax.validation.constraints.NotBlank;
-import org.apache.commons.lang3.BooleanUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
@@ -38,19 +31,32 @@ import com.adaptris.core.runtime.RuntimeInfoComponent;
 import com.adaptris.core.runtime.RuntimeInfoComponentFactory;
 import com.adaptris.core.runtime.WorkflowManager;
 import com.adaptris.core.util.DestinationHelper;
+import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.interlok.util.Args;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.DeleteMessageRequest;
-import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
-import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.MessageAttributeValue;
-import com.amazonaws.services.sqs.model.QueueAttributeName;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.BooleanUtils;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+
+import javax.management.MalformedObjectNameException;
+import javax.validation.constraints.NotBlank;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.concurrent.ExecutionException;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * <p>
@@ -125,7 +131,14 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
   @Override
   public void start() throws CoreException {
-    getQueueUrl();
+    try
+    {
+      getQueueUrl();
+    }
+    catch (Exception e)
+    {
+      ExceptionHelper.rethrowCoreException(e);
+    }
     super.start();
   }
 
@@ -151,32 +164,41 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 
       messageCountLoop:
       do{
-        ReceiveMessageRequest receiveMessageRequest = new ReceiveMessageRequest(myQueueUrl);
+        ReceiveMessageRequest.Builder builder = ReceiveMessageRequest.builder();
+        builder.queueUrl(myQueueUrl);
         if(getPrefetchCount() != null) {
-          receiveMessageRequest.setMaxNumberOfMessages(getPrefetchCount());
+          builder.maxNumberOfMessages(getPrefetchCount());
         }
-        receiveMessageRequest.setAttributeNames(receiveAttributes);
-        receiveMessageRequest.setMessageAttributeNames(receiveMessageAttributes);
-        messages = getSynClient().receiveMessage(receiveMessageRequest).getMessages();
+
+        List<QueueAttributeName> names = new ArrayList<>();
+        for (String ra : receiveAttributes)
+        {
+          names.add(QueueAttributeName.fromValue(ra));
+        }
+        builder.attributeNames(names);
+
+
+        builder.messageAttributeNames(receiveMessageAttributes);
+        messages = getSynClient().receiveMessage(builder.build()).messages();
         log.trace(messages.size() + " messages to process");
 
         for (Message message : messages) {
           try {
-            AdaptrisMessage adpMsg = AdaptrisMessageFactory.defaultIfNull(getMessageFactory()).newMessage(message.getBody());
-            final String handle = message.getReceiptHandle();
-            adpMsg.addMetadata("SQSMessageID", message.getMessageId());
-            for (Entry<String, String> entry : message.getAttributes().entrySet()) {
-              adpMsg.addMetadata(entry.getKey(), entry.getValue());
+            AdaptrisMessage adpMsg = AdaptrisMessageFactory.defaultIfNull(getMessageFactory()).newMessage(message.body());
+            final String handle = message.receiptHandle();
+            adpMsg.addMetadata("SQSMessageID", message.messageId());
+            for (Entry<MessageSystemAttributeName, String> entry : message.attributes().entrySet()) {
+              adpMsg.addMetadata(entry.getKey().toString(), entry.getValue());
             }
-            for (Entry<String, MessageAttributeValue> entry : message.getMessageAttributes().entrySet()) {
-              adpMsg.addMetadata(entry.getKey(), entry.getValue().getStringValue());
+            for (Entry<String, MessageAttributeValue> entry : message.messageAttributes().entrySet()) {
+              adpMsg.addMetadata(entry.getKey(), entry.getValue().stringValue());
             }
             if (alwaysDelete()) {
               retrieveAdaptrisMessageListener().onAdaptrisMessage(adpMsg);
-              getSynClient().deleteMessage(new DeleteMessageRequest(myQueueUrl, handle));
+              getSynClient().deleteMessage(DeleteMessageRequest.builder().queueUrl(myQueueUrl).receiptHandle(handle).build());
             } else {
               retrieveAdaptrisMessageListener().onAdaptrisMessage(adpMsg, (m) -> {
-                getSynClient().deleteMessage(new DeleteMessageRequest(myQueueUrl, handle));
+                getSynClient().deleteMessage(DeleteMessageRequest.builder().queueUrl(myQueueUrl).receiptHandle(handle).build());
               });
             }
             if (!continueProcessingMessages(++count)) {
@@ -184,7 +206,7 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
             }
           }
           catch (Exception e){
-            log.error("Error processing message id: " + message.getMessageId(), e);
+            log.error("Error processing message id: " + message.messageId(), e);
           }
         }
       } while (messages.size() > 0);
@@ -206,10 +228,13 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
     return this;
   }
 
-  int messagesRemaining() throws CoreException {
-    GetQueueAttributesResult result = getSynClient().getQueueAttributes(
-        new GetQueueAttributesRequest(getQueueUrl()).withAttributeNames(QueueAttributeName.ApproximateNumberOfMessages));
-    return Integer.parseInt(result.getAttributes().get(QueueAttributeName.ApproximateNumberOfMessages.toString()));
+  int messagesRemaining() throws CoreException, ExecutionException, InterruptedException
+  {
+    GetQueueAttributesRequest.Builder builder = GetQueueAttributesRequest.builder();
+    builder.queueUrl(getQueueUrl());
+    builder.attributeNames(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES);
+    GetQueueAttributesResponse result = getSynClient().getQueueAttributes(builder.build());
+    return Integer.parseInt(result.attributes().get(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES.toString()));
   }
 
   private String queueName() {
@@ -217,11 +242,11 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
   }
 
   @SneakyThrows(CoreException.class)
-  private AmazonSQS getSynClient() {
+  private SqsClient getSynClient() {
     return retrieveConnection(AmazonSQSConnection.class).getSyncClient();
   }
 
-  private String getQueueUrl() throws CoreException {
+  private String getQueueUrl() throws CoreException, ExecutionException, InterruptedException {
     if (queueUrl == null) {
       queueUrl = AwsHelper.buildQueueUrl(queueName(), getOwnerAwsAccountId(), getSynClient());
     }

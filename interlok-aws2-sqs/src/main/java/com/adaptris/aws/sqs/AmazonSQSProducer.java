@@ -51,6 +51,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
@@ -200,7 +201,7 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
     return sendMessageRequestBuilder;
   }
 
-  private String resolveQueueURL(String queueName) throws AwsServiceException, CoreException {
+  private String resolveQueueURL(String queueName) throws AwsServiceException, CoreException, ExecutionException, InterruptedException {
     String queueURL = (String) cachedQueueURLs.get(queueName);
     // It's not in the cache. Look up the queue url from Amazon and cache it.
     if(queueURL == null) {

@@ -16,10 +16,6 @@
 
 package com.adaptris.aws.sqs.jms;
 
-import static com.adaptris.core.jms.JmsUtils.wrapJMSException;
-import javax.jms.JMSException;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.DisplayOrder;
@@ -38,13 +34,21 @@ import com.adaptris.util.KeyValuePairSet;
 import com.adaptris.util.NumberUtils;
 import com.amazon.sqs.javamessaging.ProviderConfiguration;
 import com.amazon.sqs.javamessaging.SQSConnectionFactory;
-import com.amazonaws.ClientConfiguration;
 import com.amazonaws.regions.DefaultAwsRegionProviderChain;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.SqsClientBuilder;
+
+import javax.jms.JMSException;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+
+import static com.adaptris.core.jms.JmsUtils.wrapJMSException;
 
 /**
  * JMS VendorImplementation for Amazon SQS.
@@ -131,14 +135,15 @@ public class AmazonSQSImplementation extends VendorImplementationImp
   }
 
   protected SQSConnectionFactory build() throws Exception {
-    ClientConfiguration cc = buildClientConfiguration();
-    AmazonSQS sqsClient =
-        getSqsClientFactory().createClient(credentialsProvider().build(this), cc,
-            endpointBuilder());
-    return new SQSConnectionFactory(newProviderConfiguration(), sqsClient);
+    ClientOverrideConfiguration cc = buildClientConfiguration();
+    SqsClientBuilder builder = endpointBuilder().rebuild(SqsClient.builder());
+    builder.credentialsProvider(credentialsProvider().build((this)));
+    builder.overrideConfiguration(cc);
+
+    return new SQSConnectionFactory(newProviderConfiguration(), builder.build());
   }
 
-  protected ClientConfiguration buildClientConfiguration() throws Exception {
+  protected ClientOverrideConfiguration buildClientConfiguration() throws Exception {
     return ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
   }
 

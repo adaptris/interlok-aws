@@ -14,7 +14,7 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
     exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
   }
-  api ("software.amazon.awssdk:amazon-sqs-java-messaging-lib:1.0.8")
+  api ("com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8")
   api ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
   api ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
   api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
