@@ -1,19 +1,20 @@
 package com.adaptris.aws.kinesis;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Iterator;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.services.splitter.MessageSplitter;
 import com.adaptris.interlok.util.CloseableIterable;
-import com.amazonaws.services.kinesis.model.PutRecordsRequestEntry;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.kinesis.model.PutRecordsRequestEntry;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
+import java.io.IOException;
+import java.util.Iterator;
 
 /**
  * Request Builder implementation that allows you to split the message into a number of
@@ -67,10 +68,10 @@ public class SplittingRequestBuilder implements RequestBuilder {
     @Override
     public PutRecordsRequestEntry next() {
       AdaptrisMessage message = messageIterator.next();
-      PutRecordsRequestEntry putRecordsRequestEntry  = new PutRecordsRequestEntry();
-      putRecordsRequestEntry.setData(ByteBuffer.wrap(message.getPayload()));
-      putRecordsRequestEntry.setPartitionKey(partitionKey);
-      return putRecordsRequestEntry;
+      PutRecordsRequestEntry.Builder builder = PutRecordsRequestEntry.builder();
+      builder.data(SdkBytes.fromByteArray(message.getPayload()));
+      builder.partitionKey(partitionKey);
+      return builder.build();
     }
 
     @Override

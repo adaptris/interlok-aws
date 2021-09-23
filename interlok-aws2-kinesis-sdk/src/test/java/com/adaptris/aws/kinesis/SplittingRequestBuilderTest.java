@@ -3,10 +3,12 @@ package com.adaptris.aws.kinesis;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.services.splitter.NoOpSplitter;
-import com.amazonaws.services.kinesis.model.PutRecordsRequestEntry;
 import org.junit.Test;
+import software.amazon.awssdk.services.kinesis.model.PutRecordsRequestEntry;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class SplittingRequestBuilderTest {
 

@@ -24,11 +24,11 @@ import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.ExceptionHelper;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.services.kinesis.AmazonKinesis;
-import com.amazonaws.services.kinesis.AmazonKinesisClientBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.NoArgsConstructor;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.services.kinesis.KinesisClient;
+import software.amazon.awssdk.services.kinesis.KinesisClientBuilder;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon Kinesis using the SDK.
@@ -47,7 +47,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AWSKinesisSDKConnection extends AWSConnection {
 
-  private transient AmazonKinesis kinesis;
+  private transient KinesisClient kinesis;
 
   @Override
   protected void prepareConnection() throws CoreException {
@@ -56,7 +56,7 @@ public class AWSKinesisSDKConnection extends AWSConnection {
 
   @Override
   protected void initConnection() throws CoreException {
-    AmazonKinesisClientBuilder builder = createBuilder();
+    KinesisClientBuilder builder = createBuilder();
     kinesis = builder.build();
   }
 
@@ -74,25 +74,25 @@ public class AWSKinesisSDKConnection extends AWSConnection {
   @Override
   protected void closeConnection() {
     if (kinesis != null) {
-      kinesis.shutdown();
+      kinesis.close();
       kinesis = null;
     }
   }
 
-  protected AmazonKinesisClientBuilder createBuilder() throws CoreException {
-    AmazonKinesisClientBuilder builder;
+  protected KinesisClientBuilder createBuilder() throws CoreException {
+    KinesisClientBuilder builder;
     try {
-      ClientConfiguration cc =
-          ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
-      builder = endpointBuilder().rebuild(AmazonKinesisClientBuilder.standard().withClientConfiguration(cc));
-      builder.withCredentials(credentialsProvider().build(this));
+      ClientOverrideConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
+      builder = endpointBuilder().rebuild(KinesisClient.builder());
+      builder.overrideConfiguration(cc);
+      builder.credentialsProvider(credentialsProvider().build(this));
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }
     return builder;
   }
 
-  public AmazonKinesis kinesisClient() {
+  public KinesisClient kinesisClient() {
     return kinesis;
   }
 

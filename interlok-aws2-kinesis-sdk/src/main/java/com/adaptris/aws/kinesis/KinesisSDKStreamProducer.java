@@ -1,9 +1,5 @@
 package com.adaptris.aws.kinesis;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
@@ -16,14 +12,19 @@ import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.interlok.util.CloseableIterable;
 import com.adaptris.util.NumberUtils;
-import com.amazonaws.services.kinesis.AmazonKinesis;
-import com.amazonaws.services.kinesis.model.PutRecordsRequest;
-import com.amazonaws.services.kinesis.model.PutRecordsRequestEntry;
-import com.amazonaws.services.kinesis.model.PutRecordsResult;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import software.amazon.awssdk.services.kinesis.KinesisClient;
+import software.amazon.awssdk.services.kinesis.model.PutRecordsRequest;
+import software.amazon.awssdk.services.kinesis.model.PutRecordsRequestEntry;
+import software.amazon.awssdk.services.kinesis.model.PutRecordsResponse;
+
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Producer to amazon kinesis using the SDK.
@@ -113,7 +114,7 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
   @Override
   protected void doProduce(AdaptrisMessage msg, String endpoint) throws ProduceException {
     try {
-      AmazonKinesis kinesisClient = retrieveConnection(AWSKinesisSDKConnection.class).kinesisClient();
+      KinesisClient kinesisClient = retrieveConnection(AWSKinesisSDKConnection.class).kinesisClient();
       long total = 0;
       try (CloseableIterable<PutRecordsRequestEntry> docs = CloseableIterable.ensureCloseable(requestBuilder().build(getPartitionKey(), msg))) {
         int count = 0;
@@ -138,11 +139,11 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
     }
   }
 
-  private void doSend(AmazonKinesis kinesisClient, String endpoint, List <PutRecordsRequestEntry> putRecordsRequestEntryList){
-    PutRecordsRequest putRecordsRequest  = new PutRecordsRequest();
-    putRecordsRequest.setStreamName(endpoint);
-    putRecordsRequest.setRecords(putRecordsRequestEntryList);
-    PutRecordsResult putRecordsResult = kinesisClient.putRecords(putRecordsRequest);
+  private void doSend(KinesisClient kinesisClient, String endpoint, List <PutRecordsRequestEntry> putRecordsRequestEntryList){
+    PutRecordsRequest.Builder builder = PutRecordsRequest.builder();
+    builder.streamName(endpoint);
+    builder.records(putRecordsRequestEntryList);
+    PutRecordsResponse putRecordsResult = kinesisClient.putRecords(builder.build());
     log.trace("PutRecordResults: {}", putRecordsResult);
   }
 
