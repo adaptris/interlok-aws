@@ -26,6 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpRequestInterceptor;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.signer.params.Aws4PresignerParams;
+import software.amazon.awssdk.regions.Region;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -129,9 +131,12 @@ public class ApacheSigningInterceptor
     String service = Args.notBlank(getServiceName(), "service-name");
     String region = Args.notBlank(getRegionName(), "region-name");
     Aws4Signer signer = Aws4Signer.create();
-    signer.setServiceName(service);
-    signer.setRegionName(region);
-    return new AWSRequestSigningApacheInterceptor(service, signer, credentials());
+
+    Aws4PresignerParams.Builder presignParams = Aws4PresignerParams.builder();
+    presignParams.signingName(service);
+    presignParams.signingRegion(Region.of(region));
+
+    return new AWSRequestSigningApacheInterceptor(service, signer, credentials(), presignParams.build());
   }
 
   protected AwsCredentialsProvider credentials() throws Exception {
