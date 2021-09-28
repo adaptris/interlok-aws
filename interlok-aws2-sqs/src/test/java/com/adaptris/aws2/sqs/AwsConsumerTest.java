@@ -15,24 +15,7 @@
 */
 
 package com.adaptris.aws2.sqs;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.function.Consumer;
-import org.junit.Before;
-import org.junit.Test;
-import com.adaptris.aws2.AWSKeysAuthentication;
-import com.adaptris.aws2.StaticCredentialsBuilder;
+
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.QuartzCronPoller;
 import com.adaptris.core.StandaloneConsumer;
@@ -43,32 +26,52 @@ import com.adaptris.interlok.junit.scaffolding.ExampleConsumerCase;
 import com.adaptris.util.GuidGenerator;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.DeleteMessageRequest;
-import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
-import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
-import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
-import com.amazonaws.services.sqs.model.GetQueueUrlResult;
-import com.amazonaws.services.sqs.model.Message;
-import com.amazonaws.services.sqs.model.MessageAttributeValue;
-import com.amazonaws.services.sqs.model.QueueAttributeName;
-import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
-import com.amazonaws.services.sqs.model.ReceiveMessageResult;
+import org.junit.Before;
+import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.DeleteMessageRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
+import software.amazon.awssdk.services.sqs.model.Message;
+import software.amazon.awssdk.services.sqs.model.MessageAttributeValue;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
+import software.amazon.awssdk.services.sqs.model.ReceiveMessageResponse;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Consumer;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class AwsConsumerTest extends ExampleConsumerCase {
 
   private static final String payload = "The quick brown fox jumps over the lazy dog.";
 
-  private AmazonSQS sqsClientMock;
+  private SqsClient sqsClientMock;
   private AmazonSQSConnection connectionMock;
 
 
   @Before
   public void setUp() throws Exception {
 
-    sqsClientMock = mock(AmazonSQS.class);
-    GetQueueUrlResult queueUrlResultMock = mock(GetQueueUrlResult.class);
+    sqsClientMock = mock(SqsClient.class);
+    GetQueueUrlResponse queueUrlResultMock = mock(GetQueueUrlResponse.class);
     when(sqsClientMock.getQueueUrl((GetQueueUrlRequest) any())).thenReturn(queueUrlResultMock);
 
     // Initialize SQS Connection mock
@@ -86,16 +89,16 @@ public class AwsConsumerTest extends ExampleConsumerCase {
   @Test
   public void testWithoutQueueOwnerAWSAccountId() throws Exception {
     StandaloneConsumer consumer = startConsumer();
-    verify(sqsClientMock, atLeast(1)).getQueueUrl(new GetQueueUrlRequest("queue"));
+    verify(sqsClientMock, atLeast(1)).getQueueUrl(GetQueueUrlRequest.builder().queueName("queue").build());
     LifecycleHelper.stopAndClose(consumer);
   }
 
   @Test
   public void testWithQueueOwnerAWSAccountId() throws Exception {
     StandaloneConsumer consumer = startConsumerWithAccountID();
-    GetQueueUrlRequest getQueueUrlRequest = new GetQueueUrlRequest("queue");
-    getQueueUrlRequest.withQueueOwnerAWSAccountId("accountId");
-    verify(sqsClientMock, atLeast(1)).getQueueUrl(getQueueUrlRequest);
+    GetQueueUrlRequest.Builder getQueueUrlRequest = GetQueueUrlRequest.builder().queueName("queue");
+    getQueueUrlRequest.queueOwnerAWSAccountId("accountId");
+    verify(sqsClientMock, atLeast(1)).getQueueUrl(getQueueUrlRequest.build());
     LifecycleHelper.stopAndClose(consumer);
   }
 
@@ -119,7 +122,7 @@ public class AwsConsumerTest extends ExampleConsumerCase {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
         createReceiveMessageResult(1),
-        new ReceiveMessageResult());
+        ReceiveMessageResponse.builder().build());
 
     MockMessageListener messageListener = new MockMessageListener(10);
     AmazonSQSConsumer sqsConsumer = createConsumer(connectionMock);
@@ -139,7 +142,7 @@ public class AwsConsumerTest extends ExampleConsumerCase {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
         createReceiveMessageResult(1),
-        new ReceiveMessageResult());
+        ReceiveMessageResponse.builder().build());
 
     NoCallbackListener messageListener = new NoCallbackListener();
     AmazonSQSConsumer sqsConsumer = createConsumer(connectionMock);
@@ -158,7 +161,7 @@ public class AwsConsumerTest extends ExampleConsumerCase {
   @Test
   public void testConsumeWithAmazonReceiveException() throws Exception {
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any()))
-        .thenThrow(new AmazonServiceException("expected"));
+        .thenThrow(AwsServiceException.create("expected", new Exception()));
 
     StandaloneConsumer consumer = startConsumer();
     AmazonSQSConsumer sqsConsumer = (AmazonSQSConsumer) consumer.getConsumer();
@@ -172,9 +175,9 @@ public class AwsConsumerTest extends ExampleConsumerCase {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
         createReceiveMessageResult(1),
-        new ReceiveMessageResult());
+        ReceiveMessageResponse.builder().build());
 
-    doThrow(new AmazonServiceException("expected")).when(sqsClientMock)
+    doThrow(AwsServiceException.create("expected", new Exception())).when(sqsClientMock)
         .deleteMessage((DeleteMessageRequest) any());
 
     StandaloneConsumer consumer = startConsumer();
@@ -193,7 +196,7 @@ public class AwsConsumerTest extends ExampleConsumerCase {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
         createReceiveMessageResult(1, attributes),
-        new ReceiveMessageResult());
+        ReceiveMessageResponse.builder().build());
 
     MockMessageListener messageListener = new MockMessageListener(10);
     AmazonSQSConsumer sqsConsumer = createConsumer(connectionMock);
@@ -223,7 +226,7 @@ public class AwsConsumerTest extends ExampleConsumerCase {
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
         createReceiveMessageResult(1, attributes, convertToMessageAttributes(msgAttributes)),
-        new ReceiveMessageResult());
+        ReceiveMessageResponse.builder().build());
 
     MockMessageListener messageListener = new MockMessageListener(10);
     AmazonSQSConsumer sqsConsumer = createConsumer(connectionMock);
@@ -243,10 +246,10 @@ public class AwsConsumerTest extends ExampleConsumerCase {
 
   @Test
   public void testSingleConsumeWithMessageId() throws Exception {
-    ReceiveMessageResult receiveMessageResult = createReceiveMessageResult(1);
-    String expected = receiveMessageResult.getMessages().get(0).getMessageId();
+    ReceiveMessageResponse receiveMessageResult = createReceiveMessageResult(1);
+    String expected = receiveMessageResult.messages().get(0).messageId();
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
-        receiveMessageResult, new ReceiveMessageResult());
+        receiveMessageResult, ReceiveMessageResponse.builder().build());
 
     MockMessageListener messageListener = new MockMessageListener(10);
     AmazonSQSConsumer sqsConsumer = createConsumer(connectionMock);
@@ -274,7 +277,7 @@ public class AwsConsumerTest extends ExampleConsumerCase {
         createReceiveMessageResult(b3),
         createReceiveMessageResult(b4),
         createReceiveMessageResult(b5),
-        new ReceiveMessageResult());
+        ReceiveMessageResponse.builder().build());
 
     StandaloneConsumer consumer = startConsumer();
     AmazonSQSConsumer sqsConsumer = (AmazonSQSConsumer) consumer.getConsumer();
@@ -286,9 +289,12 @@ public class AwsConsumerTest extends ExampleConsumerCase {
 
   @Test
   public void testMessagesRemaining() throws Exception {
+
+    Map<QueueAttributeName, String> attributes = new HashMap<>();
+    attributes.put(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES, "10");
+
     when(sqsClientMock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(
-        new GetQueueAttributesResult().addAttributesEntry(QueueAttributeName.ApproximateNumberOfMessages.toString(), "10")
-    );
+            GetQueueAttributesResponse.builder().attributes(attributes).build());
     StandaloneConsumer consumer = startConsumer();
     AmazonSQSConsumer sqsConsumer = (AmazonSQSConsumer) consumer.getConsumer();
     int messages = sqsConsumer.messagesRemaining();
@@ -299,9 +305,12 @@ public class AwsConsumerTest extends ExampleConsumerCase {
 
   @Test
   public void testMessagesRemainingWithoutConsumerStart() throws Exception {
+
+    Map<QueueAttributeName, String> attributes = new HashMap<>();
+    attributes.put(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES, "10");
+
     when(sqsClientMock.getQueueAttributes(any(GetQueueAttributesRequest.class))).thenReturn(
-        new GetQueueAttributesResult().addAttributesEntry(QueueAttributeName.ApproximateNumberOfMessages.toString(), "10")
-    );
+            GetQueueAttributesResponse.builder().attributes(attributes).build());
     MockMessageListener messageListener = new MockMessageListener(10);
 
     AmazonSQSConsumer sqsConsumer = createConsumer(connectionMock);
@@ -314,58 +323,56 @@ public class AwsConsumerTest extends ExampleConsumerCase {
     verify(sqsClientMock, atLeast(1)).getQueueAttributes(any(GetQueueAttributesRequest.class));
   }
 
-  private ReceiveMessageResult createReceiveMessageResult(int numMsgs) {
+  private ReceiveMessageResponse createReceiveMessageResult(int numMsgs) {
     // Create the messages to be received
     GuidGenerator guidGenerator = new GuidGenerator();
-    List<Message> msgs = new ArrayList<Message>();
+    List<Message> msgs = new ArrayList<>();
     for(int i=0; i<numMsgs; i++) {
-      msgs.add(new Message().withBody(payload).withMessageId(guidGenerator.getUUID()));
+      msgs.add(Message.builder().body(payload).messageId(guidGenerator.getUUID()).build());
     }
 
     // Set up the connection mock to return a message list when called
-    ReceiveMessageResult result = new ReceiveMessageResult();
-    result.setMessages(msgs);
-
-    return result;
+    ReceiveMessageResponse.Builder result = ReceiveMessageResponse.builder();
+    result.messages(msgs);
+    return result.build();
   }
 
-  private ReceiveMessageResult createReceiveMessageResult(int numMsgs, Map<String, String> attributes,
+  private ReceiveMessageResponse createReceiveMessageResult(int numMsgs, Map<String, String> attributes,
       Map<String, MessageAttributeValue> msgAttributes) {
     // Create the messages to be received
     GuidGenerator guidGenerator = new GuidGenerator();
     List<Message> msgs = new ArrayList<Message>();
     for (int i = 0; i < numMsgs; i++) {
-      msgs.add(new Message().withBody(payload).withAttributes(attributes)
-          .withMessageAttributes(msgAttributes)
-          .withMessageId(guidGenerator.getUUID()));
+      msgs.add(Message.builder().body(payload).attributesWithStrings(attributes)
+          .messageAttributes(msgAttributes)
+          .messageId(guidGenerator.getUUID()).build());
     }
     // Set up the connection mock to return a message list when called
-    ReceiveMessageResult result = new ReceiveMessageResult();
-    result.setMessages(msgs);
-    return result;
+    ReceiveMessageResponse.Builder result = ReceiveMessageResponse.builder();
+    result.messages(msgs);
+    return result.build();
   }
 
   private Map<String, MessageAttributeValue> convertToMessageAttributes(Map<String,String> map) {
     Map<String, MessageAttributeValue> result = new HashMap<>();
     for (Entry<String, String> e : map.entrySet()) {
-      result.put(e.getKey(), new MessageAttributeValue().withDataType("String").withStringValue(e.getValue()));
+      result.put(e.getKey(), MessageAttributeValue.builder().dataType("String").stringValue(e.getValue()).build());
     }
     return result;
   }
 
-  private ReceiveMessageResult createReceiveMessageResult(int numMsgs, Map<String, String> attributes) {
+  private ReceiveMessageResponse createReceiveMessageResult(int numMsgs, Map<String, String> attributes) {
     // Create the messages to be received
     GuidGenerator guidGenerator = new GuidGenerator();
     List<Message> msgs = new ArrayList<Message>();
     for(int i=0; i<numMsgs; i++) {
-      msgs.add(new Message().withBody(payload).withAttributes(attributes).withMessageId(guidGenerator.getUUID()));
+      msgs.add(Message.builder().body(payload).attributesWithStrings(attributes).messageId(guidGenerator.getUUID()).build());
     }
 
     // Set up the connection mock to return a message list when called
-    ReceiveMessageResult result = new ReceiveMessageResult();
-    result.setMessages(msgs);
-
-    return result;
+    ReceiveMessageResponse.Builder result = ReceiveMessageResponse.builder();
+    result.messages(msgs);
+    return result.build();
   }
 
   private void waitForConsumer(MessageCounter counter, final int numMsgs, final int maxWaitTime) throws Exception {
@@ -415,7 +422,7 @@ public class AwsConsumerTest extends ExampleConsumerCase {
     sqsConsumer.setQueue("SampleQueue");
 
     AmazonSQSConnection conn = new AmazonSQSConnection();
-    conn.setCredentials(new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey")));
+    conn.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
     conn.setRegion("My AWS Region");
     KeyValuePairSet clientSettings = new KeyValuePairSet();
     clientSettings.add(new KeyValuePair("ProxyHost", "127.0.0.1"));

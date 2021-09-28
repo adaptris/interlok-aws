@@ -16,28 +16,28 @@
 
 package com.adaptris.aws2.sqs;
 
-import static org.junit.Assert.assertNotNull;
-import org.junit.Test;
 import com.adaptris.aws2.AWSKeysAuthentication;
 import com.adaptris.aws2.ClientConfigurationBuilder;
 import com.adaptris.aws2.EndpointBuilder;
 import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.util.KeyValuePairSet;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.regions.Regions;
+import org.junit.Test;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.regions.Region;
 
-public class UnbufferedClientFactoryTest {
+import static org.junit.Assert.assertNotNull;
+
+public class SyncClientFactoryTest {
 
   @Test
   public void testCreateClient() throws Exception {
-    UnbufferedSQSClientFactory fac = new UnbufferedSQSClientFactory();
-    StaticCredentialsBuilder creds =
-        new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey"));
+    SyncSQSClientFactory fac = new SyncSQSClientFactory();
+    StaticCredentialsBuilder creds = new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey"));
     assertNotNull(
         fac.createClient(creds.build(), ClientConfigurationBuilder.build(new KeyValuePairSet()), new EndpointBuilder() {
           @Override
           public <T extends AwsClientBuilder<?, ?>> T rebuild(T builder) {
-            builder.withRegion(Regions.AP_NORTHEAST_1.getName());
+            builder.region(Region.AP_NORTHEAST_1);
             return builder;
           }
         }));

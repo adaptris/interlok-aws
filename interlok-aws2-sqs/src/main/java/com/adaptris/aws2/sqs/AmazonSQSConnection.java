@@ -27,10 +27,12 @@ import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.util.KeyValuePairSet;
+import com.amazonaws.auth.policy.actions.SQSActions;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
@@ -87,11 +89,10 @@ public class AmazonSQSConnection extends AWSConnection {
   @NonNull
   private SQSClientFactory sqsClientFactory;
 
-  private transient SqsAsyncClient sqsAClient;
-  private transient SqsClient sqsClient;
+  private transient SdkClient client;
 
   public AmazonSQSConnection() {
-    setSqsClientFactory(new UnbufferedSQSClientFactory());
+    setSqsClientFactory(new AsyncSQSClientFactory());
     setClientConfiguration(new KeyValuePairSet());
   }
 
@@ -103,20 +104,14 @@ public class AmazonSQSConnection extends AWSConnection {
 
   @Override
   protected void closeConnection() {
-    sqsClient = null;
+    stopConnection();
   }
 
   @Override
   protected synchronized void initConnection() throws CoreException {
     try {
       ClientOverrideConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
-
-      SqsClientBuilder builder = endpointBuilder().rebuild(SqsClient.builder());
-      builder.credentialsProvider(credentialsProvider());
-      sqsClient = builder.build();
-
-      sqsAClient = getSqsClientFactory().createClient(credentialsProvider(), cc, endpointBuilder());
-
+      client = getSqsClientFactory().createClient(credentialsProvider(), cc, endpointBuilder());
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }
@@ -129,13 +124,9 @@ public class AmazonSQSConnection extends AWSConnection {
 
   @Override
   protected void stopConnection() {
-    if(sqsClient != null) {
-      sqsClient.close();
-      sqsClient = null;
-    }
-    if(sqsAClient != null) {
-      sqsAClient.close();
-      sqsAClient = null;
+    if(client != null) {
+      client.close();
+      client = null;
     }
   }
 
@@ -143,21 +134,21 @@ public class AmazonSQSConnection extends AWSConnection {
    * Access method for getting the synchronous SQSClient for producer/consumer
    */
   SqsClient getSyncClient() throws CoreException {
-    if(sqsClient == null) {
+    if(client == null || client instanceof SqsAsyncClient) {
       throw new CoreException("Amazon SQS Connection is not initialized");
     }
 
-    return sqsClient;
+    return (SqsClient)client;
   }
 
   /**
    * Access method for getting the asynchronous SQSClient for producer/consumer
    */
   SqsAsyncClient getASyncClient() throws CoreException {
-    if(sqsClient == null) {
+    if(client == null || client instanceof SqsClient) {
       throw new CoreException("Amazon SQS Connection is not initialized");
     }
 
-    return sqsAClient;
+    return (SqsAsyncClient)client;
   }
 }

@@ -1,18 +1,5 @@
 package com.adaptris.aws2.sqs;
 
-import static com.adaptris.aws2.sqs.LocalstackHelper.SQS_QUEUE;
-import static com.adaptris.aws2.sqs.LocalstackHelper.areTestsEnabled;
-import static com.adaptris.aws2.sqs.LocalstackHelper.getProperty;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.FixedIntervalPoller;
@@ -23,8 +10,25 @@ import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.junit.scaffolding.BaseCase;
 import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import com.adaptris.util.TimeInterval;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.ListQueuesResult;
+import org.junit.After;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
+import software.amazon.awssdk.services.sqs.model.DeleteQueueRequest;
+import software.amazon.awssdk.services.sqs.model.ListQueuesResponse;
+
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+
+import static com.adaptris.aws2.sqs.LocalstackHelper.SQS_QUEUE;
+import static com.adaptris.aws2.sqs.LocalstackHelper.areTestsEnabled;
+import static com.adaptris.aws2.sqs.LocalstackHelper.getProperty;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 // A new local stack instance; send some messages, and then receive then.
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -46,10 +50,10 @@ public class LocalstackRoundtripTest {
   @Test
   public void test_01_TestCreateQueue() throws Exception {
     Assume.assumeTrue(areTestsEnabled());
-    AmazonSQS sqs = helper.getSyncClient();
-    sqs.createQueue(getProperty(SQS_QUEUE));
-    ListQueuesResult result = sqs.listQueues();
-    System.err.println(result.getQueueUrls());
+    SqsClient sqs = helper.getSyncClient();
+    sqs.createQueue(CreateQueueRequest.builder().queueName(getProperty(SQS_QUEUE)).build());
+    ListQueuesResponse result = sqs.listQueues();
+    System.err.println(result.queueUrls());
   }
 
   @Test
@@ -58,7 +62,7 @@ public class LocalstackRoundtripTest {
     AmazonSQSProducer sqsProducer = new AmazonSQSProducer().withQueue(getProperty(SQS_QUEUE));
     sqsProducer.withMessageAsyncCallback((e) -> {
       try {
-        System.err.println(e.get().getMessageId());
+        System.err.println(e.get().messageId());
       } catch (InterruptedException | ExecutionException e1) {
       }
     });
@@ -100,8 +104,8 @@ public class LocalstackRoundtripTest {
   @Test
   public void test_99_TestDeleteQueue() throws Exception {
     Assume.assumeTrue(areTestsEnabled());
-    AmazonSQS sqs = helper.getSyncClient();
-    sqs.deleteQueue(helper.toQueueURL(getProperty(SQS_QUEUE)));
+    SqsClient sqs = helper.getSyncClient();
+    sqs.deleteQueue(DeleteQueueRequest.builder().queueUrl(getProperty(SQS_QUEUE)).build());
   }
 
 }

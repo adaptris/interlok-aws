@@ -1,21 +1,22 @@
 package com.adaptris.aws2.sqs;
 
-import java.util.Properties;
-import java.util.concurrent.ThreadLocalRandom;
-import org.apache.commons.lang3.BooleanUtils;
-import com.adaptris.aws2.AWSKeysAuthentication;
 import com.adaptris.aws2.CustomEndpoint;
-import com.adaptris.aws2.StaticCredentialsBuilder;
-import com.adaptris.aws2.sqs.jms.AdvancedSQSImplementation;
-import com.adaptris.core.jms.JmsConnection;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.core.util.PropertyHelper;
-import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.model.GetQueueAttributesRequest;
-import com.amazonaws.services.sqs.model.GetQueueAttributesResult;
-import com.amazonaws.services.sqs.model.GetQueueUrlResult;
-import com.amazonaws.services.sqs.model.QueueAttributeName;
+import org.apache.commons.lang3.BooleanUtils;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueAttributesResponse;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
+import software.amazon.awssdk.services.sqs.model.QueueAttributeName;
+
+import java.util.Arrays;
+import java.util.Properties;
+import java.util.concurrent.ThreadLocalRandom;
 
 // Since we have both an polling consumer and a JMS one, abstract the config to a helper (!)
 public class LocalstackHelper {
@@ -56,39 +57,23 @@ public class LocalstackHelper {
     String serviceEndpoint = getProperty(SQS_URL);
     String signingRegion = getProperty(SQS_SIGNING_REGION);
     AmazonSQSConnection connection = new AmazonSQSConnection()
-        .withCredentialsProviderBuilder(
-            new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("TEST", "TEST")))
+        .withCredentialsProviderBuilder(StaticCredentialsProvider.create(AwsBasicCredentials.create("TEST", "TEST")))
         .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion));
     return connection;
   }
   
-  public JmsConnection createJmsConnection() {
-    String serviceEndpoint = getProperty(SQS_URL);
-    String signingRegion = getProperty(SQS_SIGNING_REGION);
-    BufferedSQSClientFactory clientFactory = new BufferedSQSClientFactory();
-    clientFactory.setLongPollWaitTimeoutSeconds(5);
-    AdvancedSQSImplementation jmsImpl = new AdvancedSQSImplementation()
-        .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion))
-        .withClientFactory(clientFactory)
-        .withCredentialsProviderBuilder(
-            new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("TEST", "TEST")));
-    JmsConnection jmsC = new JmsConnection(jmsImpl);
-    return jmsC;
-  }
-  
-  public AmazonSQS getSyncClient() throws Exception {
+  public SqsClient getSyncClient() throws Exception {
     return connection.getSyncClient();
   }
 
-  public AmazonSQSAsync getASyncClient() throws Exception {
+  public SqsAsyncClient getASyncClient() throws Exception {
     return connection.getASyncClient();
   }
   
-  
   public String toQueueURL(String queueName) throws Exception {
-    AmazonSQS sqs = getSyncClient();
-    GetQueueUrlResult queueURL = sqs.getQueueUrl(queueName);
-    return queueURL.getQueueUrl();
+    SqsClient sqs = getSyncClient();
+    GetQueueUrlResponse queueURL = sqs.getQueueUrl(GetQueueUrlRequest.builder().queueName(queueName).build());
+    return queueURL.queueUrl();
   }
   
   public void waitForMessagesToAppear(String queueName, int count) throws Exception{
@@ -107,10 +92,9 @@ public class LocalstackHelper {
   }
   
   public int messagesOnQueue(String queueURL) throws Exception {
-    AmazonSQS sqs = getSyncClient();
-    GetQueueAttributesResult result = sqs.getQueueAttributes(
-        new GetQueueAttributesRequest(queueURL).withAttributeNames(QueueAttributeName.ApproximateNumberOfMessages));
-    return Integer.valueOf(result.getAttributes().get(QueueAttributeName.ApproximateNumberOfMessages.toString()));
+    SqsClient sqs = getSyncClient();
+    GetQueueAttributesResponse result = sqs.getQueueAttributes(GetQueueAttributesRequest.builder().queueUrl(queueURL).attributeNames(Arrays.asList(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES)).build());
+    return Integer.valueOf(result.attributes().get(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES));
   }
  
 }

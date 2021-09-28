@@ -17,22 +17,29 @@
 package com.adaptris.aws2.sqs;
 
 import com.adaptris.aws2.EndpointBuilder;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.services.sqs.SqsAsyncClient;
-import software.amazon.awssdk.services.sqs.SqsBaseClientBuilder;
+import software.amazon.awssdk.services.sqs.SqsClient;
+import software.amazon.awssdk.services.sqs.SqsClientBuilder;
 
-@FunctionalInterface
-public interface SQSClientFactory {
+/**
+ *
+ * Unbuffered SQS Client Factory.
+ *
+ * @config unbuffered-sqs-client-factory
+ * @since 3.0.3
+ */
+@XStreamAlias("aws2-sync-sqs-client-factory")
+public class SyncSQSClientFactory implements SQSClientFactory {
 
-  /**
-   * Create a new Amazon SQS client.
-   * 
-   * @param creds The credentials to use. If null the default credentials mechanism for the Amazon AWS SDK will be used.
-   * @param conf the ClientConfiguration to use.
-   * @param endpointBuilder configures the endpoint / region that the client will use.
-   * @return a {@link SqsAsyncClient} instance.
-   */
-  SdkClient createClient(AwsCredentialsProvider creds, ClientOverrideConfiguration conf, EndpointBuilder endpointBuilder);
+  @Override
+  public SqsClient createClient(AwsCredentialsProvider creds, ClientOverrideConfiguration conf, EndpointBuilder endpoint) {
+    SqsClientBuilder builder = endpoint.rebuild(SqsClient.builder());
+
+    builder.credentialsProvider(creds);
+    builder.overrideConfiguration(conf);
+
+    return builder.build();
+  }
 }

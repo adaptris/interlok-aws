@@ -30,11 +30,8 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
  * @config unbuffered-sqs-client-factory
  * @since 3.0.3
  */
-@XStreamAlias("aws2-unbuffered-sqs-client-factory")
-public class UnbufferedSQSClientFactory implements SQSClientFactory {
-
-  public UnbufferedSQSClientFactory() {
-  }
+@XStreamAlias("aws2-async-sqs-client-factory")
+public class AsyncSQSClientFactory implements SQSClientFactory {
 
   @Override
   public SqsAsyncClient createClient(AwsCredentialsProvider creds, ClientOverrideConfiguration conf, EndpointBuilder endpoint) {

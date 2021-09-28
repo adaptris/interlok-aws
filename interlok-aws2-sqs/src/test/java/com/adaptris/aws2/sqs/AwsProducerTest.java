@@ -15,6 +15,31 @@
 */
 
 package com.adaptris.aws2.sqs;
+
+import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.AdaptrisMessageFactory;
+import com.adaptris.core.CoreException;
+import com.adaptris.core.DefaultMessageFactory;
+import com.adaptris.core.MetadataElement;
+import com.adaptris.core.StandaloneProducer;
+import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
+import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
+import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -24,27 +49,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import java.util.ArrayList;
-import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
-import com.adaptris.aws2.AWSKeysAuthentication;
-import com.adaptris.aws2.StaticCredentialsBuilder;
-import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.CoreException;
-import com.adaptris.core.DefaultMessageFactory;
-import com.adaptris.core.MetadataElement;
-import com.adaptris.core.StandaloneProducer;
-import com.adaptris.core.util.LifecycleHelper;
-import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.sqs.AmazonSQSAsync;
-import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
-import com.amazonaws.services.sqs.model.GetQueueUrlResult;
-import com.amazonaws.services.sqs.model.SendMessageRequest;
 
 public class AwsProducerTest extends ExampleProducerCase {
 
@@ -55,7 +59,7 @@ public class AwsProducerTest extends ExampleProducerCase {
   private AdaptrisMessageFactory messageFactory;
   private List<AdaptrisMessage> producedMessages;
 
-  private AmazonSQSAsync sqsClientMock;
+  private SqsAsyncClient sqsClientMock;
   private AmazonSQSConnection connectionMock;
 
   @Before
@@ -63,10 +67,10 @@ public class AwsProducerTest extends ExampleProducerCase {
 
     producedMessages = new ArrayList<AdaptrisMessage>();
 
-    sqsClientMock = mock(AmazonSQSAsync.class);
-    GetQueueUrlResult queueUrlResultMock = mock(GetQueueUrlResult.class);
-    when(sqsClientMock.getQueueUrl((GetQueueUrlRequest) any())).thenReturn(queueUrlResultMock);
-    when(queueUrlResultMock.getQueueUrl()).thenReturn(queue);
+    sqsClientMock = mock(SqsAsyncClient.class);
+    GetQueueUrlResponse queueUrlResultMock = mock(GetQueueUrlResponse.class);
+    when(sqsClientMock.getQueueUrl((GetQueueUrlRequest) any())).thenReturn(CompletableFuture.completedFuture(queueUrlResultMock));
+    when(queueUrlResultMock.queueUrl()).thenReturn(queue);
 
     // Initialize SQS Connection mock
     connectionMock = mock(AmazonSQSConnection.class);
@@ -83,13 +87,13 @@ public class AwsProducerTest extends ExampleProducerCase {
 
     producer.stop();
     producer.close();
-    verify(sqsClientMock).sendMessageAsync((SendMessageRequest) any());
+    verify(sqsClientMock).sendMessage((SendMessageRequest) any());
   }
 
   @Test
   public void testSingleProduceWithException() throws Exception {
-    when(sqsClientMock.sendMessageAsync((SendMessageRequest) any()))
-        .thenThrow(new AmazonServiceException("Expected"));
+    when(sqsClientMock.sendMessage((SendMessageRequest) any()))
+        .thenThrow(AwsServiceException.create("Expected", new Exception()));
 
     AmazonSQSProducer producer = initialiseMockProducer();
     try {
@@ -110,7 +114,7 @@ public class AwsProducerTest extends ExampleProducerCase {
     AmazonSQSProducer producer = initialiseMockProducer();
     produce(numMsgs, producer);
 
-    verify(sqsClientMock, times(numMsgs)).sendMessageAsync((SendMessageRequest) any());
+    verify(sqsClientMock, times(numMsgs)).sendMessage((SendMessageRequest) any());
   }
 
   @Test
@@ -121,7 +125,7 @@ public class AwsProducerTest extends ExampleProducerCase {
     producer.setDelaySeconds(1);
     produce(numMsgs, producer);
 
-    verify(sqsClientMock, times(numMsgs)).sendMessageAsync((SendMessageRequest) any());
+    verify(sqsClientMock, times(numMsgs)).sendMessage((SendMessageRequest) any());
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -139,17 +143,17 @@ public class AwsProducerTest extends ExampleProducerCase {
 
   @Test
   public void testSingleProduceWithSendAttributes() throws Exception {
-    when(sqsClientMock.sendMessageAsync((SendMessageRequest) any()))
+    when(sqsClientMock.sendMessage((SendMessageRequest) any()))
         .thenAnswer(new Answer<Object>() {
       @Override
       public Object answer(InvocationOnMock invocation) {
           Object[] args = invocation.getArguments();
 
           SendMessageRequest request = (SendMessageRequest) args[0];
-          assertTrue(request.getMessageAttributes() != null);
-          assertEquals("myValue1", request.getMessageAttributes().get("myKey1").getStringValue());
-          assertEquals("myValue2", request.getMessageAttributes().get("myKey2").getStringValue());
-          assertEquals("myValue3", request.getMessageAttributes().get("myKey3").getStringValue());
+          assertTrue(request.messageAttributes() != null);
+          assertEquals("myValue1", request.messageAttributes().get("myKey1").stringValue());
+          assertEquals("myValue2", request.messageAttributes().get("myKey2").stringValue());
+          assertEquals("myValue3", request.messageAttributes().get("myKey3").stringValue());
 
           return null;
       }
@@ -167,22 +171,22 @@ public class AwsProducerTest extends ExampleProducerCase {
 
     producer.stop();
     producer.close();
-    verify(sqsClientMock).sendMessageAsync((SendMessageRequest) any());
+    verify(sqsClientMock).sendMessage((SendMessageRequest) any());
   }
 
   @Test
   public void testSingleProduceWithSendAttributesOneMissing() throws Exception {
-    when(sqsClientMock.sendMessageAsync((SendMessageRequest) any()))
+    when(sqsClientMock.sendMessage((SendMessageRequest) any()))
         .thenAnswer(new Answer<Object>() {
       @Override
       public Object answer(InvocationOnMock invocation) {
           Object[] args = invocation.getArguments();
 
           SendMessageRequest request = (SendMessageRequest) args[0];
-          assertTrue(request.getMessageAttributes() != null);
-          assertEquals("myValue1", request.getMessageAttributes().get("myKey1").getStringValue());
-          assertNull(request.getMessageAttributes().get("myKey2"));
-          assertEquals("myValue3", request.getMessageAttributes().get("myKey3").getStringValue());
+          assertTrue(request.messageAttributes() != null);
+          assertEquals("myValue1", request.messageAttributes().get("myKey1").stringValue());
+          assertNull(request.messageAttributes().get("myKey2"));
+          assertEquals("myValue3", request.messageAttributes().get("myKey3").stringValue());
 
           return null;
       }
@@ -200,22 +204,22 @@ public class AwsProducerTest extends ExampleProducerCase {
 
     producer.stop();
     producer.close();
-    verify(sqsClientMock).sendMessageAsync((SendMessageRequest) any());
+    verify(sqsClientMock).sendMessage((SendMessageRequest) any());
   }
 
   @Test
   public void testSingleProduceWithSendAttributesOneEmpty() throws Exception {
-    when(sqsClientMock.sendMessageAsync((SendMessageRequest) any()))
+    when(sqsClientMock.sendMessage((SendMessageRequest) any()))
         .thenAnswer(new Answer<Object>() {
       @Override
       public Object answer(InvocationOnMock invocation) {
           Object[] args = invocation.getArguments();
 
           SendMessageRequest request = (SendMessageRequest) args[0];
-          assertTrue(request.getMessageAttributes() != null);
-          assertEquals("myValue1", request.getMessageAttributes().get("myKey1").getStringValue());
-          assertNull(request.getMessageAttributes().get("myKey2"));
-          assertEquals("myValue3", request.getMessageAttributes().get("myKey3").getStringValue());
+          assertTrue(request.messageAttributes() != null);
+          assertEquals("myValue1", request.messageAttributes().get("myKey1").stringValue());
+          assertNull(request.messageAttributes().get("myKey2"));
+          assertEquals("myValue3", request.messageAttributes().get("myKey3").stringValue());
 
           return null;
       }
@@ -233,7 +237,7 @@ public class AwsProducerTest extends ExampleProducerCase {
 
     producer.stop();
     producer.close();
-    verify(sqsClientMock).sendMessageAsync((SendMessageRequest) any());
+    verify(sqsClientMock).sendMessage((SendMessageRequest) any());
   }
 
   private void produce(final int numMsgs, AmazonSQSProducer producer) throws Exception{
@@ -282,7 +286,7 @@ public class AwsProducerTest extends ExampleProducerCase {
     producer.setSendAttributes(sendAttributes);
 
     AmazonSQSConnection conn = new AmazonSQSConnection();
-    conn.setCredentials(new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey")));
+    conn.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
     conn.setRegion("My AWS Region");
     StandaloneProducer result = new StandaloneProducer(conn, producer);
     return result;
