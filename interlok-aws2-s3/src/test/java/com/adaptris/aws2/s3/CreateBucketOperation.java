@@ -32,7 +32,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  */
 @AdapterComponent
 @ComponentProfile(summary = "Create a bucket in S3")
-@XStreamAlias("amazon-s3-create-bucket")
+@XStreamAlias("aws2-amazon-s3-create-bucket")
 @DisplayOrder(order = {"bucket"})
 public class CreateBucketOperation extends S3OperationImpl {
 

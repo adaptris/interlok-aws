@@ -24,18 +24,18 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 
 /**
- * 
+ *
  * Unbuffered SQS Client Factory.
- * 
+ *
  * @config unbuffered-sqs-client-factory
  * @since 3.0.3
  */
-@XStreamAlias("unbuffered-sqs-client-factory")
+@XStreamAlias("aws2-unbuffered-sqs-client-factory")
 public class UnbufferedSQSClientFactory implements SQSClientFactory {
 
   public UnbufferedSQSClientFactory() {
   }
-  
+
   @Override
   public SqsAsyncClient createClient(AwsCredentialsProvider creds, ClientOverrideConfiguration conf, EndpointBuilder endpoint) {
 

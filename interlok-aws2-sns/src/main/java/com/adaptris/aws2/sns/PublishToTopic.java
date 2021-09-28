@@ -58,7 +58,7 @@ import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination
  * @config amazon-sns-topic-publisher
  *
  */
-@XStreamAlias("amazon-sns-topic-publisher")
+@XStreamAlias("aws2-amazon-sns-topic-publisher")
 @ComponentProfile(summary = "Publish a message to an SNS Topic", tag = "producer,amazon,sns", recommended =
 {
     AmazonSNSConnection.class

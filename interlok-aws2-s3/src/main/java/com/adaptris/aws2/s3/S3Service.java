@@ -31,13 +31,13 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.NoArgsConstructor;
 
 /**
- * 
+ *
  * @author gdries
  * @config amazon-s3-service
  */
 @AdapterComponent
 @ComponentProfile(summary = "Amazon S3 Service", recommended={AmazonS3Connection.class})
-@XStreamAlias("amazon-s3-service")
+@XStreamAlias("aws2-amazon-s3-service")
 @DisplayOrder(order = {"connection", "operation"})
 @NoArgsConstructor
 public class S3Service extends S3ServiceImpl {
@@ -67,7 +67,7 @@ public class S3Service extends S3ServiceImpl {
     super.prepare();
     getOperation().prepare();
   }
- 
+
 
   public S3Operation getOperation() {
     return operation;

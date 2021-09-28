@@ -13,7 +13,7 @@ import software.amazon.awssdk.services.s3.model.Grantee;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@XStreamAlias("s3-object-acl-grantee-canonical-user")
+@XStreamAlias("aws2-s3-object-acl-grantee-canonical-user")
 public class S3ObjectAclGranteeCanonicalUser implements S3ObjectAclGrantee {
 
   /**

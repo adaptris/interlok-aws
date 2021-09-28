@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
  */
 @AdapterComponent
 @ComponentProfile(summary = "Delete an object from S3")
-@XStreamAlias("amazon-s3-delete")
+@XStreamAlias("aws2-amazon-s3-delete")
 @DisplayOrder(order = {"bucket", "objectName"})
 @NoArgsConstructor
 public class DeleteOperation extends ObjectOperationImpl {

@@ -17,7 +17,7 @@ import java.util.List;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@XStreamAlias("s3-object-acl")
+@XStreamAlias("aws2-s3-object-acl")
 public class S3ObjectAcl {
 
   @Getter

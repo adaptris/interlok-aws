@@ -29,7 +29,7 @@ import lombok.Setter;
 import javax.validation.constraints.NotNull;
 import java.util.Map;
 
-@XStreamAlias("s3-content-encoding")
+@XStreamAlias("aws2-s3-content-encoding")
 // @XStreamConverter(value = ToAttributedValueConverter.class, strings = { "contentEncoding" })
 @NoArgsConstructor
 public class S3ContentEncoding extends S3ObjectMetadata {

@@ -41,7 +41,7 @@ import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
  */
 @AdapterComponent
 @ComponentProfile(summary = "Copy an object in S3 to another Object")
-@XStreamAlias("amazon-s3-copy")
+@XStreamAlias("aws2-amazon-s3-copy")
 @DisplayOrder(order = {"bucket", "objectName", "destinationBucket", "destinationObjectName"})
 @NoArgsConstructor
 public class CopyOperation extends CopyOperationImpl {

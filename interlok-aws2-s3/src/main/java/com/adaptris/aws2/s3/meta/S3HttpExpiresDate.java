@@ -34,7 +34,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Map;
 
-@XStreamAlias("s3-http-expires-date")
+@XStreamAlias("aws2-s3-http-expires-date")
 @NoArgsConstructor
 public class S3HttpExpiresDate extends S3ObjectMetadata {
 

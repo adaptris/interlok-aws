@@ -29,7 +29,7 @@ import lombok.Setter;
 import javax.validation.constraints.NotNull;
 import java.util.Map;
 
-@XStreamAlias("s3-content-disposition")
+@XStreamAlias("aws2-s3-content-disposition")
 // @XStreamConverter(value = ToAttributedValueConverter.class, strings = { "contentDisposition" })
 @NoArgsConstructor
 public class S3ContentDisposition extends S3ObjectMetadata {

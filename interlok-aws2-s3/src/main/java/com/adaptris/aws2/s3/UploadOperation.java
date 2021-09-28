@@ -50,7 +50,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
  */
 @AdapterComponent
 @ComponentProfile(summary = "Amazon S3 Upload using Transfer Manager")
-@XStreamAlias("amazon-s3-upload")
+@XStreamAlias("aws2-amazon-s3-upload")
 @DisplayOrder(
     order = {"bucket", "objectName", "userMetadataFilter", "cannedObjectAcl", "objectAcl", "objectMetadata"})
 public class UploadOperation extends TransferOperation {

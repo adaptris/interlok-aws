@@ -58,7 +58,7 @@ import software.amazon.awssdk.services.s3.S3Configuration;
  *
  * @config amazon-s3-connection
  */
-@XStreamAlias("amazon-s3-connection")
+@XStreamAlias("aws2-amazon-s3-connection")
 @AdapterComponent
 @ComponentProfile(summary = "Connection for supporting connectivity to Amazon S3", tag = "connections,amazon,s3",
     recommended = {S3Service.class})

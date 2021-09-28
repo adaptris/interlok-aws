@@ -29,7 +29,7 @@ import lombok.Setter;
 import javax.validation.constraints.NotNull;
 import java.util.Map;
 
-@XStreamAlias("s3-expiration-rule-id")
+@XStreamAlias("aws2-s3-expiration-rule-id")
 // @XStreamConverter(value = ToAttributedValueConverter.class, strings = { "expirationRuleId" })
 @NoArgsConstructor
 public class S3ExpirationTimeRuleId extends S3ObjectMetadata {

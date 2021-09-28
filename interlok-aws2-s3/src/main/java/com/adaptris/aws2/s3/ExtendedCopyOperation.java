@@ -62,7 +62,7 @@ import java.util.Map;
  */
 @AdapterComponent
 @ComponentProfile(summary = "Copy an object in S3 to another Object", since = "3.10.2")
-@XStreamAlias("amazon-s3-extended-copy")
+@XStreamAlias("aws2-amazon-s3-extended-copy")
 @DisplayOrder(order = {"bucket", "objectName", "destinationBucket", "destinationObjectName"})
 @NoArgsConstructor
 public class ExtendedCopyOperation extends CopyOperationImpl {

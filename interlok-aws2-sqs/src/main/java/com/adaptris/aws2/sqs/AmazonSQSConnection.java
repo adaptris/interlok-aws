@@ -65,7 +65,7 @@ import javax.validation.constraints.NotNull;
  * @config amazon-sqs-connection
  * @since 3.0.3
  */
-@XStreamAlias("amazon-sqs-connection")
+@XStreamAlias("aws2-amazon-sqs-connection")
 @AdapterComponent
 @ComponentProfile(summary = "Connection for supporting native connectivity to Amazon SQS", tag = "connections,amazon,sqs",
     recommended = {AmazonSQSConsumer.class, AmazonSQSProducer.class})

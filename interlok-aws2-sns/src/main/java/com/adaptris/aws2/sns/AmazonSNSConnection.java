@@ -54,7 +54,7 @@ import software.amazon.awssdk.services.sns.SnsClientBuilder;
  *
  * @config amazon-sns-connection
  */
-@XStreamAlias("amazon-sns-connection")
+@XStreamAlias("aws2-amazon-sns-connection")
 @AdapterComponent
 @ComponentProfile(summary = "Connection for supporting connectivity to Amazon SNS", tag = "connections,amazon,sns",
     recommended = { NotificationProducer.class })

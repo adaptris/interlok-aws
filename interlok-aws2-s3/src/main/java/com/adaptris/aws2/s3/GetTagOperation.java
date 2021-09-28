@@ -42,7 +42,7 @@ import java.util.Set;
  */
 @AdapterComponent
 @ComponentProfile(summary = "Get tags associated with an object in S3", since = "3.8.4")
-@XStreamAlias("amazon-s3-tag-get")
+@XStreamAlias("aws2-amazon-s3-tag-get")
 @DisplayOrder(order = {"bucket", "objectName", "tagMetadataFilter"})
 @NoArgsConstructor
 public class GetTagOperation extends TagOperation {

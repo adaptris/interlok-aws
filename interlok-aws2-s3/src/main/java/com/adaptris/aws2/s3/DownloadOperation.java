@@ -50,7 +50,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
  */
 @AdapterComponent
 @ComponentProfile(summary = "Amazon S3 Download using Transfer Manager")
-@XStreamAlias("amazon-s3-download")
+@XStreamAlias("aws2-amazon-s3-download")
 @DisplayOrder(order = {"bucket", "objectName", "tempDirectory", "userMetadataFilter"})
 @NoArgsConstructor
 public class DownloadOperation extends TransferOperation {

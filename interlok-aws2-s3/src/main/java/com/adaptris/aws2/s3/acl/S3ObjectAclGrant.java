@@ -15,7 +15,7 @@ import software.amazon.awssdk.services.s3.model.Grant;
  */
 @NoArgsConstructor
 @AllArgsConstructor
-@XStreamAlias("s3-object-grant")
+@XStreamAlias("aws2-s3-object-grant")
 @DisplayOrder(order = {"grantee", "permission"})
 public class S3ObjectAclGrant {
 

@@ -32,7 +32,7 @@ import lombok.Setter;
  *
  * @config s3-bucket-list
  */
-@XStreamAlias("s3-bucket-list")
+@XStreamAlias("aws2-s3-bucket-list")
 @ComponentProfile(summary = "List contents of an S3 bucket as part of a polling-trigger", since = "3.9.2", tag = "aws2,s3,polling")
 @DisplayOrder(order = {"connection", "bucket", "prefix", "key", "filter"})
 public class S3BucketList extends ServiceImp implements DynamicPollingTemplate.TemplateProvider, ConnectedService {

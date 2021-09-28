@@ -38,7 +38,7 @@ import javax.validation.constraints.NotNull;
  * @author gdries
  * @config amazon-s3-get
  */
-@XStreamAlias("amazon-s3-get")
+@XStreamAlias("aws2-amazon-s3-get")
 @DisplayOrder(
     order = {"bucket", "objectName", "responseBody", "userMetadataFilter"})
 public class S3GetOperation extends TransferOperation {

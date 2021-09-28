@@ -66,7 +66,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
  * @config amazon-sqs-consumer
  * @since 3.0.3
  */
-@XStreamAlias("amazon-sqs-consumer")
+@XStreamAlias("aws2-amazon-sqs-consumer")
 @AdapterComponent
 @ComponentProfile(summary = "Receive messages from Amazon SQS", tag = "consumer,amazon,sqs",
     recommended = {AmazonSQSConnection.class}, metadata= {"SQSMessageID"})

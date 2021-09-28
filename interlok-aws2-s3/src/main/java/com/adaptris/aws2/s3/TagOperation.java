@@ -47,7 +47,7 @@ import java.util.List;
  */
 @AdapterComponent
 @ComponentProfile(summary = "Tag an object in S3")
-@XStreamAlias("amazon-s3-tag")
+@XStreamAlias("aws2-amazon-s3-tag")
 @DisplayOrder(order = {"bucket", "objectName", "tagMetadataFilter"})
 @NoArgsConstructor
 public class TagOperation extends ObjectOperationImpl {

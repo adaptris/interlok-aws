@@ -30,7 +30,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  */
 @AdapterComponent
 @ComponentProfile(summary = "Delete a bucket in S3")
-@XStreamAlias("amazon-s3-delete-bucket")
+@XStreamAlias("aws2-amazon-s3-delete-bucket")
 @DisplayOrder(order = {"bucket"})
 public class DeleteBucketOperation extends CreateBucketOperation {
 

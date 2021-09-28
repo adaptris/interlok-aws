@@ -66,7 +66,7 @@ import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination
  * @config amazon-sqs-producer
  * @since 3.0.3
  */
-@XStreamAlias("amazon-sqs-producer")
+@XStreamAlias("aws2-amazon-sqs-producer")
 @AdapterComponent
 @ComponentProfile(summary = "Send messages to Amazon SQS", tag = "producer,amazon,sqs",
     recommended = {AmazonSQSConnection.class})

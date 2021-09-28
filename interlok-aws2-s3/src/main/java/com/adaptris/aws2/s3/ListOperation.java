@@ -41,7 +41,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 @AdapterComponent
 @ComponentProfile(summary = "List of files based on S3 key",
     since = "3.9.1")
-@XStreamAlias("amazon-s3-list")
+@XStreamAlias("aws2-amazon-s3-list")
 @DisplayOrder(order = {"bucket", "prefix", "outputStyle", "maxKeys", "filter"})
 @NoArgsConstructor
 public class ListOperation extends S3OperationImpl {

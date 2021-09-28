@@ -33,7 +33,7 @@ import java.util.Map;
 /**
  * Enable S3 Server Side Encryption with AWS managed keys
  */
-@XStreamAlias("s3-serverside-encryption")
+@XStreamAlias("aws2-s3-serverside-encryption")
 public class S3ServerSideEncryption extends S3ObjectMetadata {
 
   private static final String SERVER_SIDE_ENCRYPTION = "x-amz-server-side-encryption"; // From Headers.SERVER_SIDE_ENCRYPTION
