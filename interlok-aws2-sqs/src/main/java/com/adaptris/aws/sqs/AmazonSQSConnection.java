@@ -112,10 +112,10 @@ public class AmazonSQSConnection extends AWSConnection {
       ClientOverrideConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
 
       SqsClientBuilder builder = endpointBuilder().rebuild(SqsClient.builder());
-      builder.credentialsProvider(credentialsProvider().build(this));
+      builder.credentialsProvider(credentialsProvider());
       sqsClient = builder.build();
 
-      sqsAClient = getSqsClientFactory().createClient(credentialsProvider().build(this), cc, endpointBuilder());
+      sqsAClient = getSqsClientFactory().createClient(credentialsProvider(), cc, endpointBuilder());
 
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);

@@ -91,7 +91,7 @@ public class ApacheSigningInterceptor
   @Setter
   @Valid
   @InputFieldDefault(value = "aws-static-credentials-builder with default credentials")
-  private AWSCredentialsProviderBuilder credentials;
+  private AwsCredentialsProvider credentials;
 
   /**
    * Any specific client configuration.
@@ -140,7 +140,7 @@ public class ApacheSigningInterceptor
   }
 
   protected AwsCredentialsProvider credentials() throws Exception {
-    return AWSCredentialsProviderBuilder.defaultIfNull(getCredentials()).build(this);
+    return AWSCredentialsProviderBuilder.defaultIfNull(getCredentials());
   }
 
   @Override
@@ -168,7 +168,7 @@ public class ApacheSigningInterceptor
     return this;
   }
 
-  public ApacheSigningInterceptor withCredentials(AWSCredentialsProviderBuilder creds) {
+  public ApacheSigningInterceptor withCredentials(AwsCredentialsProvider creds) {
     setCredentials(creds);
     return this;
   }

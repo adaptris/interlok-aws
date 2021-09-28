@@ -23,6 +23,7 @@ import com.adaptris.util.KeyValuePairSet;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.ObjectUtils;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 
 import javax.validation.Valid;
@@ -54,7 +55,7 @@ public abstract class AWSConnection extends AdaptrisConnectionImp
   @Setter
   @Valid
   @InputFieldDefault(value = "aws-static-credentials-builder with default credentials")
-  private AWSCredentialsProviderBuilder credentials;
+  private AwsCredentialsProvider credentials;
 
   /**
    * Any specific client configuration.
@@ -93,8 +94,7 @@ public abstract class AWSConnection extends AdaptrisConnectionImp
   @Setter
   private CustomEndpoint customEndpoint;
 
-  @SuppressWarnings("deprecation")
-  public AWSCredentialsProviderBuilder credentialsProvider() {
+  public AwsCredentialsProvider credentialsProvider() {
     return AWSCredentialsProviderBuilder.defaultIfNull(getCredentials());
   }
 
@@ -113,7 +113,7 @@ public abstract class AWSConnection extends AdaptrisConnectionImp
     return (T) this;
   }
 
-  public <T extends AWSConnection> T withCredentialsProviderBuilder(AWSCredentialsProviderBuilder builder) {
+  public <T extends AWSConnection> T withCredentialsProviderBuilder(AwsCredentialsProvider builder) {
     setCredentials(builder);
     return (T) this;
   }

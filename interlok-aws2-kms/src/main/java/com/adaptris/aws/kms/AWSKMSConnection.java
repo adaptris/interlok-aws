@@ -99,7 +99,7 @@ public class AWSKMSConnection extends AWSConnection implements ClientWrapper<Kms
       builder = KmsClient.builder();
       builder.overrideConfiguration(cc);
 
-      builder.credentialsProvider(credentialsProvider().build(this));
+      builder.credentialsProvider(credentialsProvider());
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }

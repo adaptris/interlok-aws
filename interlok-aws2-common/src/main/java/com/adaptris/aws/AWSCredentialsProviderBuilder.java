@@ -3,6 +3,8 @@ package com.adaptris.aws;
 import com.adaptris.util.KeyValuePairSet;
 import org.apache.commons.lang3.ObjectUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 
 @FunctionalInterface
 public interface AWSCredentialsProviderBuilder {
@@ -13,8 +15,8 @@ public interface AWSCredentialsProviderBuilder {
     return build();
   }
 
-  static AWSCredentialsProviderBuilder defaultIfNull(AWSCredentialsProviderBuilder builder) {
-    return ObjectUtils.defaultIfNull(builder, new StaticCredentialsBuilder().withAuthentication(new DefaultAWSAuthentication()));
+  static AwsCredentialsProvider defaultIfNull(AwsCredentialsProvider provider) {
+    return ObjectUtils.defaultIfNull(provider, StaticCredentialsProvider.create(new DefaultAWSAuthentication().getAWSCredentials()));
   }
 
   interface BuilderConfig {
