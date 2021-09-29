@@ -1,5 +1,32 @@
 package com.adaptris.aws2.kms;
 
+import com.adaptris.aws2.CustomEndpoint;
+import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.AdaptrisMessageFactory;
+import com.adaptris.core.common.ByteArrayFromMetadata;
+import com.adaptris.core.common.MetadataStreamOutput;
+import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
+import com.adaptris.util.text.Base64ByteTranslator;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.CreateKeyRequest;
+import software.amazon.awssdk.services.kms.model.CreateKeyResponse;
+import software.amazon.awssdk.services.kms.model.CustomerMasterKeySpec;
+import software.amazon.awssdk.services.kms.model.KeyUsageType;
+import software.amazon.awssdk.services.kms.model.MessageType;
+import software.amazon.awssdk.services.kms.model.OriginType;
+import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
 import static com.adaptris.aws2.kms.LocalstackHelper.CONFIG;
 import static com.adaptris.aws2.kms.LocalstackHelper.HASH_METADATA_KEY;
 import static com.adaptris.aws2.kms.LocalstackHelper.KMS_SIGNING_REGION;
@@ -8,31 +35,6 @@ import static com.adaptris.aws2.kms.LocalstackHelper.MSG_CONTENTS;
 import static com.adaptris.aws2.kms.LocalstackHelper.SIG_METADATA_KEY;
 import static com.adaptris.aws2.kms.LocalstackHelper.hash;
 import static org.junit.Assert.assertTrue;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-import com.adaptris.aws2.AWSKeysAuthentication;
-import com.adaptris.aws2.CustomEndpoint;
-import com.adaptris.aws2.StaticCredentialsBuilder;
-import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.common.ByteArrayFromMetadata;
-import com.adaptris.core.common.MetadataStreamOutput;
-import com.adaptris.core.util.LifecycleHelper;
-import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
-import com.adaptris.util.text.Base64ByteTranslator;
-import com.amazonaws.services.kms.AWSKMSClient;
-import com.amazonaws.services.kms.model.CreateKeyRequest;
-import com.amazonaws.services.kms.model.CreateKeyResult;
-import com.amazonaws.services.kms.model.CustomerMasterKeySpec;
-import com.amazonaws.services.kms.model.KeyUsageType;
-import com.amazonaws.services.kms.model.MessageType;
-import com.amazonaws.services.kms.model.OriginType;
-import com.amazonaws.services.kms.model.SigningAlgorithmSpec;
 
 // Note that local uses local-kms under the covers
 // https://github.com/nsmithuk/local-kms explicitly states that asymmetric operations are not supported.
@@ -95,20 +97,20 @@ public class LocalstackSigningTest {
     String signingRegion = CONFIG.getProperty(KMS_SIGNING_REGION);
     AWSKMSConnection connection = new AWSKMSConnection()
         .withCredentialsProviderBuilder(
-            new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("TEST", "TEST")))
+                StaticCredentialsProvider.create(AwsBasicCredentials.create("TEST", "TEST")))
         .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion));
     return connection;
   }
 
-  private String createMasterSigningKey(AWSKMSClient client) throws Exception {
-    CreateKeyRequest req = new CreateKeyRequest().withDescription("junit")
-        .withKeyUsage(KeyUsageType.SIGN_VERIFY)
-        .withBypassPolicyLockoutSafetyCheck(true)
-        .withCustomerMasterKeySpec(CustomerMasterKeySpec.RSA_2048)
-        .withOrigin(OriginType.AWS_KMS);
-    CreateKeyResult result = client.createKey(req);
-    System.err.println(result.getKeyMetadata().getSigningAlgorithms());
-    return result.getKeyMetadata().getKeyId();
+  private String createMasterSigningKey(KmsClient client) throws Exception {
+    CreateKeyRequest req = CreateKeyRequest.builder().description("junit")
+        .keyUsage(KeyUsageType.SIGN_VERIFY)
+        .bypassPolicyLockoutSafetyCheck(true)
+        .customerMasterKeySpec(CustomerMasterKeySpec.RSA_2048)
+        .origin(OriginType.AWS_KMS).build();
+    CreateKeyResponse result = client.createKey(req);
+    System.err.println(result.keyMetadata().signingAlgorithms());
+    return result.keyMetadata().keyId();
   }
 
 }

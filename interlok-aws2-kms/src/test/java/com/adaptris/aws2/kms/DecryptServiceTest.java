@@ -1,16 +1,5 @@
 package com.adaptris.aws2.kms;
 
-import static com.adaptris.aws2.kms.LocalstackHelper.MSG_CONTENTS;
-import static com.adaptris.aws2.kms.LocalstackHelper.hash;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import java.nio.ByteBuffer;
-import java.util.EnumSet;
-import org.junit.Test;
-import org.mockito.Mockito;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ServiceException;
@@ -20,8 +9,22 @@ import com.adaptris.core.stubs.DefectiveMessageFactory;
 import com.adaptris.core.stubs.DefectiveMessageFactory.WhenToBreak;
 import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import com.adaptris.util.GuidGenerator;
-import com.amazonaws.services.kms.AWSKMSClient;
-import com.amazonaws.services.kms.model.DecryptResult;
+import org.junit.Test;
+import org.mockito.Mockito;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.kms.model.DecryptRequest;
+import software.amazon.awssdk.services.kms.model.DecryptResponse;
+
+import java.util.EnumSet;
+
+import static com.adaptris.aws2.kms.LocalstackHelper.MSG_CONTENTS;
+import static com.adaptris.aws2.kms.LocalstackHelper.hash;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class DecryptServiceTest extends ExampleServiceCase {
 
@@ -38,10 +41,10 @@ public class DecryptServiceTest extends ExampleServiceCase {
 
   @Test
   public void testEncrypt() throws Exception {
-    AWSKMSClient client = Mockito.mock(AWSKMSClient.class);
-    DecryptResult result = new DecryptResult().withKeyId("keyId").withPlaintext(ByteBuffer.wrap(hash(MSG_CONTENTS)));
+    KmsClient client = Mockito.mock(KmsClient.class);
+    DecryptResponse result = DecryptResponse.builder().keyId("keyId").plaintext(SdkBytes.fromByteArray(hash(MSG_CONTENTS))).build();
 
-    Mockito.when(client.decrypt(any())).thenReturn(result);
+    Mockito.when(client.decrypt((DecryptRequest)any())).thenReturn(result);
 
     AWSKMSConnection connectionMock = mock(AWSKMSConnection.class);
     Mockito.when(connectionMock.retrieveConnection(AWSKMSConnection.class)).thenReturn(connectionMock);
@@ -60,7 +63,7 @@ public class DecryptServiceTest extends ExampleServiceCase {
 
   @Test(expected = ServiceException.class)
   public void testSign_Broken() throws Exception {
-    AWSKMSClient client = Mockito.mock(AWSKMSClient.class);
+    KmsClient client = Mockito.mock(KmsClient.class);
 
     AWSKMSConnection connectionMock = mock(AWSKMSConnection.class);
     Mockito.when(connectionMock.retrieveConnection(AWSKMSConnection.class)).thenReturn(connectionMock);
