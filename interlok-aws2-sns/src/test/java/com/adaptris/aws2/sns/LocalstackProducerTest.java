@@ -1,26 +1,28 @@
 package com.adaptris.aws2.sns;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import java.util.Properties;
-import org.apache.commons.lang3.BooleanUtils;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-import com.adaptris.aws2.AWSKeysAuthentication;
 import com.adaptris.aws2.CustomEndpoint;
-import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.core.util.PropertyHelper;
 import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
-import com.amazonaws.services.sns.AmazonSNSClient;
-import com.amazonaws.services.sns.model.CreateTopicRequest;
-import com.amazonaws.services.sns.model.CreateTopicResult;
+import org.apache.commons.lang3.BooleanUtils;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
+import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
+
+import java.util.Properties;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 // A new local stack instance; we're going publish an SNS message.
 // Note that there must be content to the message otherwise you get a python stack trace in
@@ -68,10 +70,10 @@ public class LocalstackProducerTest {
     AmazonSNSConnection connection = buildConnection();
     try {
       LifecycleHelper.initAndStart(connection);
-      AmazonSNSClient client = connection.amazonClient();
-      CreateTopicRequest createTopicRequest = new CreateTopicRequest(config.getProperty(SNS_TOPIC));
-      CreateTopicResult createTopicResponse = client.createTopic(createTopicRequest);
-      return createTopicResponse.getTopicArn();
+      SnsClient client = connection.amazonClient();
+      CreateTopicRequest createTopicRequest = CreateTopicRequest.builder().name(config.getProperty(SNS_TOPIC)).build();
+      CreateTopicResponse createTopicResponse = client.createTopic(createTopicRequest);
+      return createTopicResponse.topicArn();
     } finally {
       LifecycleHelper.stopAndClose(connection);
     }
@@ -81,8 +83,8 @@ public class LocalstackProducerTest {
     String serviceEndpoint = config.getProperty(SNS_URL);
     String signingRegion = config.getProperty(SNS_SIGNING_REGION);
     AmazonSNSConnection connection = new AmazonSNSConnection()
-        .withCredentialsProviderBuilder(new StaticCredentialsBuilder()
-            .withAuthentication(new AWSKeysAuthentication("TEST", "TEST")))
+        .withCredentialsProviderBuilder(StaticCredentialsProvider.create(
+            AwsBasicCredentials.create("TEST", "TEST")))
         .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint)
             .withSigningRegion(signingRegion));
     return connection;

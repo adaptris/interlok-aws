@@ -14,16 +14,6 @@
 
 package com.adaptris.aws2.sns;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import org.junit.Test;
-import org.mockito.Mockito;
-import com.adaptris.aws2.AWSKeysAuthentication;
-import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.CoreException;
@@ -36,21 +26,28 @@ import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
 import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import com.adaptris.interlok.types.InterlokMessage;
 import com.adaptris.util.GuidGenerator;
-import com.amazonaws.services.sns.AmazonSNSClient;
-import com.amazonaws.services.sns.model.PublishResult;
+import org.junit.Test;
+import org.mockito.Mockito;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.services.sns.SnsClient;
+import software.amazon.awssdk.services.sns.model.PublishRequest;
+import software.amazon.awssdk.services.sns.model.PublishResponse;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
 
 public class TopicPublisherTest extends ExampleProducerCase {
 
   @Override
   protected StandaloneProducer retrieveObjectForSampleConfig() {
-    PublishToTopic producer =
-        new PublishToTopic().withTopicArn("arn:aws2:sns:us-east-1:123456789012:MyNewTopic");
-
+    PublishToTopic producer = new PublishToTopic().withTopicArn("arn:aws2:sns:us-east-1:123456789012:MyNewTopic");
     AmazonSNSConnection conn = new AmazonSNSConnection();
-    AWSKeysAuthentication kauth = new AWSKeysAuthentication();
-    kauth.setAccessKey("accessKey");
-    kauth.setSecretKey("secretKey");
-    conn.setCredentials(new StaticCredentialsBuilder().withAuthentication(kauth));
+    conn.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
     conn.setRegion("My AWS Region");
     StandaloneProducer result = new StandaloneProducer(conn, producer);
     return result;
@@ -59,21 +56,18 @@ public class TopicPublisherTest extends ExampleProducerCase {
   @Test
   @SuppressWarnings("deprecation")
   public void testSubject() throws Exception {
-    PublishToTopic producer =
-        new PublishToTopic().withTopicArn("arn:aws2:sns:us-east-1:123456789012:MyNewTopic");
+    PublishToTopic producer = new PublishToTopic().withTopicArn("arn:aws2:sns:us-east-1:123456789012:MyNewTopic");
     assertNull(producer.getSnsSubject());
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMetadata("hello", "world");
     assertNull(producer.resolveSubject(msg));
-
     producer.withSubject("%message{hello}");
     assertEquals("world", producer.resolveSubject(msg));
   }
 
   @Test
   public void testSource() throws Exception {
-    PublishToTopic producer =
-        new PublishToTopic().withTopicArn("arn:aws2:sns:us-east-1:123456789012:MyNewTopic");
+    PublishToTopic producer = new PublishToTopic().withTopicArn("arn:aws2:sns:us-east-1:123456789012:MyNewTopic");
     assertNull(producer.getSource());
     assertNotNull(producer.source());
     producer.withSource(new MetadataDataInputParameter());
@@ -84,11 +78,11 @@ public class TopicPublisherTest extends ExampleProducerCase {
 
   @Test
   public void testPublish() throws Exception {
-    AmazonSNSClient mockClient = Mockito.mock(AmazonSNSClient.class);
-    PublishResult mockResult = Mockito.mock(PublishResult.class);
-    Mockito.when(mockClient.publish(any())).thenReturn(mockResult);
+    SnsClient mockClient = Mockito.mock(SnsClient.class);
+    PublishResponse mockResult = Mockito.mock(PublishResponse.class);
+    Mockito.when(mockClient.publish((PublishRequest)any())).thenReturn(mockResult);
     String resultId = new GuidGenerator().getUUID();
-    Mockito.when(mockResult.getMessageId()).thenReturn(resultId);
+    Mockito.when(mockResult.messageId()).thenReturn(resultId);
     PublishToTopic producer = new PublishToTopic()
         .withTopicArn("arn:aws2:sns:us-east-1:123456789012:MyNewTopic").withSubject("the subject");
 
@@ -102,11 +96,11 @@ public class TopicPublisherTest extends ExampleProducerCase {
 
   @Test
   public void testPublish_NoSubject() throws Exception {
-    AmazonSNSClient mockClient = Mockito.mock(AmazonSNSClient.class);
-    PublishResult mockResult = Mockito.mock(PublishResult.class);
-    Mockito.when(mockClient.publish(any())).thenReturn(mockResult);
+    SnsClient mockClient = Mockito.mock(SnsClient.class);
+    PublishResponse mockResult = Mockito.mock(PublishResponse.class);
+    Mockito.when(mockClient.publish((PublishRequest)any())).thenReturn(mockResult);
     String resultId = new GuidGenerator().getUUID();
-    Mockito.when(mockResult.getMessageId()).thenReturn(resultId);
+    Mockito.when(mockResult.messageId()).thenReturn(resultId);
 
     PublishToTopic producer =
         new PublishToTopic().withTopicArn("arn:aws2:sns:us-east-1:123456789012:MyNewTopic");
@@ -120,11 +114,11 @@ public class TopicPublisherTest extends ExampleProducerCase {
 
   @Test
   public void testPublish_Failure() throws Exception {
-    AmazonSNSClient mockClient = Mockito.mock(AmazonSNSClient.class);
-    PublishResult mockResult = Mockito.mock(PublishResult.class);
-    Mockito.when(mockClient.publish(any())).thenReturn(mockResult);
+    SnsClient mockClient = Mockito.mock(SnsClient.class);
+    PublishResponse mockResult = Mockito.mock(PublishResponse.class);
+    Mockito.when(mockClient.publish((PublishRequest)any())).thenReturn(mockResult);
     String resultId = new GuidGenerator().getUUID();
-    Mockito.when(mockResult.getMessageId()).thenReturn(resultId);
+    Mockito.when(mockResult.messageId()).thenReturn(resultId);
     PublishToTopic producer =
         new PublishToTopic().withTopicArn("arn:aws2:sns:us-east-1:123456789012:MyNewTopic")
             .withSource(new DataInputParameter<String>() {
@@ -146,9 +140,9 @@ public class TopicPublisherTest extends ExampleProducerCase {
   }
 
   private class MockAmazonSNSConnection extends AmazonSNSConnection {
-    private AmazonSNSClient mockClient;
+    private SnsClient mockClient;
 
-    public MockAmazonSNSConnection(AmazonSNSClient client) {
+    public MockAmazonSNSConnection(SnsClient client) {
       mockClient = client;
     }
 
@@ -156,7 +150,7 @@ public class TopicPublisherTest extends ExampleProducerCase {
     protected void initConnection() throws CoreException {}
 
     @Override
-    public AmazonSNSClient amazonClient() {
+    public SnsClient amazonClient() {
       return mockClient;
     }
   }

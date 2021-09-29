@@ -16,20 +16,21 @@
 
 package com.adaptris.aws2.sns;
 
+import com.adaptris.aws2.CustomEndpoint;
+import com.adaptris.core.CoreException;
+import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.junit.scaffolding.BaseCase;
+import org.junit.Test;
+import org.mockito.Mockito;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.services.sns.SnsClient;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import org.junit.Test;
-import org.mockito.Mockito;
-import com.adaptris.aws2.AWSKeysAuthentication;
-import com.adaptris.aws2.CustomEndpoint;
-import com.adaptris.aws2.StaticCredentialsBuilder;
-import com.adaptris.core.CoreException;
-import com.adaptris.core.util.LifecycleHelper;
-import com.adaptris.interlok.junit.scaffolding.BaseCase;
-import com.amazonaws.services.sns.AmazonSNSClient;
 
 public class AmazonSNSConnectionTest extends BaseCase {
 
@@ -44,7 +45,7 @@ public class AmazonSNSConnectionTest extends BaseCase {
   @Test
   public void testLifecycle() throws Exception {
     AmazonSNSConnection conn = new AmazonSNSConnection().withCredentialsProviderBuilder(
-        new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("access", "secret")));
+            StaticCredentialsProvider.create(AwsBasicCredentials.create("access", "secret")));
     try {
       conn.setRegion("eu-central-1");
       LifecycleHelper.initAndStart(conn);
@@ -83,7 +84,7 @@ public class AmazonSNSConnectionTest extends BaseCase {
 
   @Test
   public void testCloseQuietly() throws Exception {
-    AmazonSNSClient mockClient= Mockito.mock(AmazonSNSClient.class);
+    SnsClient mockClient = Mockito.mock(SnsClient.class);
     AmazonSNSConnection.closeQuietly(null);
     AmazonSNSConnection.closeQuietly(mockClient);
   }
