@@ -107,7 +107,7 @@ public class VerifyServiceTest extends ExampleServiceCase {
 
   @Test(expected = ServiceException.class)
   public void testVerify_Broken() throws Exception {
-    KmsClient client = Mockito.mock(KmsClient.class);
+    KmsClient client = Mockito.mock(KmsClient .class);
 
     AWSKMSConnection connectionMock = mock(AWSKMSConnection.class);
     Mockito.when(connectionMock.retrieveConnection(AWSKMSConnection.class)).thenReturn(connectionMock);

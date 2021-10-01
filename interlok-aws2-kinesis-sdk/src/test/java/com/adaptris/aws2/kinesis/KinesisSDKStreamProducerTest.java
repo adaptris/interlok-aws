@@ -1,7 +1,5 @@
 package com.adaptris.aws2.kinesis;
 
-import com.adaptris.aws2.AWSKeysAuthentication;
-import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.CoreException;
@@ -11,13 +9,15 @@ import com.adaptris.core.services.splitter.LineCountSplitter;
 import com.adaptris.core.services.splitter.NoOpSplitter;
 import com.adaptris.interlok.junit.scaffolding.ExampleProducerCase;
 import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
-import com.amazonaws.services.kinesis.AmazonKinesis;
-import com.amazonaws.services.kinesis.model.PutRecordsRequest;
-import com.amazonaws.services.kinesis.model.PutRecordsResult;
-import com.amazonaws.services.kinesis.model.ResourceNotFoundException;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.services.kinesis.KinesisClient;
+import software.amazon.awssdk.services.kinesis.model.PutRecordsRequest;
+import software.amazon.awssdk.services.kinesis.model.PutRecordsResponse;
+import software.amazon.awssdk.services.kinesis.model.ResourceNotFoundException;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -36,7 +36,7 @@ public class KinesisSDKStreamProducerTest extends ExampleProducerCase {
     KinesisSDKStreamProducer producer =
         new KinesisSDKStreamProducer().withStream("%message{myStreamName}").withPartitionKey("myPartitionKey");
     AWSKinesisSDKConnection conn = new AWSKinesisSDKConnection();
-    conn.setCredentials(new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey")));
+    conn.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
     conn.setRegion("My AWS Region");
     return new StandaloneProducer(conn, producer);
   }
@@ -56,15 +56,15 @@ public class KinesisSDKStreamProducerTest extends ExampleProducerCase {
         new KinesisSDKStreamProducer()
           .withStream("%message{does not exist}")
           .withPartitionKey("%message{does not exist}");
-    AmazonKinesis mock = Mockito.mock(AmazonKinesis.class);
-    Mockito.doThrow(new ResourceNotFoundException("Error [does not exist] does not exist")).when(mock).putRecords(any());
+    KinesisClient mock = Mockito.mock(KinesisClient.class);
+    Mockito.doThrow(ResourceNotFoundException.create("Error [does not exist] does not exist", new Exception())).when(mock).putRecords((PutRecordsRequest)any());
     StandaloneProducer standalone = new StandaloneProducer(new MyConnection(mock), producer);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     try {
       ExampleServiceCase.execute(standalone, msg);
       fail();
     } catch (ServiceException expected) {
-      Mockito.verify(mock, Mockito.times(1)).putRecords(any());
+      Mockito.verify(mock, Mockito.times(1)).putRecords((PutRecordsRequest)any());
     }
   }
 
@@ -101,8 +101,8 @@ public class KinesisSDKStreamProducerTest extends ExampleProducerCase {
         .withStream("myStreamName")
         .withRequestBuilder(new SplittingRequestBuilder().withMessageSplitter(lineCountSplitter))
         .withBatchWindow(1);
-    AmazonKinesis mock = Mockito.mock(AmazonKinesis.class);
-    PutRecordsResult mockResult = Mockito.mock(PutRecordsResult.class);
+    KinesisClient mock = Mockito.mock(KinesisClient.class);
+    PutRecordsResponse mockResult = Mockito.mock(PutRecordsResponse.class);
 
     ArgumentCaptor<PutRecordsRequest> argumentCaptor = ArgumentCaptor.forClass(PutRecordsRequest.class);
     Mockito.when(mock.putRecords(argumentCaptor.capture())).thenReturn(mockResult);
@@ -113,20 +113,20 @@ public class KinesisSDKStreamProducerTest extends ExampleProducerCase {
 
     ExampleServiceCase.execute(standalone, msg);
 
-    Mockito.verify(mock, Mockito.times(2)).putRecords(any());
+    Mockito.verify(mock, Mockito.times(2)).putRecords((PutRecordsRequest)any());
 
     List<PutRecordsRequest> putRecordsRequest = argumentCaptor.getAllValues();
     assertEquals(2, putRecordsRequest.size());
 
-    assertEquals(1, putRecordsRequest.get(0).getRecords().size());
-    assertEquals("Record 1\n", StandardCharsets.UTF_8.decode(putRecordsRequest.get(0).getRecords().get(0).getData()).toString());
-    assertEquals(1, putRecordsRequest.get(1).getRecords().size());
-    assertEquals("Record 2\n", StandardCharsets.UTF_8.decode(putRecordsRequest.get(1).getRecords().get(0).getData()).toString());
+    assertEquals(1, putRecordsRequest.get(0).records().size());
+    assertEquals("Record 1\n", StandardCharsets.UTF_8.decode(putRecordsRequest.get(0).records().get(0).data().asByteBuffer()).toString());
+    assertEquals(1, putRecordsRequest.get(1).records().size());
+    assertEquals("Record 2\n", StandardCharsets.UTF_8.decode(putRecordsRequest.get(1).records().get(0).data().asByteBuffer()).toString());
   }
 
   private void runTest(KinesisSDKStreamProducer producer, List<String> results) throws Exception{
-    AmazonKinesis mock = Mockito.mock(AmazonKinesis.class);
-    PutRecordsResult mockResult = Mockito.mock(PutRecordsResult.class);
+    KinesisClient mock = Mockito.mock(KinesisClient.class);
+    PutRecordsResponse mockResult = Mockito.mock(PutRecordsResponse.class);
 
     ArgumentCaptor<PutRecordsRequest> argumentCaptor = ArgumentCaptor.forClass(PutRecordsRequest.class);
     Mockito.when(mock.putRecords(argumentCaptor.capture())).thenReturn(mockResult);
@@ -137,22 +137,22 @@ public class KinesisSDKStreamProducerTest extends ExampleProducerCase {
 
     ExampleServiceCase.execute(standalone, msg);
 
-    Mockito.verify(mock, Mockito.times(1)).putRecords(any());
+    Mockito.verify(mock, Mockito.times(1)).putRecords((PutRecordsRequest)any());
 
     PutRecordsRequest putRecordsRequest = argumentCaptor.getValue();
-    assertEquals(results.size(), putRecordsRequest.getRecords().size());
+    assertEquals(results.size(), putRecordsRequest.records().size());
 
     int i = 0;
     for (String expected : results) {
-      assertEquals(expected, StandardCharsets.UTF_8.decode(putRecordsRequest.getRecords().get(i++).getData()).toString());
+      assertEquals(expected, StandardCharsets.UTF_8.decode(putRecordsRequest.records().get(i++).data().asByteBuffer()).toString());
     }
   }
 
   private static class MyConnection extends AWSKinesisSDKConnection {
 
-    private final transient AmazonKinesis producer;
+    private final transient KinesisClient producer;
 
-    private MyConnection(AmazonKinesis p) {
+    private MyConnection(KinesisClient p) {
       producer = p;
     }
 
@@ -167,7 +167,7 @@ public class KinesisSDKStreamProducerTest extends ExampleProducerCase {
     }
 
     @Override
-    public AmazonKinesis kinesisClient() {
+    public KinesisClient kinesisClient() {
       return producer;
     }
 

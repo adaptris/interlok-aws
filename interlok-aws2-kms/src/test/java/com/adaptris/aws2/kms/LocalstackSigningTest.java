@@ -97,7 +97,7 @@ public class LocalstackSigningTest {
     String signingRegion = CONFIG.getProperty(KMS_SIGNING_REGION);
     AWSKMSConnection connection = new AWSKMSConnection()
         .withCredentialsProviderBuilder(
-                StaticCredentialsProvider.create(AwsBasicCredentials.create("TEST", "TEST")))
+                  StaticCredentialsProvider.create(AwsBasicCredentials.create("TEST", "TEST")))
         .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion));
     return connection;
   }

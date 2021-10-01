@@ -16,12 +16,12 @@
 
 package com.adaptris.aws2.kinesis;
 
-import com.adaptris.aws2.AWSKeysAuthentication;
-import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.junit.scaffolding.BaseCase;
 import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -33,13 +33,12 @@ public class AWSKinesisSDKConnectionTest extends BaseCase {
   public void testCreateBuilder() throws Exception {
     AWSKinesisSDKConnection c = new AWSKinesisSDKConnection();
     assertNotNull(c.createBuilder());
-    c.setCredentials(new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey")));
+    c.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
     assertNotNull(c.createBuilder());
 
     // This will throw a SecurityException
     try {
-      c.setCredentials(
-          new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "PW:BLAH_BLAH_BLAH_BLAH")));
+      c.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "PW:BLAH_BLAH_BLAH_BLAH")));
       c.createBuilder();
       fail();
     } catch (CoreException expected) {
