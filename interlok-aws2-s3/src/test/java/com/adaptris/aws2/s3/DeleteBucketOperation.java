@@ -20,8 +20,9 @@ import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 
 /**
  * Delete a bucket in S3.
@@ -39,10 +40,10 @@ public class DeleteBucketOperation extends CreateBucketOperation {
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
-    AmazonS3Client s3 = wrapper.amazonClient();
+    S3Client s3 = wrapper.amazonClient();
     String bucket = s3Bucket(msg);
     log.trace("Deleting Bucket [{}]", bucket);
-    s3.deleteBucket(bucket);
+    s3.deleteBucket(DeleteBucketRequest.builder().bucket(bucket).build());
   }
 
 }

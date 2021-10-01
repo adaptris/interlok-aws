@@ -1,30 +1,18 @@
 package com.adaptris.aws2.s3;
 
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.transfer.TransferManager;
+import software.amazon.awssdk.services.s3.S3Client;
 
 class ClientWrapperImpl implements ClientWrapper {
 
-  private AmazonS3Client client;
-  private TransferManager transferManager;
-  
-  ClientWrapperImpl(AmazonS3Client client) {
-    this(client, null);
-  }
-  
-  ClientWrapperImpl(AmazonS3Client client, TransferManager transferManager) {
-    this.client = client;
-    this.transferManager = transferManager;
-  }
-  
-  @Override
-  public AmazonS3Client amazonClient() {
-    return client;
-  }
+  private S3Client client;
 
+  ClientWrapperImpl(S3Client client) {
+    this.client = client;
+  }
+  
   @Override
-  public TransferManager transferManager() {
-    return transferManager;
+  public S3Client amazonClient() {
+    return client;
   }
 
 }

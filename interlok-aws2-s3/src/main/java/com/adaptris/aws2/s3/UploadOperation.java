@@ -55,8 +55,6 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
     order = {"bucket", "objectName", "userMetadataFilter", "cannedObjectAcl", "objectAcl", "objectMetadata"})
 public class UploadOperation extends TransferOperation {
 
-  private transient ManagedThreadFactory threadFactory = new ManagedThreadFactory();
-
   @Getter
   @Setter
   @AdvancedConfig

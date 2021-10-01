@@ -16,14 +16,15 @@
 
 package com.adaptris.aws2.s3;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.core.AdaptrisMessage;
-import com.amazonaws.services.s3.AmazonS3Client;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
 /**
  * Create a bucket in S3.
@@ -43,9 +44,9 @@ public class CreateBucketOperation extends S3OperationImpl {
 
   @Override
   public void execute(ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
-    AmazonS3Client s3 = wrapper.amazonClient();
+    S3Client s3 = wrapper.amazonClient();
     String bucket = s3Bucket(msg);
     log.trace("Creating Bucket [{}]", bucket);
-    s3.createBucket(bucket);
+    s3.createBucket(CreateBucketRequest.builder().bucket(bucket).build());
   }
 }

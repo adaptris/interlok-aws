@@ -1,11 +1,12 @@
 package com.adaptris.aws2.s3;
 
-import java.util.Properties;
-import org.apache.commons.lang3.BooleanUtils;
-import com.adaptris.aws2.AWSKeysAuthentication;
 import com.adaptris.aws2.CustomEndpoint;
-import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.util.PropertyHelper;
+import org.apache.commons.lang3.BooleanUtils;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+
+import java.util.Properties;
 
 public class LocalstackConfig {
 
@@ -52,8 +53,7 @@ public class LocalstackConfig {
     String serviceEndpoint = getConfiguration().getProperty(S3_URL);
     String signingRegion = getConfiguration().getProperty(S3_SIGNING_REGION);
     AmazonS3Connection connection = new AmazonS3Connection()
-        .withCredentialsProviderBuilder(new StaticCredentialsBuilder()
-            .withAuthentication(new AWSKeysAuthentication("TEST", "TEST")))
+        .withCredentialsProviderBuilder(StaticCredentialsProvider.create(AwsBasicCredentials.create("TEST", "TEST")))
         .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint)
             .withSigningRegion(signingRegion));
     return connection;

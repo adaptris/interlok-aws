@@ -1,15 +1,14 @@
 package com.adaptris.aws2.s3.acl;
 
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+import software.amazon.awssdk.services.s3.model.AccessControlPolicy;
+import software.amazon.awssdk.services.s3.model.Grant;
+import software.amazon.awssdk.services.s3.model.Permission;
 
 import java.util.Arrays;
 import java.util.List;
 
-import com.amazonaws.services.s3.model.AccessControlList;
-import com.amazonaws.services.s3.model.Grant;
-import com.amazonaws.services.s3.model.Permission;
-
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 public class S3ObjectAclTest {
 
@@ -23,13 +22,13 @@ public class S3ObjectAclTest {
 
     S3ObjectAcl objectAcl = new S3ObjectAcl(grants);
 
-    AccessControlList acl = objectAcl.create();
+    AccessControlPolicy acl = objectAcl.create();
 
-    List<Grant> resultGrants = acl.getGrantsAsList();
+    List<Grant> resultGrants = acl.grants();
     assertEquals(1, resultGrants.size());
 
-    assertEquals("123", resultGrants.get(0).getGrantee().getIdentifier());
-    assertEquals(Permission.Read, resultGrants.get(0).getPermission());
+    assertEquals("123", resultGrants.get(0).grantee().id());
+    assertEquals(Permission.READ, resultGrants.get(0).permission());
 
   }
 

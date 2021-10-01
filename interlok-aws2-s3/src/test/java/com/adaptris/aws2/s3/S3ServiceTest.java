@@ -15,15 +15,7 @@
 */
 
 package com.adaptris.aws2.s3;
-import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.any;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import org.junit.Test;
-import org.mockito.Mockito;
-import com.adaptris.aws2.DefaultAWSAuthentication;
-import com.adaptris.aws2.StaticCredentialsBuilder;
+
 import com.adaptris.aws2.s3.meta.S3ContentLanguage;
 import com.adaptris.aws2.s3.meta.S3ServerSideEncryption;
 import com.adaptris.core.AdaptrisMessage;
@@ -37,6 +29,17 @@ import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
+import org.junit.Test;
+import org.mockito.Mockito;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.any;
 
 public class S3ServiceTest extends ExampleServiceCase {
   private static final String HYPHEN = "-";
@@ -189,7 +192,7 @@ public class S3ServiceTest extends ExampleServiceCase {
     ArrayList result = new ArrayList();
     for (OperationsBuilder b : OperationsBuilder.values()) {
       result.add(new S3Service(new AmazonS3Connection()
-          .withCredentialsProviderBuilder(new StaticCredentialsBuilder().withAuthentication(new DefaultAWSAuthentication()))
+          .withCredentialsProviderBuilder(StaticCredentialsProvider.create(AwsBasicCredentials.create(null, null)))
           .withClientConfiguration(exampleClientConfig()), b.build()));
     }
     return result;

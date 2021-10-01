@@ -1,46 +1,47 @@
 package com.adaptris.aws2.s3;
 
-import static com.adaptris.aws2.s3.MockedOperationTest.createSummary;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.ArgumentMatchers.any;
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ServiceCase;
 import com.adaptris.core.ServiceException;
 import com.adaptris.interlok.cloud.BlobListRenderer;
 import com.adaptris.interlok.cloud.RemoteBlobFilterWrapper;
-import com.amazonaws.services.s3.AmazonS3Client;
-import com.amazonaws.services.s3.model.ListObjectsV2Request;
-import com.amazonaws.services.s3.model.ListObjectsV2Result;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.filefilter.RegexFileFilter;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.S3Object;
+
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import static com.adaptris.aws2.s3.MockedOperationTest.createSummary;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.mockito.ArgumentMatchers.any;
 
 @SuppressWarnings("deprecation")
 public class BucketListTest {
 
   @Test
   public void testService_NoFilter() throws Exception {
-    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    S3Client client = Mockito.mock(S3Client.class);
     AmazonS3Connection mockConnection = Mockito.mock(AmazonS3Connection.class);
     ClientWrapper wrapper = new ClientWrapperImpl(client);
     Mockito.when(mockConnection.retrieveConnection(any())).thenReturn(wrapper);
 
-    ListObjectsV2Result listing = Mockito.mock(ListObjectsV2Result.class);
-    List<S3ObjectSummary> summaries = new ArrayList<>(Arrays.asList(createSummary("srcBucket", "srcKeyPrefix/"),
+    ListObjectsV2Response listing = Mockito.mock(ListObjectsV2Response.class);
+    List<S3Object> summaries = new ArrayList<>(Arrays.asList(createSummary("srcBucket", "srcKeyPrefix/"),
         createSummary("srcBucket", "srcKeyPrefix/file.json"), createSummary("srcBucket", "srcKeyPrefix/file2.csv")));
-    Mockito.when(listing.getObjectSummaries()).thenReturn(summaries);
     ArgumentCaptor<ListObjectsV2Request> argument = ArgumentCaptor.forClass(ListObjectsV2Request.class);
     Mockito.when(client.listObjectsV2(argument.capture())).thenReturn(listing);
 
@@ -52,9 +53,9 @@ public class BucketListTest {
     ServiceCase.execute(bucket, msg);
 
     Mockito.verify(client, Mockito.times(1)).listObjectsV2(any(ListObjectsV2Request.class));
-    assertEquals("srcBucket", argument.getValue().getBucketName());
-    assertEquals("srcKeyPrefix", argument.getValue().getPrefix());
-    assertNull(argument.getValue().getMaxKeys());
+    assertEquals("srcBucket", argument.getValue().bucket());
+    assertEquals("srcKeyPrefix", argument.getValue().prefix());
+    assertNull(argument.getValue().maxKeys());
 
     List<String> lines = IOUtils.readLines(new StringReader(msg.getContent()));
     assertEquals(3, lines.size());
@@ -62,15 +63,15 @@ public class BucketListTest {
 
   @Test
   public void testService_Filter() throws Exception {
-    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    S3Client client = Mockito.mock(S3Client.class);
     AmazonS3Connection mockConnection = Mockito.mock(AmazonS3Connection.class);
     ClientWrapper wrapper = new ClientWrapperImpl(client);
     Mockito.when(mockConnection.retrieveConnection(any())).thenReturn(wrapper);
 
-    ListObjectsV2Result listing = Mockito.mock(ListObjectsV2Result.class);
-    List<S3ObjectSummary> summaries = new ArrayList<>(Arrays.asList(createSummary("srcBucket", "srcKeyPrefix/"),
+    ListObjectsV2Response listing = Mockito.mock(ListObjectsV2Response.class);
+    List<S3Object> summaries = new ArrayList<>(Arrays.asList(createSummary("srcBucket", "srcKeyPrefix/"),
         createSummary("srcBucket", "srcKeyPrefix/file.json"), createSummary("srcBucket", "srcKeyPrefix/file2.csv")));
-    Mockito.when(listing.getObjectSummaries()).thenReturn(summaries);
+    Mockito.when(listing.contents()).thenReturn(summaries);
     ArgumentCaptor<ListObjectsV2Request> argument = ArgumentCaptor.forClass(ListObjectsV2Request.class);
     Mockito.when(client.listObjectsV2(argument.capture())).thenReturn(listing);
     RemoteBlobFilterWrapper filter =
@@ -83,9 +84,9 @@ public class BucketListTest {
     ServiceCase.execute(bucket, msg);
 
     Mockito.verify(client, Mockito.times(1)).listObjectsV2(any(ListObjectsV2Request.class));
-    assertEquals("srcBucket", argument.getValue().getBucketName());
-    assertEquals("srcKeyPrefix", argument.getValue().getPrefix());
-    assertNull(argument.getValue().getMaxKeys());
+    assertEquals("srcBucket", argument.getValue().bucket());
+    assertEquals("srcKeyPrefix", argument.getValue().prefix());
+    assertNull(argument.getValue().maxKeys());
 
     List<String> lines = IOUtils.readLines(new StringReader(msg.getContent()));
     assertEquals(1, lines.size());
@@ -94,7 +95,7 @@ public class BucketListTest {
   @Test(expected = ServiceException.class)
   public void testService_Failure() throws Exception {
     AmazonS3Connection mockConnection = Mockito.mock(AmazonS3Connection.class);
-    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    S3Client client = Mockito.mock(S3Client.class);
     ClientWrapper wrapper = new ClientWrapperImpl(client);
     Mockito.when(mockConnection.retrieveConnection(any())).thenReturn(wrapper);
     BlobListRenderer brokenRender = Mockito.mock(BlobListRenderer.class);
@@ -104,10 +105,10 @@ public class BucketListTest {
             .withPrefix("srcKeyPrefix")
             .withOutputStyle(brokenRender);
 
-    ListObjectsV2Result listing = Mockito.mock(ListObjectsV2Result.class);
-    List<S3ObjectSummary> summaries = new ArrayList<>(Arrays.asList(createSummary("srcBucket", "srcKeyPrefix/"),
+    ListObjectsV2Response listing = Mockito.mock(ListObjectsV2Response.class);
+    List<S3Object> summaries = new ArrayList<>(Arrays.asList(createSummary("srcBucket", "srcKeyPrefix/"),
         createSummary("srcBucket", "srcKeyPrefix/file.json"), createSummary("srcBucket", "srcKeyPrefix/file2.csv")));
-    Mockito.when(listing.getObjectSummaries()).thenReturn(summaries);
+    Mockito.when(listing.contents()).thenReturn(summaries);
     Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(listing);
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
@@ -116,15 +117,15 @@ public class BucketListTest {
 
   @Test
   public void testService_MaxKeys() throws Exception {
-    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    S3Client client = Mockito.mock(S3Client.class);
     AmazonS3Connection mockConnection = Mockito.mock(AmazonS3Connection.class);
     ClientWrapper wrapper = new ClientWrapperImpl(client);
     Mockito.when(mockConnection.retrieveConnection(any())).thenReturn(wrapper);
 
-    ListObjectsV2Result listing = Mockito.mock(ListObjectsV2Result.class);
-    List<S3ObjectSummary> summaries = new ArrayList<>(Arrays.asList(createSummary("srcBucket", "srcKeyPrefix/"),
+    ListObjectsV2Response listing = Mockito.mock(ListObjectsV2Response.class);
+    List<S3Object> summaries = new ArrayList<>(Arrays.asList(createSummary("srcBucket", "srcKeyPrefix/"),
         createSummary("srcBucket", "srcKeyPrefix/file.json")));
-    Mockito.when(listing.getObjectSummaries()).thenReturn(summaries);
+    Mockito.when(listing.contents()).thenReturn(summaries);
     ArgumentCaptor<ListObjectsV2Request> argument = ArgumentCaptor.forClass(ListObjectsV2Request.class);
     Mockito.when(client.listObjectsV2(argument.capture())).thenReturn(listing);
 
@@ -135,10 +136,10 @@ public class BucketListTest {
     ServiceCase.execute(bucket, msg);
 
     Mockito.verify(client, Mockito.times(1)).listObjectsV2(any(ListObjectsV2Request.class));
-    assertEquals("srcBucket", argument.getValue().getBucketName());
-    assertEquals("srcKeyPrefix", argument.getValue().getPrefix());
-    assertNotNull(argument.getValue().getMaxKeys());
-    assertEquals(Optional.of(2), Optional.ofNullable(argument.getValue().getMaxKeys()));
+    assertEquals("srcBucket", argument.getValue().bucket());
+    assertEquals("srcKeyPrefix", argument.getValue().prefix());
+    assertNotNull(argument.getValue().maxKeys());
+    assertEquals(Optional.of(2), Optional.ofNullable(argument.getValue().maxKeys()));
 
     List<String> lines = IOUtils.readLines(new StringReader(msg.getContent()));
     assertEquals(2, lines.size());
@@ -146,23 +147,23 @@ public class BucketListTest {
 
   @Test
   public void testService_Paging() throws Exception {
-    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    S3Client client = Mockito.mock(S3Client.class);
     AmazonS3Connection mockConnection = Mockito.mock(AmazonS3Connection.class);
     ClientWrapper wrapper = new ClientWrapperImpl(client);
     Mockito.when(mockConnection.retrieveConnection(any())).thenReturn(wrapper);
 
-    ListObjectsV2Result listing = Mockito.mock(ListObjectsV2Result.class);
-    List<S3ObjectSummary> summaries = new ArrayList<>(Arrays.asList(
+    ListObjectsV2Response listing = Mockito.mock(ListObjectsV2Response.class);
+    List<S3Object> summaries = new ArrayList<>(Arrays.asList(
         createSummary("srcBucket", "srcKeyPrefix/"),
         createSummary("srcBucket", "srcKeyPrefix/file.json")));
-    Mockito.when(listing.getObjectSummaries()).thenReturn(summaries);
-    Mockito.when(listing.getNextContinuationToken()).thenReturn("abc123");
+    Mockito.when(listing.contents()).thenReturn(summaries);
+    Mockito.when(listing.nextContinuationToken()).thenReturn("abc123");
     Mockito.when(listing.isTruncated()).thenReturn(true);
 
-    ListObjectsV2Result listing2 = Mockito.mock(ListObjectsV2Result.class);
-    List<S3ObjectSummary> summaries2 = new ArrayList<>(Collections.singletonList(
+    ListObjectsV2Response listing2 = Mockito.mock(ListObjectsV2Response.class);
+    List<S3Object> summaries2 = new ArrayList<>(Collections.singletonList(
         createSummary("srcBucket", "srcKeyPrefix/file2.csv")));
-    Mockito.when(listing2.getObjectSummaries()).thenReturn(summaries2);
+    Mockito.when(listing2.contents()).thenReturn(summaries2);
     Mockito.when(listing2.isTruncated()).thenReturn(false);
 
     ArgumentCaptor<ListObjectsV2Request> argument = ArgumentCaptor.forClass(ListObjectsV2Request.class);
@@ -180,20 +181,20 @@ public class BucketListTest {
 
     List<ListObjectsV2Request> capturedRequests = argument.getAllValues();
 
-    assertEquals("srcBucket", capturedRequests.get(0).getBucketName());
-    assertEquals("srcKeyPrefix", capturedRequests.get(0).getPrefix());
+    assertEquals("srcBucket", capturedRequests.get(0).bucket());
+    assertEquals("srcKeyPrefix", capturedRequests.get(0).prefix());
     // Since we are re-using the same object repeatedly, this is probably set to "abc123"
     // assertNull(capturedRequests.get(0).getContinuationToken());
-    assertNotNull(capturedRequests.get(0).getMaxKeys());
-    assertEquals(Optional.of(2), Optional.ofNullable(capturedRequests.get(0).getMaxKeys()));
+    assertNotNull(capturedRequests.get(0).maxKeys());
+    assertEquals(Optional.of(2), Optional.ofNullable(capturedRequests.get(0).maxKeys()));
 
 
-    assertEquals("srcBucket", capturedRequests.get(1).getBucketName());
-    assertEquals("srcKeyPrefix", capturedRequests.get(1).getPrefix());
+    assertEquals("srcBucket", capturedRequests.get(1).bucket());
+    assertEquals("srcKeyPrefix", capturedRequests.get(1).prefix());
     // getContinuationToken not captured in argument capture possibly due to reuse of object in loop
     // assertEquals("abc123", capturedRequests.get(1).getContinuationToken());
-    assertNotNull(capturedRequests.get(1).getMaxKeys());
-    assertEquals(Optional.of(2), Optional.ofNullable(capturedRequests.get(1).getMaxKeys()));
+    assertNotNull(capturedRequests.get(1).maxKeys());
+    assertEquals(Optional.of(2), Optional.ofNullable(capturedRequests.get(1).maxKeys()));
 
 
     List<String> lines = IOUtils.readLines(new StringReader(msg.getContent()));

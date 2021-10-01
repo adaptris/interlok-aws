@@ -16,15 +16,16 @@
 
 package com.adaptris.aws2.s3;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-import org.junit.Test;
-import com.adaptris.aws2.AWSKeysAuthentication;
-import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.junit.scaffolding.BaseCase;
+import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
 public class AmazonS3ConnectionTest extends BaseCase {
 
@@ -35,13 +36,12 @@ public class AmazonS3ConnectionTest extends BaseCase {
     c.setForcePathStyleAccess(Boolean.TRUE);
     assertNotNull(c.createBuilder());
     c.setForcePathStyleAccess(null);
-    c.setCredentials(new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey")));
+    c.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
     assertNotNull(c.createBuilder());
 
     // This will throw a SecurityException
     try {
-      c.setCredentials(
-          new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "PW:BLAH_BLAH_BLAH_BLAH")));
+      c.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "PW:BLAH_BLAH_BLAH_BLAH")));
       c.createBuilder();
       fail();
     } catch (CoreException expected) {
@@ -57,13 +57,10 @@ public class AmazonS3ConnectionTest extends BaseCase {
       c.setRegion("eu-central-1");
       LifecycleHelper.initAndStart(c);
       assertNotNull(c.amazonClient());
-      assertNotNull(c.transferManager());
     } finally {
       LifecycleHelper.stopAndClose(c);
     }
     assertNull(c.amazonClient());
-    assertNull(c.transferManager());
     AmazonS3Connection.shutdownQuietly(c.amazonClient());
-    AmazonS3Connection.shutdownQuietly(c.transferManager());
   }
 }
