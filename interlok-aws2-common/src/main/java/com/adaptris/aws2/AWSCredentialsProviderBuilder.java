@@ -2,6 +2,8 @@ package com.adaptris.aws2;
 
 import com.adaptris.util.KeyValuePairSet;
 import org.apache.commons.lang3.ObjectUtils;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 
@@ -15,7 +17,7 @@ public interface AWSCredentialsProviderBuilder {
   }
 
   static AwsCredentialsProvider defaultIfNull(AwsCredentialsProvider provider) {
-    return ObjectUtils.defaultIfNull(provider, StaticCredentialsProvider.create(new DefaultAWSAuthentication().getAWSCredentials()));
+    return ObjectUtils.defaultIfNull(provider, AnonymousCredentialsProvider.create());
   }
 
   interface BuilderConfig {

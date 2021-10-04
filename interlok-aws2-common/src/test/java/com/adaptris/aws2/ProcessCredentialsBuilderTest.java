@@ -9,7 +9,7 @@ import static org.junit.Assert.assertNotNull;
 
 public class ProcessCredentialsBuilderTest {
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = NullPointerException.class)
   public void testBuild_Defaults() throws Exception {
     ProcessCredentialsBuilder auth = new ProcessCredentialsBuilder();
     AwsCredentialsProvider provider = auth.build();

@@ -60,15 +60,15 @@ public class AWSKeysAuthentication implements AWSAuthentication {
 
   }
 
-  public AWSKeysAuthentication(String accesskey, String secretKey) {
+  public AWSKeysAuthentication(String accessKey, String secretKey) {
     this();
-    setAccessKey(accesskey);
+    setAccessKey(accessKey);
     setSecretKey(secretKey);
   }
 
   @Override
   public AwsCredentials getAWSCredentials() throws AdaptrisSecurityException {
-    if (StringUtils.isBlank(getAccessKey()) && StringUtils.isEmpty(getSecretKey())) {
+    if (StringUtils.isBlank(getAccessKey()) || StringUtils.isEmpty(getSecretKey())) {
       return null;
     }
     return AwsBasicCredentials.create(getAccessKey(), Password.decode(ExternalResolver.resolve(getSecretKey())));

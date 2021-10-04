@@ -18,6 +18,6 @@ public class ClientConfigurationBuilderTest extends ClientConfigurationBuilder {
     cfg.add(new KeyValuePair("zzzzzUnmatched", "true"));
     ClientOverrideConfiguration cc = build(cfg);
     assertTrue(Boolean.valueOf(cc.headers().get("CacheResponseMetadata").get(0)));
-    assertEquals(8192, cc.headers().get("ResponseMetadataCacheSize").get(0));
+    assertEquals(8192, Integer.parseInt(cc.headers().get("ResponseMetadataCacheSize").get(0)));
   }
 }

@@ -27,6 +27,7 @@ public class MockAwsClientBuilder implements AwsClientBuilder
   @Override
   public AwsClientBuilder region(Region region)
   {
+    this.region = region;
     return this;
   }
 
@@ -39,6 +40,7 @@ public class MockAwsClientBuilder implements AwsClientBuilder
   @Override
   public SdkClientBuilder endpointOverride(URI endpointOverride)
   {
+    endpoint = endpointOverride;
     return this;
   }
 }

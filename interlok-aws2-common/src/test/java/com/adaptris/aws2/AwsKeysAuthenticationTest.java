@@ -9,8 +9,8 @@ public class AwsKeysAuthenticationTest {
   @Test
   public void testAWSCredentials() throws Exception {
     assertNotNull(new AWSKeysAuthentication("accessKey", "secretKey").getAWSCredentials());
-    assertNotNull(new AWSKeysAuthentication("", "secretKey").getAWSCredentials());
-    assertNotNull(new AWSKeysAuthentication("accessKey", "").getAWSCredentials());
+    assertNull(new AWSKeysAuthentication("", "secretKey").getAWSCredentials());
+    assertNull(new AWSKeysAuthentication("accessKey", "").getAWSCredentials());
     assertNull(new AWSKeysAuthentication().getAWSCredentials());
   }
 }

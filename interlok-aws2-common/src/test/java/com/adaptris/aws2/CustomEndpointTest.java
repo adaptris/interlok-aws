@@ -59,8 +59,8 @@ public class CustomEndpointTest  {
     AwsClientBuilder b = c.rebuild((AwsClientBuilder) new MockAwsClientBuilder());
 
     assertNotNull(((MockAwsClientBuilder)b).endpoint);
-    assertEquals("http://localhost:4567", ((MockAwsClientBuilder)b).endpoint);
-    assertEquals("us-west-1", ((MockAwsClientBuilder)b).region);
+    assertEquals("http://localhost:4567", ((MockAwsClientBuilder)b).endpoint.toString());
+    assertEquals("us-west-1", ((MockAwsClientBuilder)b).region.id());
   }
   
 }

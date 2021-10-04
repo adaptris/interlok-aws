@@ -11,7 +11,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class SigningnterceptorBuilderTest {
+public class SigningInterceptorBuilderTest {
 
   @Test
   public void testBuild() {

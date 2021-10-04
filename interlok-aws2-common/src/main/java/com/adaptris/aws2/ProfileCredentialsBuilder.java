@@ -77,6 +77,7 @@ public class ProfileCredentialsBuilder implements AWSCredentialsProviderBuilder 
     }
     ProfileFile.Builder builder = ProfileFile.builder();
     builder.content(new File(configFile).toPath());
+    builder.type(ProfileFile.Type.CONFIGURATION);
     return builder.build();
   }
 

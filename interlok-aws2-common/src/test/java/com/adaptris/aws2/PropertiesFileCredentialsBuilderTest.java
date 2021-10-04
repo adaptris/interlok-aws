@@ -2,6 +2,7 @@ package com.adaptris.aws2;
 
 import com.adaptris.core.stubs.TempFileUtils;
 import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 
@@ -22,13 +23,11 @@ public class PropertiesFileCredentialsBuilderTest {
 
   @Test
   public void testBuild_File() throws Exception {
-    PropertiesFileCredentialsBuilder auth =
-        new PropertiesFileCredentialsBuilder();
+    PropertiesFileCredentialsBuilder auth = new PropertiesFileCredentialsBuilder();
     File file = createCredentials(auth);
     auth.withPropertyFile(file.getCanonicalPath());
     AwsCredentialsProvider provider = auth.build();
     assertNotNull(provider);
-    assertEquals(ProfileCredentialsProvider.class, provider.getClass());
   }
 
   @Test
@@ -36,7 +35,6 @@ public class PropertiesFileCredentialsBuilderTest {
     PropertiesFileCredentialsBuilder auth = new PropertiesFileCredentialsBuilder().withPropertyFile("classpath-credentials.properties");
     AwsCredentialsProvider provider = auth.build();
     assertNotNull(provider);
-    assertEquals(ProfileCredentialsProvider.class, provider.getClass());
   }
 
   private static File createCredentials(Object tracker) throws Exception {

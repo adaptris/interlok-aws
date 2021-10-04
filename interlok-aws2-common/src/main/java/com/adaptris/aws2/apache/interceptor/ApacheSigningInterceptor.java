@@ -133,6 +133,7 @@ public class ApacheSigningInterceptor
     Aws4Signer signer = Aws4Signer.create();
 
     Aws4PresignerParams.Builder presignParams = Aws4PresignerParams.builder();
+    presignParams.awsCredentials(credentials().resolveCredentials());
     presignParams.signingName(service);
     presignParams.signingRegion(Region.of(region));
 

@@ -20,6 +20,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.apache.http.HttpStatus;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
+import software.amazon.awssdk.core.retry.conditions.RetryCondition;
+import software.amazon.awssdk.core.retry.conditions.RetryOnExceptionsCondition;
 import software.amazon.awssdk.core.retry.conditions.RetryOnStatusCodeCondition;
 
 import java.util.HashSet;
@@ -55,9 +57,8 @@ public class RetryNotFoundPolicyFactory implements RetryPolicyFactory {
 
     RetryPolicy.Builder builder = RetryPolicy.builder();
     builder.backoffStrategy(BackoffStrategy.defaultStrategy());
-    builder.retryCapacityCondition(RetryOnStatusCodeCondition.create(STATUS_CODES));
+    builder.retryCondition(RetryOnStatusCodeCondition.create(STATUS_CODES));
     builder.numRetries(DEFAULT_MAX_ERROR_RETRY);
-
     return builder.build();
   }
 }
