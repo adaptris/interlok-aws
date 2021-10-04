@@ -11,25 +11,27 @@ import com.adaptris.core.lms.FileBackedMessageFactory;
 import com.adaptris.core.metadata.NoOpMetadataFilter;
 import com.adaptris.interlok.cloud.RemoteBlobFilterWrapper;
 import com.adaptris.util.KeyValuePair;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.Owner;
-import com.amazonaws.services.s3.model.S3ObjectInputStream;
-import com.amazonaws.services.s3.transfer.Download;
-import com.amazonaws.services.s3.transfer.Upload;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.junit.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectAclRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectTaggingRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectTaggingResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.Owner;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectTaggingRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
 import software.amazon.awssdk.services.s3.model.Tag;
@@ -57,6 +59,7 @@ public class MockedOperationTest {
   public void testCopy_NoDestinationBucket() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
     CopyObjectResponse result = CopyObjectResponse.builder().build();
+//    Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString())).thenReturn(result);
     Mockito.when(client.copyObject((CopyObjectRequest)any())).thenReturn(result);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     CopyOperation op =
@@ -71,6 +74,7 @@ public class MockedOperationTest {
   public void testCopy() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
     CopyObjectResponse result = CopyObjectResponse.builder().build();
+//    Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString())).thenReturn(result);
     Mockito.when(client.copyObject((CopyObjectRequest)any())).thenReturn(result);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     CopyOperation op = new CopyOperation().withDestinationBucket("destBucket")
@@ -82,6 +86,7 @@ public class MockedOperationTest {
   @Test
   public void testExtendedCopy() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
+    Mockito.when(client.getObject((GetObjectRequest)any()).response().contentType()).thenReturn("text/plain");
 
     GetObjectTaggingResponse mockTagResult = Mockito.mock(GetObjectTaggingResponse.class);
     List<Tag> mockTags = new ArrayList<>(Arrays.asList(Tag.builder().key("hello").value("world").build()));
@@ -89,6 +94,7 @@ public class MockedOperationTest {
     Mockito.when(client.getObjectTagging((GetObjectTaggingRequest)any())).thenReturn(mockTagResult);
 
     CopyObjectResponse result = CopyObjectResponse.builder().build();
+//    Mockito.when(client.copyObject(anyString(), anyString(), anyString(), anyString())).thenReturn(result);
     Mockito.when(client.copyObject((CopyObjectRequest)any())).thenReturn(result);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
 
@@ -104,7 +110,7 @@ public class MockedOperationTest {
   @Test
   public void testDelete() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
-    Mockito.doAnswer((i)-> null).when(client).deleteObject(DeleteObjectRequest.builder().bucket(anyString()).key(anyString()).build());
+    Mockito.doAnswer(i -> null).when(client).deleteObject((DeleteObjectRequest)any());
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     DeleteOperation op = new DeleteOperation()
         .withObjectName("key")
@@ -117,12 +123,12 @@ public class MockedOperationTest {
   @Test
   public void testGet() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
-    S3Object result = Mockito.mock(S3Object.class);
-
-    ResponseInputStream resultStream = new ResponseInputStream(result, AbortableInputStream.create(new ByteArrayInputStream("Hello World".getBytes())));
-
-    Mockito.when(client.getObject((GetObjectRequest)anyObject())).thenReturn(resultStream);
+//    S3Object result = Mockito.mock(S3Object.class);
+    GetObjectResponse result = Mockito.mock(GetObjectResponse.class);
+    ResponseInputStream<GetObjectResponse> resultStream = new ResponseInputStream(result, AbortableInputStream.create(new ByteArrayInputStream("Hello World".getBytes())));
+    Mockito.when(client.getObject((GetObjectRequest)any()).response().contentLength()).thenReturn(100L);
     Mockito.when(resultStream.response()).thenReturn(result);
+    Mockito.when(client.getObject((GetObjectRequest) anyObject())).thenReturn(resultStream);
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     S3GetOperation op = new S3GetOperation()
@@ -135,9 +141,7 @@ public class MockedOperationTest {
   @Test
   public void testTag_WithFilter() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
-    Mockito.doAnswer((i) -> {
-      return null;
-    }).when(client).putObjectTagging((PutObjectTaggingRequest) anyObject());
+    Mockito.doAnswer(i -> null).when(client).putObjectTagging((PutObjectTaggingRequest) anyObject());
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMessageHeader("hello", "world");
 
@@ -151,7 +155,7 @@ public class MockedOperationTest {
   @Test
   public void testTag_NoFilter() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
-    Mockito.doAnswer((i)-> {return null;}).when(client).putObjectTagging((PutObjectTaggingRequest) anyObject());
+    Mockito.doAnswer(i -> null).when(client).putObjectTagging((PutObjectTaggingRequest) anyObject());
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMessageHeader("hello", "world");
 
@@ -164,12 +168,23 @@ public class MockedOperationTest {
   @Test
   public void testDownloadOperation_WithTempDir() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
-    Download downloadObject = Mockito.mock(Download.class);
+    ResponseInputStream<GetObjectResponse> responseStream = Mockito.mock(ResponseInputStream.class);
+    GetObjectResponse response = Mockito.mock(GetObjectResponse.class);
 
-    Map<String,String> userMetadata = new HashMap<>();
-    userMetadata.put("hello", "world");
-    Mockito.when(downloadObject.isDone()).thenReturn(false, false, true);
-    Mockito.doAnswer((i)-> {return null;}).when(downloadObject).waitForCompletion();
+//    Download downloadObject = Mockito.mock(Download.class);
+
+    Map<String,String> metadata = new HashMap<>();
+    metadata.put("hello", "world");
+
+//    Mockito.when(downloadObject.isDone()).thenReturn(false, false, true);
+//    Mockito.when(downloadObject.getProgress()).thenReturn(progress);
+//    Mockito.doAnswer(i -> null).when(downloadObject).waitForCompletion();
+//
+//    Mockito.when(transferManager.download((GetObjectRequest) anyObject(), (File) anyObject())).thenReturn(downloadObject);
+
+    Mockito.when(client.getObject((GetObjectRequest)any())).thenReturn(responseStream);
+    Mockito.when(responseStream.response()).thenReturn(response);
+    Mockito.when(response.metadata()).thenReturn(metadata);
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
 
@@ -184,12 +199,22 @@ public class MockedOperationTest {
   @Test
   public void testDownloadOperation_NoTempDir() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
-    Download downloadObject = Mockito.mock(Download.class);
+    ResponseInputStream<GetObjectResponse> responseStream = Mockito.mock(ResponseInputStream.class);
+    GetObjectResponse response = Mockito.mock(GetObjectResponse.class);
+//    Download downloadObject = Mockito.mock(Download.class);
+//    ObjectMetadata metadata = Mockito.mock(ObjectMetadata.class);
 
-    Map<String,String> userMetadata = new HashMap<>();
-    userMetadata.put("hello", "world");
-    Mockito.when(downloadObject.isDone()).thenReturn(false, false, true);
-    Mockito.doAnswer((i)-> {return null;}).when(downloadObject).waitForCompletion();
+    Map<String,String> metadata = new HashMap<>();
+    metadata.put("hello", "world");
+//    Mockito.when(downloadObject.isDone()).thenReturn(false, false, true);
+//    Mockito.when(downloadObject.getProgress()).thenReturn(progress);
+//    Mockito.doAnswer(i -> null).when(downloadObject).waitForCompletion();
+//
+//    Mockito.when(transferManager.download((GetObjectRequest) anyObject(), (File) anyObject())).thenReturn(downloadObject);
+
+    Mockito.when(client.getObject((GetObjectRequest)any())).thenReturn(responseStream);
+    Mockito.when(responseStream.response()).thenReturn(response);
+    Mockito.when(response.metadata()).thenReturn(metadata);
 
     AdaptrisMessage msg = new FileBackedMessageFactory().newMessage();
 
@@ -203,12 +228,19 @@ public class MockedOperationTest {
   @Test
   public void testUpload() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
-    Upload uploadObject = Mockito.mock(Upload.class);
+    PutObjectResponse response = Mockito.mock(PutObjectResponse.class);
+//    Upload uploadObject = Mockito.mock(Upload.class);
 
     Map<String,String> userMetadata = new HashMap<>();
     userMetadata.put("hello", "world");
-    Mockito.when(uploadObject.isDone()).thenReturn(false, false, true);
-    Mockito.doAnswer((i)-> {return null;}).when(uploadObject).waitForCompletion();
+//    Mockito.when(uploadObject.isDone()).thenReturn(false, false, true);
+//    Mockito.when(uploadObject.getProgress()).thenReturn(progress);
+//    Mockito.doAnswer(i -> null).when(uploadObject).waitForCompletion();
+
+//    Mockito.when(transferManager.upload((PutObjectRequest)any())).thenReturn(uploadObject);
+
+    Mockito.when(client.putObject((PutObjectRequest)any(), (RequestBody)any())).thenReturn(response);
+
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
     msg.addMessageHeader("hello", "world");
@@ -222,12 +254,18 @@ public class MockedOperationTest {
   @Test
   public void testUpload_WithMetadata() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
-    Upload uploadObject = Mockito.mock(Upload.class);
+    PutObjectResponse response = Mockito.mock(PutObjectResponse.class);
+//    Upload uploadObject = Mockito.mock(Upload.class);
 
     Map<String,String> userMetadata = new HashMap<>();
     userMetadata.put("hello", "world");
-    Mockito.when(uploadObject.isDone()).thenReturn(false, false, true);
-    Mockito.doAnswer((i)-> {return null;}).when(uploadObject).waitForCompletion();
+//    Mockito.when(uploadObject.isDone()).thenReturn(false, false, true);
+//    Mockito.when(uploadObject.getProgress()).thenReturn(progress);
+//    Mockito.doAnswer(i -> null).when(uploadObject).waitForCompletion();
+//
+//    Mockito.when(transferManager.upload((PutObjectRequest) anyObject())).thenReturn(uploadObject);
+
+    Mockito.when(client.putObject((PutObjectRequest)any(), (RequestBody)any())).thenReturn(response);
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello");
 
@@ -241,12 +279,18 @@ public class MockedOperationTest {
   @Test
   public void testUpload_withCannedAcl() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
-    Upload uploadObject = Mockito.mock(Upload.class);
+    PutObjectResponse response = Mockito.mock(PutObjectResponse.class);
+//    Upload uploadObject = Mockito.mock(Upload.class);
 
     Map<String,String> userMetadata = new HashMap<>();
     userMetadata.put("hello", "world");
-    Mockito.when(uploadObject.isDone()).thenReturn(false, false, true);
-    Mockito.doAnswer((i)-> {return null;}).when(uploadObject).waitForCompletion();
+//    Mockito.when(uploadObject.isDone()).thenReturn(false, false, true);
+//    Mockito.when(uploadObject.getProgress()).thenReturn(progress);
+//    Mockito.doAnswer(i -> null).when(uploadObject).waitForCompletion();
+//
+//    Mockito.when(transferManager.upload((PutObjectRequest) anyObject())).thenReturn(uploadObject);
+
+    Mockito.when(client.putObject((PutObjectRequest)any(), (RequestBody)any())).thenReturn(response);
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
     msg.addMessageHeader("hello", "world");
@@ -261,14 +305,20 @@ public class MockedOperationTest {
   @Test
   public void testUpload_withAcl() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
-    Upload uploadObject = Mockito.mock(Upload.class);
+    PutObjectResponse response = Mockito.mock(PutObjectResponse.class);
+//    Upload uploadObject = Mockito.mock(Upload.class);
 
     Map<String,String> userMetadata = new HashMap<>();
     userMetadata.put("hello", "world");
-    Mockito.when(uploadObject.isDone()).thenReturn(false, false, true);
-    Mockito.doAnswer((i)-> {return null;}).when(uploadObject).waitForCompletion();
+//    Mockito.when(uploadObject.isDone()).thenReturn(false, false, true);
+//    Mockito.when(uploadObject.getProgress()).thenReturn(progress);
+//    Mockito.doAnswer(i -> null).when(uploadObject).waitForCompletion();
+//
+//    Mockito.when(transferManager.upload((PutObjectRequest) anyObject())).thenReturn(uploadObject);
 
-    Mockito.when(client.getS3AccountOwner()).thenReturn(new Owner("234", "alias"));
+    Mockito.when(client.putObject((PutObjectRequest)any(), (RequestBody)any())).thenReturn(response);
+
+    Mockito.when(client.getObjectAcl(GetObjectAclRequest.builder().build()).owner()).thenReturn(Owner.builder().id("234").displayName("alias").build());
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
     msg.addMessageHeader("hello", "world");
@@ -289,10 +339,10 @@ public class MockedOperationTest {
   @Test
   public void testCheckFileExists() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
-    Mockito.when(client.doesObjectExist(anyString(), anyString())).thenReturn(false).thenReturn(true);
+    Mockito.when(client.headObject(HeadObjectRequest.builder().key(anyString()).bucket(anyString()).build()).sdkHttpResponse().isSuccessful())
+            .thenReturn(false);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello");
-    CheckFileExistsOperation checker = new CheckFileExistsOperation()
-        .withObjectName("srcKey").withBucket("srcBucket");
+    CheckFileExistsOperation checker = new CheckFileExistsOperation().withObjectName("srcKey").withBucket("srcBucket");
     ClientWrapper wrapper = new ClientWrapperImpl(client);
     try {
       execute(checker, wrapper, msg);
@@ -308,7 +358,7 @@ public class MockedOperationTest {
   public void testGetTagOperation() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
     GetObjectTaggingResponse result = Mockito.mock(GetObjectTaggingResponse.class);
-    List<Tag> tags = new ArrayList<Tag>(Arrays.asList(Tag.builder().key("hello").value("world").build()));
+    List<Tag> tags = new ArrayList<>(Arrays.asList(Tag.builder().key("hello").value("world").build()));
     Mockito.when(result.tagSet()).thenReturn(tags);
 
     Mockito.when(client.getObjectTagging((GetObjectTaggingRequest)anyObject())).thenReturn(result);
@@ -344,7 +394,6 @@ public class MockedOperationTest {
         "srcKeyPrefix/file2.csv" + System.lineSeparator(), msg.getContent());
   }
 
-
   @Test
   public void testListOperation_RemoteBlobFilter() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
@@ -368,18 +417,17 @@ public class MockedOperationTest {
     assertEquals("srcKeyPrefix/file.json" + System.lineSeparator(), msg.getContent());
   }
 
-  private void execute(S3Operation op, ClientWrapper wrapper, AdaptrisMessage msg)
-      throws Exception {
+  private void execute(S3Operation op, ClientWrapper wrapper, AdaptrisMessage msg) throws Exception {
     op.prepare();
     op.execute(wrapper, msg);
   }
 
   public static S3Object createSummary(String bucket, String key) {
     S3Object.Builder builder = S3Object.builder();
-    //sbase.setBucketName(bucket);
     builder.key(key);
     builder.size(0L);
     builder.lastModified(Instant.now());
+//    sbase.setBucketName(bucket);
     return builder.build();
   }
 
