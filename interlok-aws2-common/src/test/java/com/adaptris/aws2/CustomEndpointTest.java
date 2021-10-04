@@ -16,13 +16,14 @@
 
 package com.adaptris.aws2;
 
+import org.junit.Test;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import org.junit.Test;
-import com.amazonaws.client.builder.AwsClientBuilder;
 
 public class CustomEndpointTest  {
 
@@ -56,9 +57,10 @@ public class CustomEndpointTest  {
   public void testRebuild() throws Exception {    
     CustomEndpoint c = new CustomEndpoint().withServiceEndpoint("http://localhost:4567").withSigningRegion("us-west-1");
     AwsClientBuilder b = c.rebuild((AwsClientBuilder) new MockAwsClientBuilder());
-    assertNotNull(b.getEndpoint());
-    assertEquals("http://localhost:4567", b.getEndpoint().getServiceEndpoint());
-    assertEquals("us-west-1", b.getEndpoint().getSigningRegion());
+
+    assertNotNull(((MockAwsClientBuilder)b).endpoint);
+    assertEquals("http://localhost:4567", ((MockAwsClientBuilder)b).endpoint);
+    assertEquals("us-west-1", ((MockAwsClientBuilder)b).region);
   }
   
 }

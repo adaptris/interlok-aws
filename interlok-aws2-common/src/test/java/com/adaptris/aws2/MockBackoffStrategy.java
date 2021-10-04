@@ -1,15 +1,15 @@
 package com.adaptris.aws2;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonWebServiceRequest;
-import com.amazonaws.retry.RetryPolicy.BackoffStrategy;
+import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
 
-public class MockBackoffStrategy implements BackoffStrategy {
+import java.time.Duration;
 
+public class MockBackoffStrategy implements BackoffStrategy
+{
   @Override
-  public long delayBeforeNextRetry(AmazonWebServiceRequest originalRequest,
-      AmazonClientException exception, int retriesAttempted) {
-    return 0;
+  public Duration computeDelayBeforeNextRetry(RetryPolicyContext context)
+  {
+    return Duration.ZERO;
   }
-
 }

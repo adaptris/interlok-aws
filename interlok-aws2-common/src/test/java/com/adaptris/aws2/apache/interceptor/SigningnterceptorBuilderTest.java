@@ -1,14 +1,15 @@
 package com.adaptris.aws2.apache.interceptor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import com.amazonaws.http.AWSRequestSigningApacheInterceptor;
 import org.apache.http.HttpRequestInterceptor;
 import org.junit.Test;
-import com.adaptris.aws2.AWSCredentialsProviderBuilder;
-import com.adaptris.aws2.STSAssumeroleCredentialsBuilder;
-import com.adaptris.aws2.StaticCredentialsBuilder;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.http.AWSRequestSigningApacheInterceptor;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class SigningnterceptorBuilderTest {
 
@@ -16,7 +17,7 @@ public class SigningnterceptorBuilderTest {
   public void testBuild() {
     ApacheSigningInterceptor builder =
         new ApacheSigningInterceptor().withRegion("region").withService("service")
-            .withCredentials(new StaticCredentialsBuilder());
+            .withCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")));
     HttpRequestInterceptor interceptor = builder.build();
     assertNotNull(interceptor);
     assertEquals(AWSRequestSigningApacheInterceptor.class, interceptor.getClass());
@@ -31,25 +32,11 @@ public class SigningnterceptorBuilderTest {
     HttpRequestInterceptor interceptor = builder.build();
   }
 
-  @Test
-  public void testBuild_WithSTS() {
-    STSAssumeroleCredentialsBuilder sts =
-        new STSAssumeroleCredentialsBuilder().withRoleArn("arn:aws2:sts:us-west-1:123456789012:MyArn")
-            .withRoleExternalId("externalId").withRoleSessionName("sessionName");
-    ApacheSigningInterceptor builder = new ApacheSigningInterceptor().withRegion("region")
-        .withService("service").withCredentials(sts);
-    HttpRequestInterceptor interceptor = builder.build();
-    assertNotNull(interceptor);
-    assertEquals(AWSRequestSigningApacheInterceptor.class, interceptor.getClass());
-
-  }
-
-  private class FailingCredentialsBuilder implements AWSCredentialsProviderBuilder {
-
+  private class FailingCredentialsBuilder implements AwsCredentialsProvider {
     @Override
-    public AWSCredentialsProvider build() throws Exception {
-      throw new Exception();
+    public AwsCredentials resolveCredentials()
+    {
+      throw new RuntimeException();
     }
-
   }
 }

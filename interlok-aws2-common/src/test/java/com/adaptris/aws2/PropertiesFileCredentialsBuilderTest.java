@@ -1,22 +1,23 @@
 package com.adaptris.aws2;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import com.adaptris.core.stubs.TempFileUtils;
+import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import org.junit.Test;
-import com.adaptris.core.stubs.TempFileUtils;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider;
-import com.amazonaws.auth.PropertiesFileCredentialsProvider;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class PropertiesFileCredentialsBuilderTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void testBuild_Defaults() throws Exception {
     PropertiesFileCredentialsBuilder auth = new PropertiesFileCredentialsBuilder();
-    AWSCredentialsProvider provider = auth.build();
+    AwsCredentialsProvider provider = auth.build();
   }
 
   @Test
@@ -25,17 +26,17 @@ public class PropertiesFileCredentialsBuilderTest {
         new PropertiesFileCredentialsBuilder();
     File file = createCredentials(auth);
     auth.withPropertyFile(file.getCanonicalPath());
-    AWSCredentialsProvider provider = auth.build();
+    AwsCredentialsProvider provider = auth.build();
     assertNotNull(provider);
-    assertEquals(PropertiesFileCredentialsProvider.class, provider.getClass());
+    assertEquals(ProfileCredentialsProvider.class, provider.getClass());
   }
 
   @Test
   public void testBuild_Classpath() throws Exception {
     PropertiesFileCredentialsBuilder auth = new PropertiesFileCredentialsBuilder().withPropertyFile("classpath-credentials.properties");
-    AWSCredentialsProvider provider = auth.build();
+    AwsCredentialsProvider provider = auth.build();
     assertNotNull(provider);
-    assertEquals(ClasspathPropertiesFileCredentialsProvider.class, provider.getClass());
+    assertEquals(ProfileCredentialsProvider.class, provider.getClass());
   }
 
   private static File createCredentials(Object tracker) throws Exception {

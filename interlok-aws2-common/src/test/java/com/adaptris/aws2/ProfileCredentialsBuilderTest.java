@@ -1,21 +1,23 @@
 package com.adaptris.aws2;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import com.adaptris.core.stubs.TempFileUtils;
+import org.junit.Test;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import org.junit.Test;
-import com.adaptris.core.stubs.TempFileUtils;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class ProfileCredentialsBuilderTest {
 
   @Test
   public void testBuild_Defaults() throws Exception {
     ProfileCredentialsBuilder auth = new ProfileCredentialsBuilder();
-    AWSCredentialsProvider provider = auth.build();
+    AwsCredentialsProvider provider = auth.build();
     assertNotNull(provider);
     assertEquals(ProfileCredentialsProvider.class, provider.getClass());
   }
@@ -26,7 +28,7 @@ public class ProfileCredentialsBuilderTest {
     File configFile = createCredentials(auth);
     auth.withConfigFile(configFile.getCanonicalPath())
         .withProfileName("external").withRefreshIntervalNanos(5L * 60 * 1000 * 1000);
-    AWSCredentialsProvider provider = auth.build();
+    AwsCredentialsProvider provider = auth.build();
     assertNotNull(provider);
     assertEquals(ProfileCredentialsProvider.class, provider.getClass());
   }

@@ -1,14 +1,15 @@
 package com.adaptris.aws2;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import java.io.IOException;
 import org.apache.http.HttpStatus;
 import org.junit.Test;
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.retry.RetryPolicy;
-import com.amazonaws.retry.RetryPolicy.RetryCondition;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.retry.RetryPolicy;
+import software.amazon.awssdk.core.retry.conditions.RetryCondition;
+
+import java.io.IOException;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class RetryNotFoundPolicyFactoryTest {
 
@@ -22,22 +23,20 @@ public class RetryNotFoundPolicyFactoryTest {
   public void testPolicy() throws Exception {
     RetryNotFoundPolicyFactory retry = new RetryNotFoundPolicyFactory();
     RetryPolicy policy = retry.build();
-    RetryCondition condition = policy.getRetryCondition();
-    AmazonServiceException se1 = new AmazonServiceException("msg");
-    se1.setStatusCode(HttpStatus.SC_NOT_FOUND);
+    RetryCondition condition = policy.retryCondition();
+    AwsServiceException se1 = AwsServiceException.builder().statusCode(HttpStatus.SC_NOT_FOUND).message("msg").build();
     // It's a 404
-    assertTrue(condition.shouldRetry(null, se1, 0));
-    
+    assertTrue(condition.shouldRetry(null));
 
-    AmazonClientException clientException = new AmazonClientException("msg", new IOException());
+
+    AwsServiceException clientException = AwsServiceException.builder().message("msg").cause(new IOException()).build();
     // From the code, a nested IOException is always retry-able.
-    assertTrue(condition.shouldRetry(null, clientException, 0));
+    assertTrue(condition.shouldRetry(null));
 
-    AmazonServiceException se2 = new AmazonServiceException("msg", new IOException());
+    AwsServiceException se2 = AwsServiceException.builder().statusCode(HttpStatus.SC_UNAUTHORIZED).message("msg").cause(new IOException()).build();
     // Oooh a 401
-    se1.setStatusCode(HttpStatus.SC_UNAUTHORIZED);
     // BUT.. nested IOException so should be true.
-    assertTrue(condition.shouldRetry(null, se2, 0));
+    assertTrue(condition.shouldRetry(null));
   }
 
 }

@@ -1,14 +1,13 @@
 package com.adaptris.aws2;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonWebServiceRequest;
-import com.amazonaws.retry.RetryPolicy.RetryCondition;
+import software.amazon.awssdk.core.retry.RetryPolicyContext;
+import software.amazon.awssdk.core.retry.conditions.RetryCondition;
 
-public class MockRetryCondition implements RetryCondition {
+public class MockRetryCondition implements RetryCondition
+{
 
   @Override
-  public boolean shouldRetry(AmazonWebServiceRequest originalRequest,
-      AmazonClientException exception, int retriesAttempted) {
+  public boolean shouldRetry(RetryPolicyContext context) {
     return false;
   }
 
