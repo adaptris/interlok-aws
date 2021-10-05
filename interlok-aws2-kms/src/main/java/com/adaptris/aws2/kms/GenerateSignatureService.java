@@ -26,8 +26,8 @@ import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import java.io.ByteArrayInputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 
 /**
  * Generate a signature using AWS KMS.
@@ -91,14 +91,14 @@ public class GenerateSignatureService extends SignatureService {
           .messageType(type)
           .message(SdkBytes.fromByteArray(dataToBeSigned));
       SignResponse response = client.sign(request.build());
-      ByteBuffer signedData = response.signature().asByteBuffer();
+      byte[] signedData = response.signature().asByteArray();
       if (extendedLogging()) {
         log.trace("Data:\n{}", HexDump.parse(dataToBeSigned));
-        log.trace("Signature:\n{}", HexDump.parse(signedData.array()));
+        log.trace("Signature:\n{}", HexDump.parse(signedData));
       }
 
-      try (ByteBufferInputStream in = new ByteBufferInputStream(signedData);
-          OutputStream out = getOutput().wrap(msg)) {
+      try (ByteArrayInputStream in = new ByteArrayInputStream(signedData);
+           OutputStream out = getOutput().wrap(msg)) {
         IOUtils.copy(in, out);
       }
     } catch (Exception e) {
