@@ -19,6 +19,7 @@ package com.adaptris.aws2.sqs;
 import com.adaptris.aws2.EndpointBuilder;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
@@ -34,7 +35,7 @@ import software.amazon.awssdk.services.sqs.SqsAsyncClientBuilder;
 public class AsyncSQSClientFactory implements SQSClientFactory {
 
   @Override
-  public SqsAsyncClient createClient(AwsCredentialsProvider creds, ClientOverrideConfiguration conf, EndpointBuilder endpoint) {
+  public SdkClient createClient(AwsCredentialsProvider creds, ClientOverrideConfiguration conf, EndpointBuilder endpoint) {
 
     SqsAsyncClientBuilder builder = endpoint.rebuild(SqsAsyncClient.builder());
 

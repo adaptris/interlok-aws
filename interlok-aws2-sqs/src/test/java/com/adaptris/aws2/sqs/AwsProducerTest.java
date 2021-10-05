@@ -65,7 +65,7 @@ public class AwsProducerTest extends ExampleProducerCase {
   @Before
   public void setUp() throws Exception {
 
-    producedMessages = new ArrayList<AdaptrisMessage>();
+    producedMessages = new ArrayList<>();
 
     sqsClientMock = mock(SqsAsyncClient.class);
     GetQueueUrlResponse queueUrlResultMock = mock(GetQueueUrlResponse.class);
@@ -144,20 +144,18 @@ public class AwsProducerTest extends ExampleProducerCase {
   @Test
   public void testSingleProduceWithSendAttributes() throws Exception {
     when(sqsClientMock.sendMessage((SendMessageRequest) any()))
-        .thenAnswer(new Answer<Object>() {
-      @Override
-      public Object answer(InvocationOnMock invocation) {
-          Object[] args = invocation.getArguments();
+        .thenAnswer(invocation ->
+        {
+            Object[] args = invocation.getArguments();
 
-          SendMessageRequest request = (SendMessageRequest) args[0];
-          assertTrue(request.messageAttributes() != null);
-          assertEquals("myValue1", request.messageAttributes().get("myKey1").stringValue());
-          assertEquals("myValue2", request.messageAttributes().get("myKey2").stringValue());
-          assertEquals("myValue3", request.messageAttributes().get("myKey3").stringValue());
+            SendMessageRequest request = (SendMessageRequest) args[0];
+            assertTrue(request.messageAttributes() != null);
+            assertEquals("myValue1", request.messageAttributes().get("myKey1").stringValue());
+            assertEquals("myValue2", request.messageAttributes().get("myKey2").stringValue());
+            assertEquals("myValue3", request.messageAttributes().get("myKey3").stringValue());
 
-          return null;
-      }
-    });
+            return null;
+        });
 
     List<String> sendAttributes = new ArrayList<>();
     sendAttributes.add("myKey1");
@@ -177,20 +175,18 @@ public class AwsProducerTest extends ExampleProducerCase {
   @Test
   public void testSingleProduceWithSendAttributesOneMissing() throws Exception {
     when(sqsClientMock.sendMessage((SendMessageRequest) any()))
-        .thenAnswer(new Answer<Object>() {
-      @Override
-      public Object answer(InvocationOnMock invocation) {
-          Object[] args = invocation.getArguments();
+        .thenAnswer(invocation ->
+        {
+            Object[] args = invocation.getArguments();
 
-          SendMessageRequest request = (SendMessageRequest) args[0];
-          assertTrue(request.messageAttributes() != null);
-          assertEquals("myValue1", request.messageAttributes().get("myKey1").stringValue());
-          assertNull(request.messageAttributes().get("myKey2"));
-          assertEquals("myValue3", request.messageAttributes().get("myKey3").stringValue());
+            SendMessageRequest request = (SendMessageRequest) args[0];
+            assertTrue(request.messageAttributes() != null);
+            assertEquals("myValue1", request.messageAttributes().get("myKey1").stringValue());
+            assertNull(request.messageAttributes().get("myKey2"));
+            assertEquals("myValue3", request.messageAttributes().get("myKey3").stringValue());
 
-          return null;
-      }
-    });
+            return null;
+        });
 
     List<String> sendAttributes = new ArrayList<>();
     sendAttributes.add("myKey1");
@@ -210,20 +206,18 @@ public class AwsProducerTest extends ExampleProducerCase {
   @Test
   public void testSingleProduceWithSendAttributesOneEmpty() throws Exception {
     when(sqsClientMock.sendMessage((SendMessageRequest) any()))
-        .thenAnswer(new Answer<Object>() {
-      @Override
-      public Object answer(InvocationOnMock invocation) {
-          Object[] args = invocation.getArguments();
+        .thenAnswer(invocation ->
+        {
+            Object[] args = invocation.getArguments();
 
-          SendMessageRequest request = (SendMessageRequest) args[0];
-          assertTrue(request.messageAttributes() != null);
-          assertEquals("myValue1", request.messageAttributes().get("myKey1").stringValue());
-          assertNull(request.messageAttributes().get("myKey2"));
-          assertEquals("myValue3", request.messageAttributes().get("myKey3").stringValue());
+            SendMessageRequest request = (SendMessageRequest) args[0];
+            assertTrue(request.messageAttributes() != null);
+            assertEquals("myValue1", request.messageAttributes().get("myKey1").stringValue());
+            assertNull(request.messageAttributes().get("myKey2"));
+            assertEquals("myValue3", request.messageAttributes().get("myKey3").stringValue());
 
-          return null;
-      }
-    });
+            return null;
+        });
 
     List<String> sendAttributes = new ArrayList<>();
     sendAttributes.add("myKey1");
@@ -286,7 +280,7 @@ public class AwsProducerTest extends ExampleProducerCase {
     producer.setSendAttributes(sendAttributes);
 
     AmazonSQSConnection conn = new AmazonSQSConnection();
-    conn.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
+    //conn.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
     conn.setRegion("My AWS Region");
     StandaloneProducer result = new StandaloneProducer(conn, producer);
     return result;

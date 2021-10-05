@@ -135,7 +135,7 @@ public class AmazonSQSConnection extends AWSConnection {
    */
   SqsClient getSyncClient() throws CoreException {
     if(client == null || client instanceof SqsAsyncClient) {
-      throw new CoreException("Amazon SQS Connection is not initialized");
+      throw new CoreException("Amazon SQS Synchronous Connection is not initialized");
     }
 
     return (SqsClient)client;
@@ -146,7 +146,7 @@ public class AmazonSQSConnection extends AWSConnection {
    */
   SqsAsyncClient getASyncClient() throws CoreException {
     if(client == null || client instanceof SqsClient) {
-      throw new CoreException("Amazon SQS Connection is not initialized");
+      throw new CoreException("Amazon SQS Asynchronous Connection is not initialized");
     }
 
     return (SqsAsyncClient)client;

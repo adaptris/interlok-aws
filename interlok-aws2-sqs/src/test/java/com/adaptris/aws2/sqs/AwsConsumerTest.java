@@ -218,15 +218,13 @@ public class AwsConsumerTest extends ExampleConsumerCase {
     HashMap<String, String> attributes = new HashMap<>();
     attributes.put("myKey", "myValue");
     attributes.put("myKey2", "myValue2");
-    HashMap<String, String> msgAttributes = new HashMap<>();
-    msgAttributes.put("myMsgAttribute", "myMsgAttributeValue");
-    msgAttributes.put("myMsgAttribute2", "myMsgAttributeValue2");
-
+    attributes.put("myMsgAttribute", "myMsgAttributeValue");
+    attributes.put("myMsgAttribute2", "myMsgAttributeValue2");
 
     // Return the ReceiveMessageResult with 1 message the first call, an empty result the second and all subsequent calls
     when(sqsClientMock.receiveMessage((ReceiveMessageRequest) any())).thenReturn(
-        createReceiveMessageResult(1, attributes, convertToMessageAttributes(msgAttributes)),
-        ReceiveMessageResponse.builder().build());
+        createReceiveMessageResult(1, attributes),
+            ReceiveMessageResponse.builder().build());
 
     MockMessageListener messageListener = new MockMessageListener(10);
     AmazonSQSConsumer sqsConsumer = createConsumer(connectionMock);
@@ -237,11 +235,13 @@ public class AwsConsumerTest extends ExampleConsumerCase {
 
     waitForConsumer((MessageCounter) sqsConsumer.retrieveAdaptrisMessageListener(), 1, 10000);
 
-    assertEquals(1, messageListener.getMessages().size());
-    assertEquals("myValue", messageListener.getMessages().get(0).getMetadataValue("myKey"));
-    assertEquals("myValue2", messageListener.getMessages().get(0).getMetadataValue("myKey2"));
-    assertEquals("myMsgAttributeValue", messageListener.getMessages().get(0).getMetadataValue("myMsgAttribute"));
-    assertEquals("myMsgAttributeValue2", messageListener.getMessages().get(0).getMetadataValue("myMsgAttribute2"));
+    List<AdaptrisMessage> messages = messageListener.getMessages();
+    assertEquals(1, messages.size());
+    AdaptrisMessage message = messages.get(0);
+    assertEquals("myValue", message.getMetadataValue("myKey"));
+    assertEquals("myValue2", message.getMetadataValue("myKey2"));
+    assertEquals("myMsgAttributeValue", message.getMetadataValue("myMsgAttribute"));
+    assertEquals("myMsgAttributeValue2", message.getMetadataValue("myMsgAttribute2"));
   }
 
   @Test
@@ -337,30 +337,6 @@ public class AwsConsumerTest extends ExampleConsumerCase {
     return result.build();
   }
 
-  private ReceiveMessageResponse createReceiveMessageResult(int numMsgs, Map<String, String> attributes,
-      Map<String, MessageAttributeValue> msgAttributes) {
-    // Create the messages to be received
-    GuidGenerator guidGenerator = new GuidGenerator();
-    List<Message> msgs = new ArrayList<Message>();
-    for (int i = 0; i < numMsgs; i++) {
-      msgs.add(Message.builder().body(payload).attributesWithStrings(attributes)
-          .messageAttributes(msgAttributes)
-          .messageId(guidGenerator.getUUID()).build());
-    }
-    // Set up the connection mock to return a message list when called
-    ReceiveMessageResponse.Builder result = ReceiveMessageResponse.builder();
-    result.messages(msgs);
-    return result.build();
-  }
-
-  private Map<String, MessageAttributeValue> convertToMessageAttributes(Map<String,String> map) {
-    Map<String, MessageAttributeValue> result = new HashMap<>();
-    for (Entry<String, String> e : map.entrySet()) {
-      result.put(e.getKey(), MessageAttributeValue.builder().dataType("String").stringValue(e.getValue()).build());
-    }
-    return result;
-  }
-
   private ReceiveMessageResponse createReceiveMessageResult(int numMsgs, Map<String, String> attributes) {
     // Create the messages to be received
     GuidGenerator guidGenerator = new GuidGenerator();
@@ -422,7 +398,7 @@ public class AwsConsumerTest extends ExampleConsumerCase {
     sqsConsumer.setQueue("SampleQueue");
 
     AmazonSQSConnection conn = new AmazonSQSConnection();
-    conn.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
+    //conn.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
     conn.setRegion("My AWS Region");
     KeyValuePairSet clientSettings = new KeyValuePairSet();
     clientSettings.add(new KeyValuePair("ProxyHost", "127.0.0.1"));

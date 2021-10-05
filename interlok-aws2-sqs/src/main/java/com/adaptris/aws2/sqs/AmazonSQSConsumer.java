@@ -53,6 +53,7 @@ import javax.validation.constraints.NotBlank;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ExecutionException;
 
@@ -187,8 +188,8 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
             AdaptrisMessage adpMsg = AdaptrisMessageFactory.defaultIfNull(getMessageFactory()).newMessage(message.body());
             final String handle = message.receiptHandle();
             adpMsg.addMetadata("SQSMessageID", message.messageId());
-            for (Entry<MessageSystemAttributeName, String> entry : message.attributes().entrySet()) {
-              adpMsg.addMetadata(entry.getKey().toString(), entry.getValue());
+            for (Entry<String, String> entry : message.attributesAsStrings().entrySet()) {
+              adpMsg.addMetadata(entry.getKey(), entry.getValue());
             }
             for (Entry<String, MessageAttributeValue> entry : message.messageAttributes().entrySet()) {
               adpMsg.addMetadata(entry.getKey(), entry.getValue().stringValue());
@@ -234,7 +235,8 @@ public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
     builder.queueUrl(getQueueUrl());
     builder.attributeNames(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES);
     GetQueueAttributesResponse result = getSynClient().getQueueAttributes(builder.build());
-    return Integer.parseInt(result.attributes().get(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES.toString()));
+    Map<QueueAttributeName, String> attributes = result.attributes();
+    return Integer.parseInt(attributes.get(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES));
   }
 
   private String queueName() {

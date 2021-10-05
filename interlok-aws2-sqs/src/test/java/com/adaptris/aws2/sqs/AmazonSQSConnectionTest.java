@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
+import software.amazon.awssdk.services.sqs.SqsClient;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -38,7 +39,9 @@ public class AmazonSQSConnectionTest {
   private AmazonSQSConnection amazonSQSConnection;
 
   @Mock
-  private SqsAsyncClient mockSqsClient;
+  private SqsClient mockSqsClient;
+  @Mock
+  private SqsAsyncClient mockSqsAsyncClient;
   @Mock
   private AsyncSQSClientFactory mockClientFactory;
 
@@ -67,14 +70,14 @@ public class AmazonSQSConnectionTest {
 
   @Test
   public void testInit() throws Exception {
-    when(mockClientFactory.createClient(any(), any(), any())).thenReturn(mockSqsClient);
+    when(mockClientFactory.createClient(any(), any(), any())).thenReturn(mockSqsAsyncClient);
     amazonSQSConnection.init();
   }
 
 
   @Test
   public void testStartUp() throws Exception {
-    when(mockClientFactory.createClient(any(), any(), any())).thenReturn(mockSqsClient);
+    when(mockClientFactory.createClient(any(), any(), any())).thenReturn(mockSqsAsyncClient);
     amazonSQSConnection.init();
     amazonSQSConnection.start();
   }
@@ -109,9 +112,9 @@ public class AmazonSQSConnectionTest {
 
   @Test
   public void testGetASyncClientAfterInit() throws Exception {
-    when(mockClientFactory.createClient(any(), any(), any())).thenReturn(mockSqsClient);
+    when(mockClientFactory.createClient(any(), any(), any())).thenReturn(mockSqsAsyncClient);
 
     amazonSQSConnection.init();
-    assertEquals(mockSqsClient, amazonSQSConnection.getASyncClient());
+    assertEquals(mockSqsAsyncClient, amazonSQSConnection.getASyncClient());
   }
 }
