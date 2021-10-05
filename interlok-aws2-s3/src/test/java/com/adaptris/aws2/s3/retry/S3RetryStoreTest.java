@@ -10,12 +10,15 @@ import com.adaptris.interlok.junit.scaffolding.BaseCase;
 import org.junit.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 import java.io.ByteArrayInputStream;
@@ -39,7 +42,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 
-public class S3RetryStoreTest {
+public class S3RetryStoreTest extends BaseCase {
 
 
   private static final String CLASS_UNDER_TEST_KEY = "ClassUnderTest";
@@ -68,14 +71,14 @@ public class S3RetryStoreTest {
     S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
 
     try {
-      BaseCase.start(store);
+      start(store);
       Iterable<RemoteBlob> blobs = store.report();
       List<String> blobNames = StreamSupport.stream(blobs.spliterator(), false)
           .map((blob) -> blob.getName()).collect(Collectors.toList());
       assertTrue(blobNames.contains(msgId1));
       assertTrue(blobNames.contains(msgId2));
     } finally {
-      BaseCase.stop(store);
+      stop(store);
     }
   }
 
@@ -94,7 +97,7 @@ public class S3RetryStoreTest {
     S3RetryStore store_with_prefix =
         new S3RetryStore().withBucket("bucket").withPrefix("prefix").withConnection(conn);
     try {
-      BaseCase.start(store_no_prefix, store_with_prefix);
+      start(store_no_prefix, store_with_prefix);
       assertEquals("prefix/msgId", store_no_prefix.toMessageID("prefix/msgId/payload.blob"));
       assertEquals("msgId", store_with_prefix.toMessageID("prefix/msgId/payload.blob"));
 
@@ -102,7 +105,7 @@ public class S3RetryStoreTest {
       assertEquals("prefix/msgId/payload.blob",
           store_with_prefix.buildObjectName("msgId", "payload.blob"));
     } finally {
-      BaseCase.stop(store_no_prefix, store_with_prefix);
+      stop(store_no_prefix, store_with_prefix);
     }
   }
 
@@ -131,10 +134,10 @@ public class S3RetryStoreTest {
 //
 //    S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
 //    try {
-//      BaseCase.start(store);
+//      start(store);
 //      store.write(msg);
 //    } finally {
-//      BaseCase.stop(store);
+//      stop(store);
 //    }
 //  }
 //
@@ -165,10 +168,10 @@ public class S3RetryStoreTest {
 //    S3RetryStore store =
 //        new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
 //    try {
-//      BaseCase.start(store);
+//      start(store);
 //      store.write(msg);
 //    } finally {
-//      BaseCase.stop(store);
+//      stop(store);
 //    }
 //  }
 
@@ -181,8 +184,7 @@ public class S3RetryStoreTest {
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
-    // TODO find out what happens in this situation
-//    Mockito.when(transferManager.upload((PutObjectRequest) any())).thenThrow(new RuntimeException());
+    Mockito.when(client.putObject((PutObjectRequest)any(), (RequestBody)any())).thenThrow(new RuntimeException());
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
     msg.addMessageHeader("hello", "world");
@@ -190,10 +192,10 @@ public class S3RetryStoreTest {
     S3RetryStore store =
         new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
     try {
-      BaseCase.start(store);
+      start(store);
       store.write(msg);
     } finally {
-      BaseCase.stop(store);
+      stop(store);
     }
   }
 
@@ -202,21 +204,17 @@ public class S3RetryStoreTest {
     S3Client client = Mockito.mock(S3Client.class);
     ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
     Mockito.when(wrapper.amazonClient()).thenReturn(client);
-    Mockito.doAnswer((i) -> null).when(client).deleteObject(DeleteObjectRequest.builder().bucket(anyString()).key(anyString()).build());
 
-    // TODO find out what happens in this situation
-//    Mockito.when(client.headObject(HeadObjectRequest.builder().bucket(anyString()).key(anyString()).build())).thenReturn(HeadObjectResponse.builder().)
-//
-//            .thenReturn(false, true);
+    Mockito.when(client.deleteObject((DeleteObjectRequest)any())).thenReturn(DeleteObjectResponse.builder().build());
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
     S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
     try {
-      BaseCase.start(store);
+      start(store);
       store.delete("XXXX");
     } finally {
-      BaseCase.stop(store);
+      stop(store);
     }
   }
 
@@ -239,11 +237,11 @@ public class S3RetryStoreTest {
 
     S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
     try {
-      BaseCase.start(store);
+      start(store);
       Map<String, String> map = store.getMetadata("XXXX");
       assertTrue(map.containsKey(CLASS_UNDER_TEST_KEY));
     } finally {
-      BaseCase.stop(store);
+      stop(store);
     }
   }
 
@@ -261,11 +259,11 @@ public class S3RetryStoreTest {
     S3RetryStore store =
         new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
     try {
-      BaseCase.start(store);
+      start(store);
       Map<String, String> map = store.getMetadata("XXXX");
       assertTrue(map.containsKey(CLASS_UNDER_TEST_KEY));
     } finally {
-      BaseCase.stop(store);
+      stop(store);
     }
   }
 
@@ -288,7 +286,7 @@ public class S3RetryStoreTest {
     S3RetryStore store =
         new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
     try {
-      BaseCase.start(store);
+      start(store);
       Map<String, String> metadata = new HashMap<>();
       metadata.put(CLASS_UNDER_TEST_KEY, S3RetryStore.class.getCanonicalName());
       String expectedGuid = UUID.randomUUID().toString();
@@ -298,7 +296,7 @@ public class S3RetryStoreTest {
       assertEquals(S3RetryStore.class.getCanonicalName(),
           msg.getMetadataValue(CLASS_UNDER_TEST_KEY));
     } finally {
-      BaseCase.stop(store);
+      stop(store);
     }
   }
 
@@ -315,11 +313,11 @@ public class S3RetryStoreTest {
     S3RetryStore store =
         new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
     try {
-      BaseCase.start(store);
+      start(store);
       Map<String, String> metadata = new HashMap<>();
       AdaptrisMessage msg = store.buildForRetry("XXX", metadata, null);
     } finally {
-      BaseCase.stop(store);
+      stop(store);
     }
   }
 

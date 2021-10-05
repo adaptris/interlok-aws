@@ -192,7 +192,8 @@ public class S3ServiceTest extends ExampleServiceCase {
     ArrayList result = new ArrayList();
     for (OperationsBuilder b : OperationsBuilder.values()) {
       result.add(new S3Service(new AmazonS3Connection()
-          .withCredentialsProviderBuilder(StaticCredentialsProvider.create(AwsBasicCredentials.create(null, null)))
+          // firstly, credentials cannot be empty, secondly XStream doesn't like the AWS builders
+          /*.withCredentialsProviderBuilder(StaticCredentialsProvider.create(AwsBasicCredentials.create("id", "secret")))*/
           .withClientConfiguration(exampleClientConfig()), b.build()));
     }
     return result;

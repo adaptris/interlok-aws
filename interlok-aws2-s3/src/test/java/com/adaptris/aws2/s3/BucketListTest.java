@@ -42,6 +42,7 @@ public class BucketListTest {
     ListObjectsV2Response listing = Mockito.mock(ListObjectsV2Response.class);
     List<S3Object> summaries = new ArrayList<>(Arrays.asList(createSummary("srcBucket", "srcKeyPrefix/"),
         createSummary("srcBucket", "srcKeyPrefix/file.json"), createSummary("srcBucket", "srcKeyPrefix/file2.csv")));
+    Mockito.when(listing.contents()).thenReturn(summaries);
     ArgumentCaptor<ListObjectsV2Request> argument = ArgumentCaptor.forClass(ListObjectsV2Request.class);
     Mockito.when(client.listObjectsV2(argument.capture())).thenReturn(listing);
 
