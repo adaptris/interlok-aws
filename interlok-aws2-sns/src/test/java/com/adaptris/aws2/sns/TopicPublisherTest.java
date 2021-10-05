@@ -47,7 +47,8 @@ public class TopicPublisherTest extends ExampleProducerCase {
   protected StandaloneProducer retrieveObjectForSampleConfig() {
     PublishToTopic producer = new PublishToTopic().withTopicArn("arn:aws2:sns:us-east-1:123456789012:MyNewTopic");
     AmazonSNSConnection conn = new AmazonSNSConnection();
-    conn.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
+    // XStream doesn't like AWS credential objects and their lack of accessible constructors
+    //conn.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
     conn.setRegion("My AWS Region");
     StandaloneProducer result = new StandaloneProducer(conn, producer);
     return result;
