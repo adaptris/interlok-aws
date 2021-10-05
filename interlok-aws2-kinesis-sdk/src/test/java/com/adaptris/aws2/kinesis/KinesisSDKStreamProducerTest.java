@@ -36,7 +36,9 @@ public class KinesisSDKStreamProducerTest extends ExampleProducerCase {
     KinesisSDKStreamProducer producer =
         new KinesisSDKStreamProducer().withStream("%message{myStreamName}").withPartitionKey("myPartitionKey");
     AWSKinesisSDKConnection conn = new AWSKinesisSDKConnection();
-    conn.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
+    // XStream does not like the new AWS SDK objects because it cannot
+    // create them as it wishes; it doesn't understand their builders.
+//    conn.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
     conn.setRegion("My AWS Region");
     return new StandaloneProducer(conn, producer);
   }

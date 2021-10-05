@@ -35,16 +35,6 @@ public class AWSKinesisSDKConnectionTest extends BaseCase {
     assertNotNull(c.createBuilder());
     c.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
     assertNotNull(c.createBuilder());
-
-    // This will throw a SecurityException
-    try {
-      c.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "PW:BLAH_BLAH_BLAH_BLAH")));
-      c.createBuilder();
-      fail();
-    } catch (CoreException expected) {
-
-    }
-
   }
 
   @Test
