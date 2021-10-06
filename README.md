@@ -1,11 +1,11 @@
-# interlok-aws2
-[![GitHub tag](https://img.shields.io/github/tag/adaptris/interlok-aws2.svg)](https://github.com/adaptris/interlok-aws2/tags) ![license](https://img.shields.io/github/license/adaptris/interlok-aws2.svg) [![codecov](https://codecov.io/gh/adaptris/interlok-aws2/branch/develop/graph/badge.svg)](https://codecov.io/gh/adaptris/interlok-aws2) [![Known Vulnerabilities](https://snyk.io/test/github/adaptris/interlok-aws2/badge.svg?targetFile=interlok-aws2-sqs%2Fbuild.gradle)](https://snyk.io/test/github/adaptris/interlok-aws2?targetFile=interlok-aws2-sqs%2Fbuild.gradle) [![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/adaptris/interlok-aws2.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/adaptris/interlok-aws2/context:java)
+# interlok-aws
+[![GitHub tag](https://img.shields.io/github/tag/adaptris/interlok-aws.svg)](https://github.com/adaptris/interlok-aws/tags) ![license](https://img.shields.io/github/license/adaptris/interlok-aws.svg) [![codecov](https://codecov.io/gh/adaptris/interlok-aws/branch/develop/graph/badge.svg)](https://codecov.io/gh/adaptris/interlok-aws) [![Known Vulnerabilities](https://snyk.io/test/github/adaptris/interlok-aws/badge.svg?targetFile=interlok-aws-sqs%2Fbuild.gradle)](https://snyk.io/test/github/adaptris/interlok-aws?targetFile=interlok-aws-sqs%2Fbuild.gradle) [![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/adaptris/interlok-aws.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/adaptris/interlok-aws/context:java)
 
 The suggested name was `musical-octo-waffle`
 
 # Testing with localstack
 
-If you don't do anything else, then all the testing (that gives you the [![codecov](https://codecov.io/gh/adaptris/interlok-aws2/branch/develop/graph/badge.svg)](https://codecov.io/gh/adaptris/interlok-aws2) score) is done via mocking to check behaviour. However, there is the ability to perform some limited integration tests using localstack as the AWS provider. The expectation is that localstack is spun up in a separately; if you have docker-compose then you can use `docker-compose up` with this configuration file.
+If you don't do anything else, then all the testing (that gives you the [![codecov](https://codecov.io/gh/adaptris/interlok-aws/branch/develop/graph/badge.svg)](https://codecov.io/gh/adaptris/interlok-aws) score) is done via mocking to check behaviour. However, there is the ability to perform some limited integration tests using localstack as the AWS provider. The expectation is that localstack is spun up in a separately; if you have docker-compose then you can use `docker-compose up` with this configuration file.
 
 ```
 version: '3.2'
@@ -66,7 +66,7 @@ $ jar -tvf build/distribution/lib/amazon-kinesis-producer.jar | grep native
 If you need to pin to a specific version then we suggest you something like this when managing your dependencies (gradle)
 
 ```
-  interlokRuntime ("com.adaptris:interlok-aws2-kinesis:3.11-SNAPSHOT") {
+  interlokRuntime ("com.adaptris:interlok-aws-kinesis:3.11-SNAPSHOT") {
     changing=true
     exclude group: "com.amazonaws", module: "amazon-kinesis-producer"
   }
