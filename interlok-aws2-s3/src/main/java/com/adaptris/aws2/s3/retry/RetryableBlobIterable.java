@@ -1,8 +1,9 @@
 package com.adaptris.aws2.s3.retry;
 
+import com.adaptris.interlok.cloud.RemoteBlob;
+
 import java.util.Iterator;
 import java.util.function.Function;
-import com.adaptris.interlok.cloud.RemoteBlob;
 
 class RetryableBlobIterable implements Iterable<RemoteBlob>, Iterator<RemoteBlob> {
 

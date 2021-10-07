@@ -20,8 +20,6 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.apache.http.HttpStatus;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.retry.backoff.BackoffStrategy;
-import software.amazon.awssdk.core.retry.conditions.RetryCondition;
-import software.amazon.awssdk.core.retry.conditions.RetryOnExceptionsCondition;
 import software.amazon.awssdk.core.retry.conditions.RetryOnStatusCodeCondition;
 
 import java.util.HashSet;

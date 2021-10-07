@@ -27,7 +27,6 @@ import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.util.KeyValuePairSet;
-import com.amazonaws.auth.policy.actions.SQSActions;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NonNull;
@@ -36,7 +35,6 @@ import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.SqsClientBuilder;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;

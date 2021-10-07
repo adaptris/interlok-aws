@@ -13,7 +13,6 @@ import com.adaptris.interlok.cloud.RemoteBlobFilterWrapper;
 import com.adaptris.util.KeyValuePair;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -54,7 +53,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyObject;
-import static org.mockito.ArgumentMatchers.anyString;
 
 @SuppressWarnings("deprecation")
 public class MockedOperationTest {

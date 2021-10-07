@@ -16,20 +16,18 @@
 
 package com.adaptris.aws2.s3;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import javax.validation.Valid;
-
-import org.apache.commons.lang3.ObjectUtils;
-
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.MetadataCollection;
 import com.adaptris.core.MetadataElement;
 import com.adaptris.core.metadata.MetadataFilter;
 import com.adaptris.core.metadata.RemoveAllMetadataFilter;
+import org.apache.commons.lang3.ObjectUtils;
+
+import javax.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Abstract base class for S3 Upload/Download Operations.

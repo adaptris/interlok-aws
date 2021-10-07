@@ -16,7 +16,6 @@
 
 package com.adaptris.aws2.kinesis;
 
-import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.junit.scaffolding.BaseCase;
 import org.junit.Test;
@@ -25,7 +24,6 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 
 public class AWSKinesisSDKConnectionTest extends BaseCase {
 

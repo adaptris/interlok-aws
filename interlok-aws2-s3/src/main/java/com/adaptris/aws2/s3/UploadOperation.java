@@ -24,7 +24,6 @@ import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.aws2.s3.acl.S3ObjectAcl;
 import com.adaptris.aws2.s3.meta.S3ObjectMetadata;
 import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.util.ManagedThreadFactory;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;

@@ -14,9 +14,6 @@
 
 package com.adaptris.aws2.s3;
 
-import javax.validation.constraints.NotBlank;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
@@ -24,6 +21,10 @@ import com.adaptris.interlok.util.Args;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.validation.constraints.NotBlank;
 
 /**
  * Abstract base class for S3 Operations.

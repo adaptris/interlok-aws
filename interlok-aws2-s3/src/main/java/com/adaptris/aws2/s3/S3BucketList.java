@@ -1,6 +1,5 @@
 package com.adaptris.aws2.s3;
 
-import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
@@ -19,6 +18,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+
+import javax.validation.constraints.NotBlank;
 
 /**
  * Query a S3 Location for a list of blobs stored there.

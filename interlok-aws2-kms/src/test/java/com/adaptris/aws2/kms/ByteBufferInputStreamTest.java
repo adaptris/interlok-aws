@@ -1,10 +1,12 @@
 package com.adaptris.aws2.kms;
 
-import static com.adaptris.aws2.kms.LocalstackHelper.MSG_CONTENTS;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+
+import static com.adaptris.aws2.kms.LocalstackHelper.MSG_CONTENTS;
 
 public class ByteBufferInputStreamTest {
 

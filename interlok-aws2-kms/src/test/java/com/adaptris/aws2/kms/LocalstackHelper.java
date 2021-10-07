@@ -1,18 +1,20 @@
 package com.adaptris.aws2.kms;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import com.adaptris.core.util.PropertyHelper;
+import com.adaptris.util.stream.DevNullOutputStream;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.ReaderInputStream;
+import org.apache.commons.lang3.BooleanUtils;
+
 import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.Properties;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.ReaderInputStream;
-import org.apache.commons.lang3.BooleanUtils;
-import com.adaptris.core.util.PropertyHelper;
-import com.adaptris.util.stream.DevNullOutputStream;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class LocalstackHelper {
   public static final String TESTS_ENABLED = "localstack.tests.enabled";

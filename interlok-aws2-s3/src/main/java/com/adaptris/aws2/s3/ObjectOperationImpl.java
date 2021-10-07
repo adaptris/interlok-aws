@@ -1,6 +1,5 @@
 package com.adaptris.aws2.s3;
 
-import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.CoreException;
@@ -8,6 +7,8 @@ import com.adaptris.interlok.util.Args;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import javax.validation.constraints.NotBlank;
 
 /**
  * Operation on a single S3 Object.

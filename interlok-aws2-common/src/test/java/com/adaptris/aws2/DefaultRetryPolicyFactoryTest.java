@@ -1,8 +1,9 @@
 package com.adaptris.aws2;
 
-import static org.junit.Assert.assertNotNull;
-import org.junit.Test;
 import com.adaptris.aws2.DefaultRetryPolicyFactory.PredefinedPolicy;
+import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
 
 public class DefaultRetryPolicyFactoryTest {
 

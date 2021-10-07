@@ -16,7 +16,6 @@
 
 package com.adaptris.aws2.kms;
 
-import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LifecycleHelper;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -24,7 +23,6 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
 
 public class KMSConnectionTest {
 

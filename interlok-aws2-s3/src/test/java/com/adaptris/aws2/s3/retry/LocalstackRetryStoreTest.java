@@ -1,5 +1,21 @@
 package com.adaptris.aws2.s3.retry;
 
+import com.adaptris.aws2.s3.CreateBucketOperation;
+import com.adaptris.aws2.s3.DeleteBucketOperation;
+import com.adaptris.aws2.s3.S3Service;
+import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.AdaptrisMessageFactory;
+import com.adaptris.core.CoreConstants;
+import com.adaptris.interlok.cloud.RemoteBlob;
+import com.adaptris.interlok.junit.scaffolding.BaseCase;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
+import java.util.Iterator;
+
 import static com.adaptris.aws2.s3.LocalstackConfig.S3_RETRY_BUCKET_NAME;
 import static com.adaptris.aws2.s3.LocalstackConfig.S3_RETRY_PREFIX;
 import static com.adaptris.aws2.s3.LocalstackConfig.areTestsEnabled;
@@ -10,20 +26,6 @@ import static com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCas
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import java.util.Iterator;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-import com.adaptris.aws2.s3.CreateBucketOperation;
-import com.adaptris.aws2.s3.DeleteBucketOperation;
-import com.adaptris.aws2.s3.S3Service;
-import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.CoreConstants;
-import com.adaptris.interlok.cloud.RemoteBlob;
-import com.adaptris.interlok.junit.scaffolding.BaseCase;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class LocalstackRetryStoreTest {

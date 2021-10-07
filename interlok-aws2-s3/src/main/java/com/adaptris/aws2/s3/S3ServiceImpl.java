@@ -16,8 +16,6 @@
 
 package com.adaptris.aws2.s3;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.ConnectedService;
 import com.adaptris.core.CoreException;
@@ -27,6 +25,9 @@ import com.adaptris.interlok.util.Args;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 /**
  * Abstract implemention of {@link S3Service}

@@ -28,8 +28,6 @@ import com.adaptris.interlok.types.InterlokMessage;
 import com.adaptris.util.GuidGenerator;
 import org.junit.Test;
 import org.mockito.Mockito;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
 import software.amazon.awssdk.services.sns.model.PublishResponse;

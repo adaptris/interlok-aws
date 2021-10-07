@@ -1,12 +1,15 @@
 package com.adaptris.aws2.s3.retry;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+
+import com.adaptris.interlok.cloud.RemoteBlob;
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
-import org.junit.Test;
-import com.adaptris.interlok.cloud.RemoteBlob;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class RetryableBlobIterableTest {
 

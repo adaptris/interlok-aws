@@ -1,5 +1,18 @@
 package com.adaptris.aws2.s3;
 
+import com.adaptris.core.AdaptrisMessage;
+import com.adaptris.core.AdaptrisMessageFactory;
+import com.adaptris.core.ServiceException;
+import com.adaptris.core.metadata.NoOpMetadataFilter;
+import com.adaptris.core.metadata.RegexMetadataFilter;
+import com.adaptris.interlok.cloud.RemoteBlobFilterWrapper;
+import org.apache.commons.io.filefilter.RegexFileFilter;
+import org.junit.Assume;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
+import org.junit.runners.MethodSorters;
+
 import static com.adaptris.aws2.s3.LocalstackConfig.MY_TAG;
 import static com.adaptris.aws2.s3.LocalstackConfig.MY_TAG_TEXT;
 import static com.adaptris.aws2.s3.LocalstackConfig.S3_BUCKETNAME;
@@ -14,18 +27,6 @@ import static com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCas
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
-import com.adaptris.core.AdaptrisMessage;
-import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.ServiceException;
-import com.adaptris.core.metadata.NoOpMetadataFilter;
-import com.adaptris.core.metadata.RegexMetadataFilter;
-import com.adaptris.interlok.cloud.RemoteBlobFilterWrapper;
 
 // A new local stack instance; we're going upload, copy, tag, download, get, delete in that order
 // So, sadly we are being really lame, and forcing the ordering...

@@ -31,8 +31,6 @@ import com.adaptris.util.KeyValuePair;
 import com.adaptris.util.KeyValuePairSet;
 import org.junit.Test;
 import org.mockito.Mockito;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 
 import java.util.ArrayList;
 import java.util.Arrays;

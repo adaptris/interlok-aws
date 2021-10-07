@@ -1,13 +1,14 @@
 package com.adaptris.aws2.sqs;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import org.junit.Test;
-import org.mockito.Mockito;
 import com.adaptris.core.runtime.RuntimeInfoComponentFactory;
 import com.adaptris.core.runtime.WorkflowManager;
 import com.adaptris.util.GuidGenerator;
+import org.junit.Test;
+import org.mockito.Mockito;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 public class ConsumerMonitorTest {
 

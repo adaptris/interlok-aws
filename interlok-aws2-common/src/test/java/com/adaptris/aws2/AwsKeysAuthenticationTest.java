@@ -1,8 +1,9 @@
 package com.adaptris.aws2;
 
+import org.junit.Test;
+
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import org.junit.Test;
 
 public class AwsKeysAuthenticationTest {
 
