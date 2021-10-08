@@ -1,6 +1,8 @@
 package com.adaptris.aws2.kms;
 
+import com.adaptris.aws2.AWSKeysAuthentication;
 import com.adaptris.aws2.CustomEndpoint;
+import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.common.ByteArrayFromPayload;
@@ -89,7 +91,7 @@ public class LocalstackEncryptionTest {
     String signingRegion = CONFIG.getProperty(KMS_SIGNING_REGION);
     AWSKMSConnection connection = new AWSKMSConnection()
         .withCredentialsProviderBuilder(
-                StaticCredentialsProvider.create(AwsBasicCredentials.create("TEST", "TEST")))
+                new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("TEST", "TEST")))
         .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion));
     return connection;
   }

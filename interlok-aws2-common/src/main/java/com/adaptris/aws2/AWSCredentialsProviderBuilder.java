@@ -14,8 +14,9 @@ public interface AWSCredentialsProviderBuilder {
     return build();
   }
 
-  static AwsCredentialsProvider defaultIfNull(AwsCredentialsProvider provider) {
-    return ObjectUtils.defaultIfNull(provider, AnonymousCredentialsProvider.create());
+  static AWSCredentialsProviderBuilder defaultIfNull(AWSCredentialsProviderBuilder builder) {
+    return ObjectUtils.defaultIfNull(builder,
+            new StaticCredentialsBuilder().withAuthentication(new DefaultAWSAuthentication()));
   }
 
   interface BuilderConfig {

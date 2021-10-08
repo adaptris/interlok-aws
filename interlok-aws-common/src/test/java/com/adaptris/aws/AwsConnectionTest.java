@@ -29,9 +29,7 @@ public class AwsConnectionTest extends AWSConnection {
     assertEquals(StaticCredentialsBuilder.class, credentialsProvider().getClass());
     assertNull(getCredentials());
     assertEquals(StaticCredentialsBuilder.class, credentialsProvider().getClass());
-    withCredentialsProviderBuilder(new StaticCredentialsBuilder().withAuthentication(new DefaultAWSAuthentication()));
-    assertEquals(StaticCredentialsBuilder.class, credentialsProvider().getClass());
-    assertEquals(DefaultAWSAuthentication.class, ((StaticCredentialsBuilder) credentialsProvider()).getAuthentication().getClass());
+
   }
 
   @Test

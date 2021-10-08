@@ -77,7 +77,7 @@ public class AmazonSNSConnection extends AWSConnection {
       ClientOverrideConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
       SnsClientBuilder builder = endpointBuilder().rebuild(SnsClient.builder());
       builder.overrideConfiguration(cc);
-      builder.credentialsProvider(credentialsProvider());
+      builder.credentialsProvider(credentialsProvider().build(this));
       snsClient = builder.build();
     }
     catch (Exception e) {

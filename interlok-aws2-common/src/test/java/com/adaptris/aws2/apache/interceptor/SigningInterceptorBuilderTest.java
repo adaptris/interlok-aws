@@ -1,12 +1,11 @@
 package com.adaptris.aws2.apache.interceptor;
 
+import com.adaptris.aws2.AWSCredentialsProviderBuilder;
+import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.amazonaws.http.AWSRequestSigningApacheInterceptor;
 import org.apache.http.HttpRequestInterceptor;
 import org.junit.Test;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -17,7 +16,7 @@ public class SigningInterceptorBuilderTest {
   public void testBuild() {
     ApacheSigningInterceptor builder =
         new ApacheSigningInterceptor().withRegion("region").withService("service")
-            .withCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")));
+            .withCredentials(new StaticCredentialsBuilder());
     HttpRequestInterceptor interceptor = builder.build();
     assertNotNull(interceptor);
     assertEquals(AWSRequestSigningApacheInterceptor.class, interceptor.getClass());
@@ -32,9 +31,10 @@ public class SigningInterceptorBuilderTest {
     HttpRequestInterceptor interceptor = builder.build();
   }
 
-  private class FailingCredentialsBuilder implements AwsCredentialsProvider {
+  private class FailingCredentialsBuilder implements AWSCredentialsProviderBuilder
+  {
     @Override
-    public AwsCredentials resolveCredentials()
+    public AwsCredentialsProvider build() throws Exception
     {
       throw new RuntimeException();
     }

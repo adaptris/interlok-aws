@@ -109,7 +109,7 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
       builder.serviceConfiguration(s3ConfigurationBuilder.build());
       builder.overrideConfiguration(ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy()));
 
-      builder.credentialsProvider(credentialsProvider());
+      builder.credentialsProvider(credentialsProvider().build(this));
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }

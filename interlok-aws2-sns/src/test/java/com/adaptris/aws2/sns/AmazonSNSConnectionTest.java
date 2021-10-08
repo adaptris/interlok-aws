@@ -16,7 +16,9 @@
 
 package com.adaptris.aws2.sns;
 
+import com.adaptris.aws2.AWSKeysAuthentication;
 import com.adaptris.aws2.CustomEndpoint;
+import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.junit.scaffolding.BaseCase;
@@ -45,7 +47,7 @@ public class AmazonSNSConnectionTest extends BaseCase {
   @Test
   public void testLifecycle() throws Exception {
     AmazonSNSConnection conn = new AmazonSNSConnection().withCredentialsProviderBuilder(
-            StaticCredentialsProvider.create(AwsBasicCredentials.create("access", "secret")));
+            new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("access", "secret")));
     try {
       conn.setRegion("eu-central-1");
       LifecycleHelper.initAndStart(conn);

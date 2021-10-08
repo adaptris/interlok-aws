@@ -109,7 +109,7 @@ public class AmazonSQSConnection extends AWSConnection {
   protected synchronized void initConnection() throws CoreException {
     try {
       ClientOverrideConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
-      client = getSqsClientFactory().createClient(credentialsProvider(), cc, endpointBuilder());
+      client = getSqsClientFactory().createClient(credentialsProvider().build(this), cc, endpointBuilder());
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }

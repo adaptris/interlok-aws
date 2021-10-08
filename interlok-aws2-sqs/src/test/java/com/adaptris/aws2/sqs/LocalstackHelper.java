@@ -1,11 +1,11 @@
 package com.adaptris.aws2.sqs;
 
+import com.adaptris.aws2.AWSKeysAuthentication;
 import com.adaptris.aws2.CustomEndpoint;
+import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.core.util.PropertyHelper;
 import org.apache.commons.lang3.BooleanUtils;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueAttributesRequest;
@@ -57,7 +57,7 @@ public class LocalstackHelper {
     String serviceEndpoint = getProperty(SQS_URL);
     String signingRegion = getProperty(SQS_SIGNING_REGION);
     AmazonSQSConnection connection = new AmazonSQSConnection()
-        .withCredentialsProviderBuilder(StaticCredentialsProvider.create(AwsBasicCredentials.create("TEST", "TEST")))
+        .withCredentialsProviderBuilder(new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("TEST", "TEST")))
         .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion));
     return connection;
   }

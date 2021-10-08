@@ -16,6 +16,8 @@
 
 package com.adaptris.aws2.s3;
 
+import com.adaptris.aws2.AWSKeysAuthentication;
+import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.junit.scaffolding.BaseCase;
 import org.junit.Test;
@@ -34,7 +36,7 @@ public class AmazonS3ConnectionTest extends BaseCase {
     c.setForcePathStyleAccess(Boolean.TRUE);
     assertNotNull(c.createBuilder());
     c.setForcePathStyleAccess(null);
-    c.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
+    c.setCredentials(new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey")));
     assertNotNull(c.createBuilder());
   }
 

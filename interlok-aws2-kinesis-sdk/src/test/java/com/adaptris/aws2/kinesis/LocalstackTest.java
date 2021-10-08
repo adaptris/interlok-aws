@@ -1,6 +1,8 @@
 package com.adaptris.aws2.kinesis;
 
+import com.adaptris.aws2.AWSKeysAuthentication;
 import com.adaptris.aws2.CustomEndpoint;
+import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.StandaloneProducer;
@@ -93,7 +95,8 @@ public class LocalstackTest {
     String serviceEndpoint = getProperty(KINESIS_URL);
     String signingRegion = getProperty(KINESIS_SIGNING_REGION);
     return new AWSKinesisSDKConnection()
-      .withCredentialsProviderBuilder(StaticCredentialsProvider.create(AwsBasicCredentials.create("TEST", "TEST")))
+            .withCredentialsProviderBuilder(
+                    new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("TEST", "TEST")))
       .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion));
   }
 

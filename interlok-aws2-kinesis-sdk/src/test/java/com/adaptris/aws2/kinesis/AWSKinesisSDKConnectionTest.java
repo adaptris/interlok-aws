@@ -16,6 +16,8 @@
 
 package com.adaptris.aws2.kinesis;
 
+import com.adaptris.aws2.AWSKeysAuthentication;
+import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.junit.scaffolding.BaseCase;
 import org.junit.Test;
@@ -31,7 +33,7 @@ public class AWSKinesisSDKConnectionTest extends BaseCase {
   public void testCreateBuilder() throws Exception {
     AWSKinesisSDKConnection c = new AWSKinesisSDKConnection();
     assertNotNull(c.createBuilder());
-    c.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
+    c.setCredentials(new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey")));
     assertNotNull(c.createBuilder());
   }
 

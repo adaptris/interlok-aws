@@ -16,6 +16,8 @@
 
 package com.adaptris.aws2.kms;
 
+import com.adaptris.aws2.AWSKeysAuthentication;
+import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.util.LifecycleHelper;
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -30,7 +32,7 @@ public class KMSConnectionTest {
   public void testCreateBuilder() throws Exception {
     AWSKMSConnection c = new AWSKMSConnection();
     assertNotNull(c.createBuilder());
-    c.setCredentials(StaticCredentialsProvider.create(AwsBasicCredentials.create("accessKey", "secretKey")));
+    c.setCredentials(new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey")));
     assertNotNull(c.createBuilder());
   }
 

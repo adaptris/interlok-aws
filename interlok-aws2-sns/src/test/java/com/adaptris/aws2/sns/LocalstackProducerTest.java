@@ -1,6 +1,8 @@
 package com.adaptris.aws2.sns;
 
+import com.adaptris.aws2.AWSKeysAuthentication;
 import com.adaptris.aws2.CustomEndpoint;
+import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.StandaloneProducer;
@@ -13,8 +15,6 @@ import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.CreateTopicRequest;
 import software.amazon.awssdk.services.sns.model.CreateTopicResponse;
@@ -83,8 +83,8 @@ public class LocalstackProducerTest {
     String serviceEndpoint = config.getProperty(SNS_URL);
     String signingRegion = config.getProperty(SNS_SIGNING_REGION);
     AmazonSNSConnection connection = new AmazonSNSConnection()
-        .withCredentialsProviderBuilder(StaticCredentialsProvider.create(
-            AwsBasicCredentials.create("TEST", "TEST")))
+        .withCredentialsProviderBuilder(new StaticCredentialsBuilder()
+            .withAuthentication(new AWSKeysAuthentication("TEST", "TEST")))
         .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint)
             .withSigningRegion(signingRegion));
     return connection;

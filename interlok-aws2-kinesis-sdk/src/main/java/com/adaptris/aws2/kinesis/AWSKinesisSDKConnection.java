@@ -85,7 +85,7 @@ public class AWSKinesisSDKConnection extends AWSConnection {
       ClientOverrideConfiguration cc = ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy());
       builder = endpointBuilder().rebuild(KinesisClient.builder());
       builder.overrideConfiguration(cc);
-      builder.credentialsProvider(credentialsProvider());
+      builder.credentialsProvider(credentialsProvider().build(this));
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }

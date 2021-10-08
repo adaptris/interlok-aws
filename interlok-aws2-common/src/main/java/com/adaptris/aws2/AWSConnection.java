@@ -55,7 +55,7 @@ public abstract class AWSConnection extends AdaptrisConnectionImp
   @Setter
   @Valid
   @InputFieldDefault(value = "aws2-static-credentials-builder with default credentials")
-  private AwsCredentialsProvider credentials;
+  private AWSCredentialsProviderBuilder credentials;
 
   /**
    * Any specific client configuration.
@@ -94,7 +94,7 @@ public abstract class AWSConnection extends AdaptrisConnectionImp
   @Setter
   private CustomEndpoint customEndpoint;
 
-  public AwsCredentialsProvider credentialsProvider() {
+  public AWSCredentialsProviderBuilder credentialsProvider() {
     return AWSCredentialsProviderBuilder.defaultIfNull(getCredentials());
   }
 
@@ -113,7 +113,7 @@ public abstract class AWSConnection extends AdaptrisConnectionImp
     return (T) this;
   }
 
-  public <T extends AWSConnection> T withCredentialsProviderBuilder(AwsCredentialsProvider builder) {
+  public <T extends AWSConnection> T withCredentialsProviderBuilder(AWSCredentialsProviderBuilder builder) {
     setCredentials(builder);
     return (T) this;
   }
