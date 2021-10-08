@@ -93,3 +93,16 @@ Caused by: java.io.IOException: Cannot run program "/tmp/amazon-kinesis-producer
         ... 5 common frames omitted
 Caused by: java.io.IOException: error=2, No such file or directory
 ```
+
+# AWS SDK v2
+
+The AWS SDK for Java 2.x is a major rewrite of the 1.x code base built
+on top of Java 8+. It includes many updates, such as improved
+consistency, ease of use, and strongly enforced immutability. A lot of
+the configuration is the same from an Interlok end-user point of view,
+although this isn't guaranteed.
+
+There are also several features that are not yet available is the new
+SDK: S3 transfer manager, S3 encryption client, DynamoDB document APIs,
+DynamoDB encryption client and SQS Client-side Buffering; plus Progress
+Listeners.
