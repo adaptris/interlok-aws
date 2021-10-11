@@ -15,7 +15,7 @@ public class SigningInterceptorBuilderTest {
   @Test
   public void testBuild() {
     ApacheSigningInterceptor builder =
-        new ApacheSigningInterceptor().withRegion("region").withService("service")
+        new ApacheSigningInterceptor().withRegion("eu-west-1").withService("service")
             .withCredentials(new StaticCredentialsBuilder());
     HttpRequestInterceptor interceptor = builder.build();
     assertNotNull(interceptor);
