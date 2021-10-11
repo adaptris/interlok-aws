@@ -1,6 +1,7 @@
 package com.adaptris.aws2.apache.interceptor;
 
 import com.adaptris.aws2.AWSCredentialsProviderBuilder;
+import com.adaptris.aws2.AWSKeysAuthentication;
 import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.amazonaws.http.AWSRequestSigningApacheInterceptor;
 import org.apache.http.HttpRequestInterceptor;
@@ -16,7 +17,7 @@ public class SigningInterceptorBuilderTest {
   public void testBuild() {
     ApacheSigningInterceptor builder =
         new ApacheSigningInterceptor().withRegion("eu-west-1").withService("service")
-            .withCredentials(new StaticCredentialsBuilder());
+            .withCredentials(new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("access", "secret")));
     HttpRequestInterceptor interceptor = builder.build();
     assertNotNull(interceptor);
     assertEquals(AWSRequestSigningApacheInterceptor.class, interceptor.getClass());
