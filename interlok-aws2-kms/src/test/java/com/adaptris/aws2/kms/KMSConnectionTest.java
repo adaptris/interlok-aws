@@ -39,6 +39,7 @@ public class KMSConnectionTest {
   @Test
   public void testLifecycle() throws Exception {
     AWSKMSConnection c = new AWSKMSConnection();
+    c.setCredentials(new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey")));
     try {
       c.setRegion("eu-central-1");
       LifecycleHelper.initAndStart(c);
