@@ -44,6 +44,7 @@ public class AmazonS3ConnectionTest extends BaseCase {
   public void testLifecycle() throws Exception {
     AmazonS3Connection c = new AmazonS3Connection();
     try {
+      c.setCredentials(new StaticCredentialsBuilder().withAuthentication(new AWSKeysAuthentication("accessKey", "secretKey")));
       c.setRegion("eu-central-1");
       LifecycleHelper.initAndStart(c);
       assertNotNull(c.amazonClient());

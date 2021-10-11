@@ -29,6 +29,7 @@ import com.adaptris.core.util.ExceptionHelper;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.Setter;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
@@ -104,6 +105,10 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
 
       if (getForcePathStyleAccess() != null) {
         s3ConfigurationBuilder.pathStyleAccessEnabled(getForcePathStyleAccess());
+      }
+
+      if (getRegion() != null) {
+        builder.region(Region.of(getRegion()));
       }
 
       builder.serviceConfiguration(s3ConfigurationBuilder.build());
