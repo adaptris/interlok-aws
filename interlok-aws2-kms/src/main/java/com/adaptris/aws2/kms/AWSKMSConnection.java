@@ -27,6 +27,7 @@ import com.adaptris.core.util.ExceptionHelper;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.NoArgsConstructor;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.kms.KmsClientBuilder;
 
@@ -98,7 +99,9 @@ public class AWSKMSConnection extends AWSConnection implements ClientWrapper<Kms
 
       builder = KmsClient.builder();
       builder.overrideConfiguration(cc);
-
+      if (getRegion() != null) {
+        builder.region(Region.of(getRegion()));
+      }
       builder.credentialsProvider(credentialsProvider().build(this));
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
