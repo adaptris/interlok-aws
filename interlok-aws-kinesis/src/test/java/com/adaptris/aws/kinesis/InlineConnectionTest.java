@@ -18,11 +18,11 @@ package com.adaptris.aws.kinesis;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-
+import static org.junit.Assume.assumeFalse;
 import org.junit.Test;
-
 import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.junit.scaffolding.util.Os;
 import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.services.kinesis.producer.KinesisProducer;
 
@@ -40,6 +40,8 @@ public class InlineConnectionTest extends ConnectionFromProperties {
 
   @Test
   public void testKinesisProducer() throws Exception {
+    // On Windows the "kinesis_producer" executable is often missing
+    assumeFalse(Os.isFamily(Os.WINDOWS_FAMILY));
     InlineProducerConfiguration conn = new InlineProducerConfiguration()
         .withCredentials(new StaticCredentialsBuilder()).withMetricsCredentials(null)
         .withConfig(new KeyValuePairSet());

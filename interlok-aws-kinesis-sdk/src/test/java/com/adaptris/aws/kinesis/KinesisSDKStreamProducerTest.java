@@ -1,5 +1,16 @@
 package com.adaptris.aws.kinesis;
 
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.fail;
+import static org.mockito.ArgumentMatchers.any;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
@@ -15,18 +26,6 @@ import com.amazonaws.services.kinesis.AmazonKinesis;
 import com.amazonaws.services.kinesis.model.PutRecordsRequest;
 import com.amazonaws.services.kinesis.model.PutRecordsResult;
 import com.amazonaws.services.kinesis.model.ResourceNotFoundException;
-import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.fail;
-import static org.mockito.ArgumentMatchers.any;
 
 public class KinesisSDKStreamProducerTest extends ExampleProducerCase {
 
@@ -119,9 +118,12 @@ public class KinesisSDKStreamProducerTest extends ExampleProducerCase {
     assertEquals(2, putRecordsRequest.size());
 
     assertEquals(1, putRecordsRequest.get(0).getRecords().size());
-    assertEquals("Record 1\n", StandardCharsets.UTF_8.decode(putRecordsRequest.get(0).getRecords().get(0).getData()).toString());
+    // Dodgy windows \r\n so we normalize and trim
+    assertEquals("Record 1", StringUtils.normalizeSpace(StandardCharsets.UTF_8
+        .decode(putRecordsRequest.get(0).getRecords().get(0).getData()).toString()).trim());
     assertEquals(1, putRecordsRequest.get(1).getRecords().size());
-    assertEquals("Record 2\n", StandardCharsets.UTF_8.decode(putRecordsRequest.get(1).getRecords().get(0).getData()).toString());
+    assertEquals("Record 2", StringUtils.normalizeSpace(StandardCharsets.UTF_8
+        .decode(putRecordsRequest.get(1).getRecords().get(0).getData()).toString()).trim());
   }
 
   private void runTest(KinesisSDKStreamProducer producer, List<String> results) throws Exception{
@@ -143,8 +145,12 @@ public class KinesisSDKStreamProducerTest extends ExampleProducerCase {
     assertEquals(results.size(), putRecordsRequest.getRecords().size());
 
     int i = 0;
-    for (String expected : results) {
-      assertEquals(expected, StandardCharsets.UTF_8.decode(putRecordsRequest.getRecords().get(i++).getData()).toString());
+    for (String s : results) {
+      // Dodgy windows \r\n so we normalize and trim
+      String expected = StringUtils.normalizeSpace(s).trim();
+      String actual = StringUtils.normalizeSpace(StandardCharsets.UTF_8
+          .decode(putRecordsRequest.getRecords().get(i++).getData()).toString()).trim();
+      assertEquals(expected, actual);
     }
   }
 
