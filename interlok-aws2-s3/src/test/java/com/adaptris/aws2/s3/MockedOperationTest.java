@@ -52,7 +52,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyObject;
 
 @SuppressWarnings("deprecation")
 public class MockedOperationTest {
@@ -150,7 +149,7 @@ public class MockedOperationTest {
   @Test
   public void testTag_WithFilter() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
-    Mockito.doAnswer(i -> null).when(client).putObjectTagging((PutObjectTaggingRequest) anyObject());
+    Mockito.doAnswer(i -> null).when(client).putObjectTagging((PutObjectTaggingRequest) any());
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMessageHeader("hello", "world");
 
@@ -164,7 +163,7 @@ public class MockedOperationTest {
   @Test
   public void testTag_NoFilter() throws Exception {
     S3Client client = Mockito.mock(S3Client.class);
-    Mockito.doAnswer(i -> null).when(client).putObjectTagging((PutObjectTaggingRequest) anyObject());
+    Mockito.doAnswer(i -> null).when(client).putObjectTagging((PutObjectTaggingRequest) any());
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMessageHeader("hello", "world");
 
@@ -189,7 +188,7 @@ public class MockedOperationTest {
 //    Mockito.when(downloadObject.getProgress()).thenReturn(progress);
 //    Mockito.doAnswer(i -> null).when(downloadObject).waitForCompletion();
 //
-//    Mockito.when(transferManager.download((GetObjectRequest) anyObject(), (File) anyObject())).thenReturn(downloadObject);
+//    Mockito.when(transferManager.download((GetObjectRequest) any(), (File) any())).thenReturn(downloadObject);
 
     Mockito.when(client.getObject((GetObjectRequest)any())).thenReturn(responseStream);
     Mockito.when(responseStream.response()).thenReturn(response);
@@ -219,7 +218,7 @@ public class MockedOperationTest {
 //    Mockito.when(downloadObject.getProgress()).thenReturn(progress);
 //    Mockito.doAnswer(i -> null).when(downloadObject).waitForCompletion();
 //
-//    Mockito.when(transferManager.download((GetObjectRequest) anyObject(), (File) anyObject())).thenReturn(downloadObject);
+//    Mockito.when(transferManager.download((GetObjectRequest) any(), (File) any())).thenReturn(downloadObject);
 
     Mockito.when(client.getObject((GetObjectRequest)any())).thenReturn(responseStream);
     Mockito.when(responseStream.response()).thenReturn(response);
@@ -272,7 +271,7 @@ public class MockedOperationTest {
 //    Mockito.when(uploadObject.getProgress()).thenReturn(progress);
 //    Mockito.doAnswer(i -> null).when(uploadObject).waitForCompletion();
 //
-//    Mockito.when(transferManager.upload((PutObjectRequest) anyObject())).thenReturn(uploadObject);
+//    Mockito.when(transferManager.upload((PutObjectRequest) any())).thenReturn(uploadObject);
 
     Mockito.when(client.putObject((PutObjectRequest)any(), (RequestBody)any())).thenReturn(response);
 
@@ -297,7 +296,7 @@ public class MockedOperationTest {
 //    Mockito.when(uploadObject.getProgress()).thenReturn(progress);
 //    Mockito.doAnswer(i -> null).when(uploadObject).waitForCompletion();
 //
-//    Mockito.when(transferManager.upload((PutObjectRequest) anyObject())).thenReturn(uploadObject);
+//    Mockito.when(transferManager.upload((PutObjectRequest) any())).thenReturn(uploadObject);
 
     Mockito.when(client.putObject((PutObjectRequest)any(), (RequestBody)any())).thenReturn(response);
 
@@ -323,7 +322,7 @@ public class MockedOperationTest {
 //    Mockito.when(uploadObject.getProgress()).thenReturn(progress);
 //    Mockito.doAnswer(i -> null).when(uploadObject).waitForCompletion();
 //
-//    Mockito.when(transferManager.upload((PutObjectRequest) anyObject())).thenReturn(uploadObject);
+//    Mockito.when(transferManager.upload((PutObjectRequest) any())).thenReturn(uploadObject);
 
     Mockito.when(client.putObject((PutObjectRequest)any(), (RequestBody)any())).thenReturn(response);
 
@@ -376,7 +375,7 @@ public class MockedOperationTest {
     List<Tag> tags = new ArrayList<>(Arrays.asList(Tag.builder().key("hello").value("world").build()));
     Mockito.when(result.tagSet()).thenReturn(tags);
 
-    Mockito.when(client.getObjectTagging((GetObjectTaggingRequest)anyObject())).thenReturn(result);
+    Mockito.when(client.getObjectTagging((GetObjectTaggingRequest)any())).thenReturn(result);
     GetTagOperation getTags = new GetTagOperation().withTagMetadataFilter(new NoOpMetadataFilter())
         .withObjectName("srcKey").withBucket("srcBucket");
 
