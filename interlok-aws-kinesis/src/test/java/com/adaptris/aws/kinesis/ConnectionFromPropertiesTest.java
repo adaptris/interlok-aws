@@ -20,14 +20,16 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.Assume.assumeFalse;
 import java.io.IOException;
 import org.junit.Test;
 import org.mockito.Mockito;
 import com.adaptris.core.util.LifecycleHelper;
+import com.adaptris.interlok.junit.scaffolding.util.Os;
 import com.amazonaws.services.kinesis.producer.KinesisProducer;
 
 public class ConnectionFromPropertiesTest extends ConnectionFromProperties {
-
+  
   @Test
   public void testConfigLocation() {
     ConnectionFromProperties conn = new ConnectionFromProperties();
@@ -53,6 +55,8 @@ public class ConnectionFromPropertiesTest extends ConnectionFromProperties {
 
   @Test
   public void testKinesisProducer() throws Exception {
+    // On Windows the "kinesis_producer" executable is often missing
+    assumeFalse(Os.isFamily(Os.WINDOWS_FAMILY));
     ConnectionFromProperties conn = new ConnectionFromProperties().withConfigLocation("kinesis_default.properties");
     try {
       LifecycleHelper.initAndStart(conn);
