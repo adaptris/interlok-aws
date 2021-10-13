@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.ArgumentMatchers.anyString;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -17,7 +16,6 @@ import java.util.Map;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.junit.Test;
 import org.mockito.Mockito;
-
 import com.adaptris.aws.s3.acl.S3ObjectAcl;
 import com.adaptris.aws.s3.acl.S3ObjectAclGrant;
 import com.adaptris.aws.s3.acl.S3ObjectAclGranteeCanonicalUser;
@@ -132,7 +130,7 @@ public class MockedOperationTest {
     Mockito.when(metadata.getContentLength()).thenReturn(100L);
     Mockito.when(result.getObjectMetadata()).thenReturn(metadata);
     Mockito.when(result.getObjectContent()).thenReturn(resultStream);
-    Mockito.when(client.getObject((GetObjectRequest) anyObject())).thenReturn(result);
+    Mockito.when(client.getObject(any(GetObjectRequest.class))).thenReturn(result);
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     S3GetOperation op = new S3GetOperation()
@@ -147,7 +145,7 @@ public class MockedOperationTest {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
     Mockito.doAnswer((i) -> {
       return null;
-    }).when(client).setObjectTagging((SetObjectTaggingRequest) anyObject());
+    }).when(client).setObjectTagging(any(SetObjectTaggingRequest.class));
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMessageHeader("hello", "world");
 
@@ -161,7 +159,7 @@ public class MockedOperationTest {
   @Test
   public void testTag_NoFilter() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
-    Mockito.doAnswer((i)-> {return null;}).when(client).setObjectTagging((SetObjectTaggingRequest) anyObject());
+    Mockito.doAnswer((i)-> {return null;}).when(client).setObjectTagging(any(SetObjectTaggingRequest.class));
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMessageHeader("hello", "world");
 
@@ -185,7 +183,7 @@ public class MockedOperationTest {
     Mockito.when(downloadObject.getProgress()).thenReturn(progress);
     Mockito.doAnswer((i)-> {return null;}).when(downloadObject).waitForCompletion();
 
-    Mockito.when(transferManager.download((GetObjectRequest) anyObject(), (File) anyObject())).thenReturn(downloadObject);
+    Mockito.when(transferManager.download(any(GetObjectRequest.class), any(File.class))).thenReturn(downloadObject);
     Mockito.when(downloadObject.getObjectMetadata()).thenReturn(metadata);
     Mockito.when(metadata.getUserMetadata()).thenReturn(userMetadata);
 
@@ -213,7 +211,7 @@ public class MockedOperationTest {
     Mockito.when(downloadObject.getProgress()).thenReturn(progress);
     Mockito.doAnswer((i)-> {return null;}).when(downloadObject).waitForCompletion();
 
-    Mockito.when(transferManager.download((GetObjectRequest) anyObject(), (File) anyObject())).thenReturn(downloadObject);
+    Mockito.when(transferManager.download(any(GetObjectRequest.class), any(File.class))).thenReturn(downloadObject);
     Mockito.when(downloadObject.getObjectMetadata()).thenReturn(metadata);
     Mockito.when(metadata.getUserMetadata()).thenReturn(userMetadata);
 
@@ -239,7 +237,7 @@ public class MockedOperationTest {
     Mockito.when(uploadObject.getProgress()).thenReturn(progress);
     Mockito.doAnswer((i)-> {return null;}).when(uploadObject).waitForCompletion();
 
-    Mockito.when(transferManager.upload((PutObjectRequest) anyObject())).thenReturn(uploadObject);
+    Mockito.when(transferManager.upload(any(PutObjectRequest.class))).thenReturn(uploadObject);
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
     msg.addMessageHeader("hello", "world");
@@ -263,7 +261,7 @@ public class MockedOperationTest {
     Mockito.when(uploadObject.getProgress()).thenReturn(progress);
     Mockito.doAnswer((i)-> {return null;}).when(uploadObject).waitForCompletion();
 
-    Mockito.when(transferManager.upload((PutObjectRequest) anyObject())).thenReturn(uploadObject);
+    Mockito.when(transferManager.upload(any(PutObjectRequest.class))).thenReturn(uploadObject);
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello");
 
@@ -287,7 +285,7 @@ public class MockedOperationTest {
     Mockito.when(uploadObject.getProgress()).thenReturn(progress);
     Mockito.doAnswer((i)-> {return null;}).when(uploadObject).waitForCompletion();
 
-    Mockito.when(transferManager.upload((PutObjectRequest) anyObject())).thenReturn(uploadObject);
+    Mockito.when(transferManager.upload(any(PutObjectRequest.class))).thenReturn(uploadObject);
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
     msg.addMessageHeader("hello", "world");
@@ -312,7 +310,7 @@ public class MockedOperationTest {
     Mockito.when(uploadObject.getProgress()).thenReturn(progress);
     Mockito.doAnswer((i)-> {return null;}).when(uploadObject).waitForCompletion();
 
-    Mockito.when(transferManager.upload((PutObjectRequest) anyObject())).thenReturn(uploadObject);
+    Mockito.when(transferManager.upload(any(PutObjectRequest.class))).thenReturn(uploadObject);
 
     Mockito.when(client.getS3AccountOwner()).thenReturn(new Owner("234", "alias"));
 
@@ -359,7 +357,7 @@ public class MockedOperationTest {
     List<Tag> tags = new ArrayList<Tag>(Arrays.asList(new Tag("hello", "world")));
     Mockito.when(result.getTagSet()).thenReturn(tags);
 
-    Mockito.when(client.getObjectTagging(anyObject())).thenReturn(result);
+    Mockito.when(client.getObjectTagging(any())).thenReturn(result);
     GetTagOperation getTags = new GetTagOperation().withTagMetadataFilter(new NoOpMetadataFilter())
         .withObjectName("srcKey").withBucket("srcBucket");
 
