@@ -32,11 +32,12 @@ import java.util.List;
  * This may be the preferred approach over using KPL if you're running in environment where you
  * don't want other processes to be spawned (for example: containerised).
  * </p>
- * 
+ *
  * @config aws2-kinesis-sdk-stream-producer
+ * @since 4.3.0
  */
 @ComponentProfile(summary = "Produce to Amazon Kinesis using the SDK", tag = "amazon,aws2,kinesis,producer",
-    recommended = {AWSKinesisSDKConnection.class})
+    recommended = {AWSKinesisSDKConnection.class}, since = "4.3.0")
 @DisplayOrder(order = {"stream", "partitionKey", "batchWindow", "requestBuilder"})
 @XStreamAlias("aws2-kinesis-sdk-stream-producer")
 @NoArgsConstructor

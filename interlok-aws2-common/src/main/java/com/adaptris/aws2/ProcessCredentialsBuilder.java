@@ -23,10 +23,11 @@ import java.time.Duration;
  * </p>
  *
  * @config aws2-process-credentials-builder
+ * @since 4.3.0
  *
  */
 @XStreamAlias("aws2-process-credentials-builder")
-@ComponentProfile(summary = "Credentials provider that can load credentials from an external process", since = "3.9.2")
+@ComponentProfile(summary = "Credentials provider that can load credentials from an external process", since = "4.3.0")
 public class ProcessCredentialsBuilder implements AWSCredentialsProviderBuilder {
 
   /**

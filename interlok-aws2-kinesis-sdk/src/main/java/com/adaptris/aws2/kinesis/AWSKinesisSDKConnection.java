@@ -37,11 +37,12 @@ import software.amazon.awssdk.services.kinesis.KinesisClientBuilder;
  * processes to be spawned (for example: containerised).</p>
  *
  * @config aws2-kinesis-sdk-connection
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-kinesis-sdk-connection")
 @AdapterComponent
 @ComponentProfile(summary = "Connection for supporting connectivity to Amazon Kinesis", tag = "connections,amazon,aws2,kinesis",
-    since = "3.12.1")
+    since = "4.3.0")
 @DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy",
     "customEndpoint"})
 @NoArgsConstructor

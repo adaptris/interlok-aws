@@ -32,8 +32,9 @@ import java.util.Set;
  * seconds later are successful). This may well be down to a timing issue and/or issues with a transparent proxy configuration. Use
  * this builder to allow you automatically retry operations based on a 404.
  * </p>
- * 
+ *
  * @config aws2-retry-not-found-policy-factory
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-retry-not-found-policy-factory")
 public class RetryNotFoundPolicyFactory implements RetryPolicyFactory {

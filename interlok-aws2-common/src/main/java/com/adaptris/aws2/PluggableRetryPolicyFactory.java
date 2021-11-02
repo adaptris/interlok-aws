@@ -35,6 +35,7 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
  * Basic {@link RetryPolicy} builder implementation for AWS that allows you to plug in your own conditions and strategies.
  *
  * @config aws2-pluggable-retry-policy-factory
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-pluggable-retry-policy-factory")
 public class PluggableRetryPolicyFactory implements RetryPolicyFactory {

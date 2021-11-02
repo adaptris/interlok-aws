@@ -23,6 +23,7 @@ import com.adaptris.security.exc.AdaptrisSecurityException;
 import com.adaptris.security.password.Password;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -30,14 +31,17 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 
 /**
  * Specify explicit keys for AWS access. Either the root keys for the AWS account (not recommended) or IAM keys.
- * 
+ *
  * <p>
  * In the event that both the secret and access key are left blank; then this will not create any credentials which will cause the
  * underlying system to default to a default AWS authentication chain
  * </p>
+ *
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-keys-authentication")
-@ComponentProfile(summary="Specify explicit keys for AWS access. Either the root keys for the AWS account (not recommended) or IAM keys.")
+@ComponentProfile(summary="Specify explicit keys for AWS access. Either the root keys for the AWS account (not recommended) or IAM keys.", since = "4.3.0")
+@NoArgsConstructor
 public class AWSKeysAuthentication implements AWSAuthentication {
 
   /**
@@ -46,19 +50,15 @@ public class AWSKeysAuthentication implements AWSAuthentication {
   @Getter
   @Setter
   private String accessKey;
-  
+
   /**
    * The secret key for the AWS account which may be encoded or external.
-   * 
+   *
    */
   @InputFieldHint(style = "PASSWORD", external = true)
   @Getter
   @Setter
   private String secretKey;
-
-  public AWSKeysAuthentication() {
-
-  }
 
   public AWSKeysAuthentication(String accessKey, String secretKey) {
     this();

@@ -27,15 +27,16 @@ import javax.validation.constraints.NotNull;
 
 /**
  * Verify a signature using AWS KMS.
- * 
+ *
  * <p>
  * If the signature does not verify for any reason then a normal {@link ServiceException} will be thrown.
  * </p>
- * 
+ *
  * @config aws2-kms-verify-signature
+ * @since 4.3.0
  */
 @AdapterComponent
-@ComponentProfile(summary = "Verify a signature using AWS KMS", recommended = {AWSKMSConnection.class}, since = "3.10.1")
+@ComponentProfile(summary = "Verify a signature using AWS KMS", recommended = {AWSKMSConnection.class}, since = "4.3.0")
 @XStreamAlias("aws2-kms-verify-signature")
 @DisplayOrder(order = {"connection", "keyId", "signingAlgorithm", "messageType", "signature", "dataToBeVerified"})
 @NoArgsConstructor
@@ -43,7 +44,7 @@ public class VerifySignatureService extends SignatureService {
 
   /**
    * The source of the signature.
-   * 
+   *
    * <p>
    * Where the signature is stored; it's probably going to be a {@link ByteArrayFromMetadata} or similar.
    * </p>
@@ -55,7 +56,7 @@ public class VerifySignatureService extends SignatureService {
   private MessageWrapper<byte[]> signature;
   /**
    * The data that needs to be checked against the signature.
-   * 
+   *
    * <p>
    * Since KMS enforces a 4096 byte max on the data that can be used with it; this is likely to be a hash of the payload, so again a
    * {@link ByteArrayFromMetadata} or similar where you have previously generated a hash of the data.
@@ -94,7 +95,7 @@ public class VerifySignatureService extends SignatureService {
               .messageType(messageType(msg))
               .message(SdkBytes.fromByteArray(toVerify))
               .signingAlgorithm(signingAlgorithm(msg));
-      
+
       VerifyResponse response = client.verify(request.build());
       if (!response.signatureValid()) {
         throw new ServiceException("Signature was not verified; VerifyResult#isSignatureValid() is false");

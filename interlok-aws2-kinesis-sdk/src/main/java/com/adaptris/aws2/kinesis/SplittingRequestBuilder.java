@@ -21,6 +21,7 @@ import java.util.Iterator;
  * {@code PutRecordsRequestEntry} records.
  *
  * @config aws2-kinesis-splitting-request-builder
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-kinesis-splitting-request-builder")
 public class SplittingRequestBuilder implements RequestBuilder {

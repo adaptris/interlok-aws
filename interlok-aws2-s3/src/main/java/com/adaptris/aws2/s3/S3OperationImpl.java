@@ -56,11 +56,4 @@ public abstract class S3OperationImpl implements S3Operation {
     return msg.resolve(getBucket(), true);
   }
 
-  /**
-   * @deprecated just use msg.resolve() instead.
-   */
-  @Deprecated
-  protected static String resolve(String expression, AdaptrisMessage msg) {
-    return msg.resolve(expression, true);
-  }
 }

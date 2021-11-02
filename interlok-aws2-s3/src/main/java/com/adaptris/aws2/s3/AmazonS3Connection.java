@@ -58,11 +58,12 @@ import software.amazon.awssdk.services.s3.S3Configuration;
  *
  *
  * @config amazon-s3-connection
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-amazon-s3-connection")
 @AdapterComponent
 @ComponentProfile(summary = "Connection for supporting connectivity to Amazon S3", tag = "connections,amazon,s3",
-    recommended = {S3Service.class})
+    recommended = {S3Service.class}, since = "4.3.0")
 @DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy",
     "customEndpoint", "forcePathStyleAccess"})
 public class AmazonS3Connection extends AWSConnection implements ClientWrapper {

@@ -53,11 +53,12 @@ import software.amazon.awssdk.services.sns.SnsClientBuilder;
  *
  *
  * @config amazon-sns-connection
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-amazon-sns-connection")
 @AdapterComponent
 @ComponentProfile(summary = "Connection for supporting connectivity to Amazon SNS", tag = "connections,amazon,sns",
-    recommended = { NotificationProducer.class })
+    recommended = { NotificationProducer.class }, since = "4.3.0")
 @DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy", "customEndpoint"})
 public class AmazonSNSConnection extends AWSConnection {
 

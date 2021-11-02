@@ -18,7 +18,7 @@ import javax.validation.constraints.NotBlank;
  * single S3 Object in the bucket.
  * </p>
  *
- * @since 3.10.2
+ * @since 4.3.0
  */
 @NoArgsConstructor
 @SuppressWarnings("deprecation")

@@ -37,10 +37,11 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
  * List of files based on S3 key.
  *
  * @config amazon-s3-check-file-exists
+ * @since 4.3.0
  */
 @AdapterComponent
 @ComponentProfile(summary = "List of files based on S3 key",
-    since = "3.9.1")
+    since = "4.3.0")
 @XStreamAlias("aws2-amazon-s3-list")
 @DisplayOrder(order = {"bucket", "prefix", "outputStyle", "maxKeys", "filter"})
 @NoArgsConstructor

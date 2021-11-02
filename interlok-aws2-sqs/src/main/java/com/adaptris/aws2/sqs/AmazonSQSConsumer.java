@@ -64,12 +64,12 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
  * </p>
  *
  * @config amazon-sqs-consumer
- * @since 3.0.3
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-amazon-sqs-consumer")
 @AdapterComponent
 @ComponentProfile(summary = "Receive messages from Amazon SQS", tag = "consumer,amazon,sqs",
-    recommended = {AmazonSQSConnection.class}, metadata= {"SQSMessageID"})
+    recommended = {AmazonSQSConnection.class}, metadata= {"SQSMessageID"}, since = "4.3.0")
 @DisplayOrder(order = {"queue", "ownerAwsAccountId", "alwaysDelete", "prefetchCount"})
 public class AmazonSQSConsumer extends AdaptrisPollingConsumer {
 

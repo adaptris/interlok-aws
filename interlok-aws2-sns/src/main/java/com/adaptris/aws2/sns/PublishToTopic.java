@@ -56,10 +56,11 @@ import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination
  * By default the messageID of the message published to the SNS topic will be stored against the key {@code SNS_MessageID}.
  *
  * @config amazon-sns-topic-publisher
+ * @since 4.3.0
  *
  */
 @XStreamAlias("aws2-amazon-sns-topic-publisher")
-@ComponentProfile(summary = "Publish a message to an SNS Topic", tag = "producer,amazon,sns", recommended =
+@ComponentProfile(summary = "Publish a message to an SNS Topic", tag = "producer,amazon,sns", since = "4.3.0", recommended =
 {
     AmazonSNSConnection.class
 }, metadata =

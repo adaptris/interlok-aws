@@ -17,11 +17,12 @@ import javax.validation.constraints.NotNull;
 
 /**
  * A static set of credentials for AWS.
- * 
+ *
  * @config aws2-static-credentials-builder
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-static-credentials-builder")
-@ComponentProfile(summary = "Create a static set of credentials", since = "3.9.1")
+@ComponentProfile(summary = "Create a static set of credentials", since = "4.3.0")
 public class StaticCredentialsBuilder implements AWSCredentialsProviderBuilder {
 
   @NotNull

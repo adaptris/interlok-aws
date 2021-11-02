@@ -31,11 +31,12 @@ import java.io.OutputStream;
 
 /**
  * Generate a signature using AWS KMS.
- * 
+ *
  * @config aws2-kms-signing
+ * @since 4.3.0
  */
 @AdapterComponent
-@ComponentProfile(summary = "Signing via AWS KMS", recommended = {AWSKMSConnection.class}, since = "3.10.1")
+@ComponentProfile(summary = "Signing via AWS KMS", recommended = {AWSKMSConnection.class}, since = "4.3.0")
 @XStreamAlias("aws2-kms-generate-signature")
 @DisplayOrder(order = {"connection", "keyId", "signingAlgorithm", "messageType", "input", "output"})
 @NoArgsConstructor
@@ -75,7 +76,7 @@ public class GenerateSignatureService extends SignatureService {
     super.prepare();
   }
 
-  
+
   @Override
   public void doService(AdaptrisMessage msg) throws ServiceException {
     try {

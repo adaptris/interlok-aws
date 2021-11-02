@@ -44,11 +44,11 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 /**
  * Upload an object to S3.
  *
- * @author lchan
  * @config amazon-s3-upload
+ * @since 4.3.0
  */
 @AdapterComponent
-@ComponentProfile(summary = "Amazon S3 Upload using Transfer Manager")
+@ComponentProfile(summary = "Amazon S3 Upload using Transfer Manager", since = "4.3.0")
 @XStreamAlias("aws2-amazon-s3-upload")
 @DisplayOrder(
     order = {"bucket", "objectName", "userMetadataFilter", "cannedObjectAcl", "objectAcl", "objectMetadata"})

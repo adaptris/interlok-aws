@@ -33,11 +33,11 @@ import javax.validation.constraints.NotNull;
 
 /**
  *
- * @author gdries
  * @config amazon-s3-service
+ * @since 4.3.0
  */
 @AdapterComponent
-@ComponentProfile(summary = "Amazon S3 Service", recommended={AmazonS3Connection.class})
+@ComponentProfile(summary = "Amazon S3 Service", recommended={AmazonS3Connection.class}, since = "4.3.0")
 @XStreamAlias("aws2-amazon-s3-service")
 @DisplayOrder(order = {"connection", "operation"})
 @NoArgsConstructor

@@ -2,6 +2,7 @@ package com.adaptris.aws2;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -13,8 +14,10 @@ import java.net.URI;
 
 /** Wraps {@code AwsClientBuilder.EndpointConfiguration} for configuration purposes.
  *  @config aws2-custom-endpoint
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-custom-endpoint")
+@NoArgsConstructor
 public class CustomEndpoint implements EndpointBuilder {
 
   private transient Logger log = LoggerFactory.getLogger(this.getClass());
@@ -26,19 +29,15 @@ public class CustomEndpoint implements EndpointBuilder {
   private String serviceEndpoint;
   /**
    * Set the signing region for the endpoint (e.g. {@code us-west-1}).
-   * 
+   *
    */
   @Getter
   @Setter
   private String signingRegion;
-  
-  public CustomEndpoint() {
 
-  }
-  
   /**
    * Whether or not this endpoint has configuration.
-   * 
+   *
    * @return true if both serviceEndpoint and signing region have are non-blank
    */
   public boolean isConfigured() {
@@ -52,17 +51,17 @@ public class CustomEndpoint implements EndpointBuilder {
     builder.region(Region.of(getSigningRegion()));
     return builder;
   }
-  
+
 
   public CustomEndpoint withServiceEndpoint(String s) {
     setServiceEndpoint(s);
     return this;
   }
 
-  
+
   public CustomEndpoint withSigningRegion(String s) {
     setSigningRegion(s);
     return this;
   }
-  
+
 }

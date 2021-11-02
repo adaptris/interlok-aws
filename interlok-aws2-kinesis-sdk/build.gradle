@@ -78,8 +78,8 @@ publishing {
             properties.appendNode("target", "3.12.1+")
             properties.appendNode("tags", "aws,kinesis")
             properties.appendNode("license", "false")
-            properties.appendNode("readme", "https://github.com/adaptris/interlok-aws2/raw/develop/README.md")
-            properties.appendNode("repository", "https://github.com/adaptris/interlok-aws2")
+            properties.appendNode("readme", "https://github.com/adaptris/interlok-aws/raw/develop/README.md")
+            properties.appendNode("repository", "https://github.com/adaptris/interlok-aws")
           }
       }
   }

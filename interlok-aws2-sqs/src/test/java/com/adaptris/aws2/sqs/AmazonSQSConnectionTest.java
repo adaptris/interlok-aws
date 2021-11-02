@@ -20,12 +20,12 @@ import com.adaptris.aws2.AWSKeysAuthentication;
 import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.CoreException;
 import com.adaptris.interlok.util.Closer;
-import com.amazonaws.regions.Regions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 
@@ -58,7 +58,7 @@ public class AmazonSQSConnectionTest {
     auth.setAccessKey("accessKey");
     auth.setSecretKey("secretKey");
     amazonSQSConnection.setCredentials(new StaticCredentialsBuilder().withAuthentication(auth));
-    amazonSQSConnection.setRegion(Regions.AP_NORTHEAST_1.getName());
+    amazonSQSConnection.setRegion(Region.AP_NORTHEAST_1.id());
   }
 
   @After

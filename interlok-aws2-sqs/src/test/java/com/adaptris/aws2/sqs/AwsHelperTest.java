@@ -16,9 +16,9 @@
 
 package com.adaptris.aws2.sqs;
 
-import com.amazonaws.regions.Regions;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlRequest;
 import software.amazon.awssdk.services.sqs.model.GetQueueUrlResponse;
@@ -44,9 +44,9 @@ public class AwsHelperTest extends AwsHelper {
 
   @Test
   public void testGetRegion() throws Exception {
-    assertEquals(Regions.EU_WEST_1.getName(), formatRegion("eu-west-1"));
-    assertEquals(Regions.EU_WEST_1.getName(), formatRegion("EU-WEST-1"));
-    assertEquals(Regions.EU_WEST_1.getName(), formatRegion("amazon.eu-west-1"));
+    assertEquals(Region.EU_WEST_1.id(), formatRegion("eu-west-1"));
+    assertEquals(Region.EU_WEST_1.id(), formatRegion("EU-WEST-1"));
+    assertEquals(Region.EU_WEST_1.id(), formatRegion("amazon.eu-west-1"));
     assertEquals("blah", formatRegion("blah"));
   }
 

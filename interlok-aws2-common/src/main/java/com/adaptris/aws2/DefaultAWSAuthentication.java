@@ -22,9 +22,11 @@ import software.amazon.awssdk.auth.credentials.AwsCredentials;
 
 /**
  * Use the default authentication logic of the AWS SDK (IAM Roles, System Properties, Environment variables, etc
+ *
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-default-authentication")
-@ComponentProfile(summary="Use the default authentication logic of the AWS SDK (IAM Roles, System Properties, Environment variables, etc")
+@ComponentProfile(summary="Use the default authentication logic of the AWS SDK (IAM Roles, System Properties, Environment variables, etc", since = "4.3.0")
 public class DefaultAWSAuthentication implements AWSAuthentication {
 
   @Override

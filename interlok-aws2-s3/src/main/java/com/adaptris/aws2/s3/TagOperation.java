@@ -44,9 +44,10 @@ import java.util.List;
  * </p>
  *
  * @config amazon-s3-copy
+ * @since 4.3.0
  */
 @AdapterComponent
-@ComponentProfile(summary = "Tag an object in S3")
+@ComponentProfile(summary = "Tag an object in S3", since = "4.3.0")
 @XStreamAlias("aws2-amazon-s3-tag")
 @DisplayOrder(order = {"bucket", "objectName", "tagMetadataFilter"})
 @NoArgsConstructor

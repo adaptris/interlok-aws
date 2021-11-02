@@ -17,11 +17,12 @@ import java.nio.ByteBuffer;
 
 /**
  * Encrypt data using AWS KMS
- * 
+ *
  * @config aws2-kms-encrypt-data
+ * @since 4.3.0
  */
 @AdapterComponent
-@ComponentProfile(summary = "Encrypt data using AWS KMS", recommended = {AWSKMSConnection.class}, since = "3.10.1")
+@ComponentProfile(summary = "Encrypt data using AWS KMS", recommended = {AWSKMSConnection.class}, since = "4.3.0")
 @XStreamAlias("aws2-kms-encrypt-data")
 @DisplayOrder(order = {"connection", "keyId", "input", "output", "encryptionAlgorithm", "encryptionContext"})
 @NoArgsConstructor

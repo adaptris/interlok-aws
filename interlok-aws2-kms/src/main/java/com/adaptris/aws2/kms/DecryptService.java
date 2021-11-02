@@ -17,11 +17,12 @@ import java.nio.ByteBuffer;
 
 /**
  * Decrypt data using AWS KMS
- * 
+ *
  * @config aws2-kms-decrypt-data
+ * @since 4.3.0
  */
 @AdapterComponent
-@ComponentProfile(summary = "Decrypt data using AWS KMS", recommended = {AWSKMSConnection.class}, since = "3.10.1")
+@ComponentProfile(summary = "Decrypt data using AWS KMS", recommended = {AWSKMSConnection.class}, since = "4.3.0")
 @XStreamAlias("aws2-kms-decrypt-data")
 @DisplayOrder(order = {"connection", "keyId", "input", "output", "encryptionAlgorithm", "encryptionContext"})
 @NoArgsConstructor

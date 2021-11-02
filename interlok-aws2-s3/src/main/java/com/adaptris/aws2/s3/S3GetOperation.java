@@ -35,8 +35,8 @@ import javax.validation.constraints.NotNull;
  * Get an object from S3 and store the contents of the object either in the message payload or
  * metadata.
  *
- * @author gdries
  * @config amazon-s3-get
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-amazon-s3-get")
 @DisplayOrder(

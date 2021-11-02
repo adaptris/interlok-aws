@@ -36,12 +36,13 @@ import java.util.Properties;
  * </p>
  *
  * @config aws2-properties-file-credentials-builder
+ * @since 4.3.0
  *
  */
 @XStreamAlias("aws2-properties-file-credentials-builder")
 @ComponentProfile(
     summary = "Credentials provider that loads credentials from a property file either from the filesystem or classpath",
-    since = "3.9.2")
+    since = "4.3.0")
 public class PropertiesFileCredentialsBuilder implements AWSCredentialsProviderBuilder {
 
   /**

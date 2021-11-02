@@ -56,11 +56,12 @@ import software.amazon.awssdk.services.kms.KmsClientBuilder;
  *
  *
  * @config aws2-kms-connection
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-kms-connection")
 @AdapterComponent
 @ComponentProfile(summary = "Connection for supporting connectivity to Amazon KMS", tag = "connections,amazon,aws2,kms",
-    since = "3.10.1")
+    since = "4.3.0")
 @DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy",
     "customEndpoint"})
 @NoArgsConstructor

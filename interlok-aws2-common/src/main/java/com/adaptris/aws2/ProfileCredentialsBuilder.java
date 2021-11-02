@@ -14,12 +14,12 @@ import java.io.File;
 
 /**
  * Credentials provider based on AWS configuration profiles
- * 
+ *
  * @config aws2-profile-credentials-builder
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-profile-credentials-builder")
-@ComponentProfile(summary = "Credentials provider based on AWS configuration profiles",
-    since = "3.9.2")
+@ComponentProfile(summary = "Credentials provider based on AWS configuration profiles", since = "4.3.0")
 public class ProfileCredentialsBuilder implements AWSCredentialsProviderBuilder {
 
   /**

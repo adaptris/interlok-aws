@@ -28,11 +28,11 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 /**
  * Delete an object from S3.
  *
- * @author lchan
  * @config amazon-s3-download
+ * @since 4.3.0
  */
 @AdapterComponent
-@ComponentProfile(summary = "Delete an object from S3")
+@ComponentProfile(summary = "Delete an object from S3", since = "4.3.0")
 @XStreamAlias("aws2-amazon-s3-delete")
 @DisplayOrder(order = {"bucket", "objectName"})
 @NoArgsConstructor

@@ -45,11 +45,11 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 /**
  * Download an object from S3.
  *
- * @author lchan
  * @config amazon-s3-download
+ * @since 4.3.0
  */
 @AdapterComponent
-@ComponentProfile(summary = "Amazon S3 Download using Transfer Manager")
+@ComponentProfile(summary = "Amazon S3 Download using Transfer Manager", since = "4.3.0")
 @XStreamAlias("aws2-amazon-s3-download")
 @DisplayOrder(order = {"bucket", "objectName", "tempDirectory", "userMetadataFilter"})
 @NoArgsConstructor

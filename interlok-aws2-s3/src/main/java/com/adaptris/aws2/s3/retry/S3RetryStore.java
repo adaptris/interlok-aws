@@ -44,11 +44,12 @@ import java.util.regex.Pattern;
 /**
  *
  * @config amazon-s3-retry-store
+ * @since 4.3.0
  *
  */
 @XStreamAlias("aws2-amazon-s3-retry-store")
 @ComponentProfile(summary = "Supporting implementation for using S3 as your failed message store",
-    tag = "retry,amazon,s3", since = "3.11.1", recommended = {AmazonS3Connection.class})
+    tag = "retry,amazon,s3", since = "4.3.0", recommended = {AmazonS3Connection.class})
 @NoArgsConstructor
 @Slf4j
 public class S3RetryStore implements RetryStore {

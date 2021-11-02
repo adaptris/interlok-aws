@@ -28,7 +28,7 @@ import software.amazon.awssdk.services.sqs.SqsClientBuilder;
  * Unbuffered SQS Client Factory.
  *
  * @config unbuffered-sqs-client-factory
- * @since 3.0.3
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-sync-sqs-client-factory")
 public class SyncSQSClientFactory implements SQSClientFactory {

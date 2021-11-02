@@ -38,9 +38,9 @@ public class S3OperationTest {
   public void testResolve() {
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMessageHeader("hello", "world");
-    assertEquals("world", S3OperationImpl.resolve("%message{hello}", msg));
-    assertEquals("hello", S3OperationImpl.resolve("hello", msg));
-    assertNull(S3OperationImpl.resolve(null, msg));
+    assertEquals("world", msg.resolve("%message{hello}"));
+    assertEquals("hello", msg.resolve("hello"));
+    assertNull(msg.resolve(null));
   }
 
   @Test
@@ -90,100 +90,8 @@ public class S3OperationTest {
     assertEquals(0, result.size());
   }
 
-  // TODO There is no S3ObjectMetadata class anymore; find something similar
-//  @Test
-//  public void testS3ObjectMetadata() throws UnsupportedEncodingException, ServiceException {
-//    List<S3ObjectMetadata> allmetas = new ArrayList<S3ObjectMetadata>();
-//    {
-//      S3ContentDisposition cd = new S3ContentDisposition();
-//      cd.setContentDisposition("content disposition");
-//      allmetas.add(cd);
-//    } {
-//      S3ContentLanguage cl = new S3ContentLanguage();
-//      cl.setContentLanguage("content language");
-//      allmetas.add(cl);
-//    } {
-//      S3ContentType ct = new S3ContentType();
-//      ct.setContentType("content type");
-//      allmetas.add(ct);
-//    } {
-//      S3ExpirationTimeRuleId eri = new S3ExpirationTimeRuleId();
-//      eri.setExpirationTimeRuleId("expiration time rule id");
-//      allmetas.add(eri);
-//    } {
-//      S3HttpExpiresDate hed = new S3HttpExpiresDate();
-//      hed.setTimeToLive(new TimeInterval(10L, TimeUnit.SECONDS));
-//      allmetas.add(hed);
-//    } {
-//      S3ContentEncoding ce = new S3ContentEncoding();
-//      ce.setContentEncoding("content encoding");
-//      allmetas.add(ce);
-//    }{
-//      allmetas.add(new S3ServerSideEncryption());
-//    }
-//
-//    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("some content", "utf8");
-//
-//    ObjectMetadata meta = new ObjectMetadata();
-//    S3Object
-//    for(S3ObjectMetadata m: allmetas) {
-//      m.apply(msg, meta);
-//    }
-//
-//    assertEquals("content disposition", meta.getContentDisposition());
-//    assertEquals("content language", meta.getContentLanguage());
-//    assertEquals("content type", meta.getContentType());
-//    assertEquals("expiration time rule id", meta.getExpirationTimeRuleId());
-//    assertEquals("content encoding", meta.getContentEncoding());
-//    Date expirationDate = meta.getHttpExpiresDate();
-//    assertTrue("Expiration date too small", expirationDate.getTime() > (new Date().getTime() + 9000));
-//    assertTrue("Expiration date too large", expirationDate.getTime() < (new Date().getTime() + 11000));
-//    assertEquals(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION, meta.getSSEAlgorithm());
-//  }
-//
-//  @Test
-//  public void testS3ObjectMetadataFromMessage() throws UnsupportedEncodingException, ServiceException {
-//    List<S3ObjectMetadata> allmetas = new ArrayList<S3ObjectMetadata>();
-//    {
-//      S3ContentDisposition cd = new S3ContentDisposition();
-//      cd.setContentDisposition("%message{cd}");
-//      allmetas.add(cd);
-//    } {
-//      S3ContentLanguage cl = new S3ContentLanguage();
-//      cl.setContentLanguage("%message{cl}");
-//      allmetas.add(cl);
-//    } {
-//      S3ContentType ct = new S3ContentType();
-//      ct.setContentType("%message{ct}");
-//      allmetas.add(ct);
-//    } {
-//      S3ExpirationTimeRuleId eri = new S3ExpirationTimeRuleId();
-//      eri.setExpirationTimeRuleId("%message{eri}");
-//      allmetas.add(eri);
-//    } {
-//      S3ContentEncoding ce = new S3ContentEncoding();
-//      ce.setContentEncoding("%message{ce}");
-//      allmetas.add(ce);
-//    }
-//    Collections.sort(allmetas);
-//    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-//    msg.addMetadata("cd", "content disposition");
-//    msg.addMetadata("cl", "content language");
-//    msg.addMetadata("ct", "content type");
-//    msg.addMetadata("eri", "expiration time rule id");
-//    msg.addMetadata("ce", "content encoding");
-//
-//    ObjectMetadata meta = new ObjectMetadata();
-//    for(S3ObjectMetadata m: allmetas) {
-//      m.apply(msg, meta);
-//    }
-//
-//    assertEquals("content disposition", meta.getContentDisposition());
-//    assertEquals("content language", meta.getContentLanguage());
-//    assertEquals("content type", meta.getContentType());
-//    assertEquals("expiration time rule id", meta.getExpirationTimeRuleId());
-//    assertEquals("content encoding", meta.getContentEncoding());
-//  }
+  // TODO There is no S3ObjectMetadata class anymore; find something similar (check Git history for what was removed)
+
 
   private static class MyS3Operation extends TransferOperation {
 

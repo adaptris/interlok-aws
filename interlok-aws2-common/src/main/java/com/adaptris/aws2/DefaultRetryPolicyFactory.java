@@ -29,8 +29,9 @@ import javax.validation.constraints.NotNull;
 
 /**
  * The default retry policy builder using one of the predefined policies from {@link RetryPolicy}.
- * 
+ *
  * @config aws2-default-retry-policy-factory
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-default-retry-policy-factory")
 public class DefaultRetryPolicyFactory implements RetryPolicyFactory {
@@ -40,7 +41,7 @@ public class DefaultRetryPolicyFactory implements RetryPolicyFactory {
   public enum PredefinedPolicy {
     /**
      * Uses PredefinedRetryPolicies#getDefaultRetryPolicy()
-     * 
+     *
      */
     DEFAULT {
 
@@ -48,11 +49,11 @@ public class DefaultRetryPolicyFactory implements RetryPolicyFactory {
       RetryPolicy build() {
         return RetryPolicy.defaultRetryPolicy();
       }
-      
+
     },
     /**
      * Uses PredefinedRetryPolicies#getDynamoDBDefaultRetryPolicy()
-     * 
+     *
      */
     DYNAMO_DB {
       @Override
@@ -81,11 +82,11 @@ public class DefaultRetryPolicyFactory implements RetryPolicyFactory {
   @Getter
   @Setter
   private PredefinedPolicy retryPolicy;
-  
+
   public DefaultRetryPolicyFactory() {
     setRetryPolicy(PredefinedPolicy.DEFAULT);
   }
-  
+
   public DefaultRetryPolicyFactory(PredefinedPolicy p) {
     this();
     setRetryPolicy(p);

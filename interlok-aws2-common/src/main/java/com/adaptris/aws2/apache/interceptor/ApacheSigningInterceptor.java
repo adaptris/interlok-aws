@@ -44,12 +44,13 @@ import javax.validation.constraints.NotBlank;
  * </p>
  *
  * @config aws2-apache-signing-interceptor
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-apache-signing-interceptor")
 @AdapterComponent
 @ComponentProfile(
     summary = "Supplies an Apache HTTP Request Interceptor used to sign requests made to AWS using AWS4Signer",
-    tag = "amazon,aws2,elastic,elasticsearch", since = "3.10.2")
+    tag = "amazon,aws2,elastic,elasticsearch", since = "4.3.0")
 @DisplayOrder(order = {"serviceName", "regionName", "credentials"})
 @NoArgsConstructor
 public class ApacheSigningInterceptor

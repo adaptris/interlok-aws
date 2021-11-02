@@ -37,10 +37,11 @@ import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
  * </p>
  *
  * @config amazon-s3-check-file-exists
+ * @since 4.3.0
  */
 @AdapterComponent
 @ComponentProfile(summary = "Check a file exists in S3, throws exception if it doesn't",
-    since = "3.8.4")
+    since = "4.3.0")
 @XStreamAlias("aws2-amazon-s3-check-file-exists")
 @DisplayOrder(order = {"bucket", "objectName"})
 @NoArgsConstructor

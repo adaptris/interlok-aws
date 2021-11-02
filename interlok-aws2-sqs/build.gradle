@@ -14,7 +14,6 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
     exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
   }
-  api ("com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8")
   api ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
   api ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
   api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
@@ -72,8 +71,8 @@ publishing {
             properties.appendNode("target", "3.3.0+")
             properties.appendNode("tags", "aws,sqs")
             properties.appendNode("license", "false")
-            properties.appendNode("readme", "https://github.com/adaptris/interlok-aws2/raw/develop/README.md")
-            properties.appendNode("repository", "https://github.com/adaptris/interlok-aws2")
+            properties.appendNode("readme", "https://github.com/adaptris/interlok-aws/raw/develop/README.md")
+            properties.appendNode("repository", "https://github.com/adaptris/interlok-aws")
           }
       }
   }

@@ -64,12 +64,12 @@ import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination
  * </p>
  *
  * @config amazon-sqs-producer
- * @since 3.0.3
+ * @since 4.3.0
  */
 @XStreamAlias("aws2-amazon-sqs-producer")
 @AdapterComponent
 @ComponentProfile(summary = "Send messages to Amazon SQS", tag = "producer,amazon,sqs",
-    recommended = {AmazonSQSConnection.class})
+    recommended = {AmazonSQSConnection.class}, since = "4.3.0")
 @DisplayOrder(order = {"queue", "ownerAwsAccountId", "delaySeconds", "sendAttributes"})
 public class AmazonSQSProducer extends ProduceOnlyProducerImp {
 
