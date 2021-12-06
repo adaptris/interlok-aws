@@ -5,9 +5,9 @@ ext {
   componentName='Interlok AWS/Kinesis'
   componentDesc="Components that interact AWS Kinesis data streams"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.12.46'
-  jacksonVersion='2.12.4'
-  nettyVersion="4.1.66.Final"
+  awsSDKVersion = '1.12.107'
+  jacksonVersion='2.13.0'
+  nettyVersion="4.1.70.Final"
 }
 dependencies {
   api ("com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion")
@@ -28,7 +28,7 @@ dependencies {
   // 0.13.0 doesn't contain the windows execuatble (bad?) so use the older version for now.
   // 0.13.1 does containthe windows binaries
   // 0.14 does not contain the windows binary.
-  api ("com.amazonaws:amazon-kinesis-producer:0.14.9") {
+  api ("com.amazonaws:amazon-kinesis-producer:0.14.10") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.google.protobuf", module: "protobuf-java"
@@ -37,13 +37,13 @@ dependencies {
     exclude group: "org.apache.avro"
   }
 
-  implementation ("org.apache.avro:avro:1.10.2") {
+  implementation ("org.apache.avro:avro:1.11.0") {
     exclude group: "org.apache.commons", module: "commons-compress"
   }
   
   implementation ("org.apache.commons:commons-compress:1.21")
 
-  api ("com.google.guava:guava:30.1.1-jre")
+  api ("com.google.guava:guava:31.0.1-jre")
   implementation ("io.netty:netty-buffer:$nettyVersion")
   implementation ("io.netty:netty-common:$nettyVersion")
   implementation ("io.netty:netty-handler:$nettyVersion")
@@ -54,13 +54,13 @@ dependencies {
   implementation ("io.netty:netty-codec:$nettyVersion")
   implementation ("io.netty:netty-codec-http:$nettyVersion")
 
-  api ("com.google.protobuf:protobuf-java:3.17.3")
+  api ("com.google.protobuf:protobuf-java:3.19.1")
   api ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
   api ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
   api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
-  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.4")
+  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.13.0")
   api project(':interlok-aws-common')
 }
 

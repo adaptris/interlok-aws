@@ -2,8 +2,8 @@ ext {
   componentName='Interlok AWS/SQS'
   componentDesc="Publishing & Consuming from AWS SQS natively or via their JMS provider"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.12.46'
-  jacksonVersion='2.12.4'
+  awsSDKVersion = '1.12.107'
+  jacksonVersion='2.13.0'
 }
 
 dependencies {
@@ -20,7 +20,7 @@ dependencies {
   api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
-  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.4")
+  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.13.0")
   api ("org.apache.httpcomponents:httpclient:4.5.13")
   api ("commons-codec:commons-codec:1.15")
   api project(':interlok-aws-common')
