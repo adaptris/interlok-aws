@@ -74,6 +74,7 @@ publishing {
           pom.withXml {
             asNode().appendNode("name", componentName)
             asNode().appendNode("description", "Services that interact with AWS Kinesis Streams")
+			asNode().appendNode("url", "https://interlok.adaptris.net/interlok-docs/#/")
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.12.1+")
             properties.appendNode("tags", "aws,kinesis")
