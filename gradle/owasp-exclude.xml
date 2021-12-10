@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
   <suppress>
-    <notes><![CDATA[
-    file name: avro-1.10.2.jar
-    This is related to https://issues.apache.org/jira/browse/AVRO-3111 where hadoop is the transitive dependency
-    that is causing the issue; hadoop isn't in the transitive tree, but basically the CVE icatches too much against too much
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.apache\.avro/avro@.*$</packageUrl>
-    <cve>CVE-2019-17195</cve>
-  </suppress>
-  <suppress>
-    <notes><![CDATA[
-    file name: kotlin-*.jar
-    related to schema generation which isn't directly being used.
-    ]]></notes>
-    <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/kotlin\-.*$</packageUrl>
-    <cve>CVE-2020-29582</cve>
+     <notes><![CDATA[
+     file name: netty-tcnative-classes-2.0.46.Final.jar
+     - appears to be false positive
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/io\.netty/netty\-tcnative\-classes@.*$</packageUrl>
+     <cve>CVE-2014-3488</cve>
+     <cve>CVE-2015-2156</cve>
+     <cve>CVE-2019-16869</cve>
+     <cve>CVE-2019-20444</cve>
+     <cve>CVE-2019-20445</cve>
+     <cve>CVE-2021-21290</cve>
+     <cve>CVE-2021-21295</cve>
+     <cve>CVE-2021-21409</cve>
+     <cve>CVE-2021-37136</cve>
+     <cve>CVE-2021-37137</cve>
   </suppress>
 </suppressions>
