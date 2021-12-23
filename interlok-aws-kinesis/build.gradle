@@ -11,7 +11,7 @@ ext {
 }
 dependencies {
   api ("com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion")
-  api ("com.amazonaws:amazon-kinesis-client:1.14.6") {
+  api ("com.amazonaws:amazon-kinesis-client:1.14.7") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
