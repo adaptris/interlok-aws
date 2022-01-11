@@ -5,7 +5,7 @@ ext {
   componentName='Interlok AWS/S3'
   componentDesc="Services that interact (upload/download/delete) with AWS S3 Buckets and artefacts"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.12.133'
+  awsSDKVersion = '1.12.137'
   jacksonVersion='2.13.1'
 }
 
