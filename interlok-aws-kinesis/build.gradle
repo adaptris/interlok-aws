@@ -5,13 +5,13 @@ ext {
   componentName='Interlok AWS/Kinesis'
   componentDesc="Components that interact AWS Kinesis data streams"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.12.107'
-  jacksonVersion='2.13.0'
-  nettyVersion="4.1.70.Final"
+  awsSDKVersion = '1.12.150'
+  jacksonVersion='2.13.1'
+  nettyVersion="4.1.73.Final"
 }
 dependencies {
   api ("com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion")
-  api ("com.amazonaws:amazon-kinesis-client:1.14.4") {
+  api ("com.amazonaws:amazon-kinesis-client:1.14.7") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
@@ -54,13 +54,13 @@ dependencies {
   implementation ("io.netty:netty-codec:$nettyVersion")
   implementation ("io.netty:netty-codec-http:$nettyVersion")
 
-  api ("com.google.protobuf:protobuf-java:3.19.1")
+  api ("com.google.protobuf:protobuf-java:3.19.4")
   api ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
   api ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
   api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
-  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.13.0")
+  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.13.1")
   api project(':interlok-aws-common')
 }
 
@@ -107,6 +107,7 @@ publishing {
           pom.withXml {
             asNode().appendNode("name", componentName)
             asNode().appendNode("description", componentDesc)
+			asNode().appendNode("url", "https://interlok.adaptris.net/interlok-docs/#/")
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.9.1+")
             properties.appendNode("tags", "aws,kinesis")
