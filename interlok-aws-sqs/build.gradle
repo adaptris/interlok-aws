@@ -20,7 +20,7 @@ dependencies {
   api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
-  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.13.1")
+  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.13.2")
   api ("org.apache.httpcomponents:httpclient:4.5.13")
   api ("commons-codec:commons-codec:1.15")
   api project(':interlok-aws-common')
