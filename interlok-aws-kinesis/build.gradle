@@ -7,7 +7,7 @@ ext {
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   awsSDKVersion = '1.12.172'
   jacksonVersion='2.13.2'
-  nettyVersion="4.1.74.Final"
+  nettyVersion="4.1.75.Final"
 }
 dependencies {
   api ("com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion")
