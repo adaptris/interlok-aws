@@ -8,8 +8,12 @@ ext {
   awsSDKVersion = '1.12.180'
   jacksonVersion='2.13.2'
   nettyVersion="4.1.75.Final"
+  kotlinVersion="1.4.32"
+  wireVersion="4.0.1"
 }
 dependencies {
+  implementation ("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion")
+  
   api ("com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion")
   api ("com.amazonaws:amazon-kinesis-client:1.14.8") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
@@ -53,6 +57,9 @@ dependencies {
   implementation ("io.netty:netty-transport-native-kqueue:$nettyVersion")
   implementation ("io.netty:netty-codec:$nettyVersion")
   implementation ("io.netty:netty-codec-http:$nettyVersion")
+    
+  implementation ("com.squareup.wire:wire-schema:$wireVersion")
+  implementation ("com.squareup.wire:wire-compiler:$wireVersion")
 
   api ("com.google.protobuf:protobuf-java:3.19.4")
   api ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
