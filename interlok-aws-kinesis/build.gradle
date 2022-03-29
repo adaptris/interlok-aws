@@ -2,14 +2,14 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
 ext {
-  componentName='Interlok AWS/Kinesis'
-  componentDesc="Components that interact AWS Kinesis data streams"
+  componentName = 'Interlok AWS/Kinesis'
+  componentDesc = "Components that interact AWS Kinesis data streams"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.12.186'
-  jacksonVersion='2.13.2'
-  nettyVersion="4.1.75.Final"
-  kotlinVersion="1.4.32"
-  wireVersion="4.0.1"
+  awsSDKVersion = "1.12.186"
+  jacksonVersion = "2.13.2.20220324"
+  nettyVersion = "4.1.75.Final"
+  kotlinVersion = "1.4.32"
+  wireVersion = "4.0.1"
 }
 dependencies {
   implementation ("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion")
@@ -62,12 +62,14 @@ dependencies {
   implementation ("com.squareup.wire:wire-compiler:$wireVersion")
 
   api ("com.google.protobuf:protobuf-java:3.19.4")
-  api ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
-  api ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
-  api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
+  // Dependency to platform/BOM
+  implementation (platform("com.fasterxml.jackson:jackson-bom"))
+  api ("com.fasterxml.jackson.core:jackson-databind")
+  api ("com.fasterxml.jackson.core:jackson-core")
+  api ("com.fasterxml.jackson.core:jackson-annotations")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
-  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.13.2")
+  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor")
   api project(':interlok-aws-common')
 }
 
