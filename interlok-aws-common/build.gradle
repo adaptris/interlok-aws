@@ -19,7 +19,7 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
     exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
   }
-  implementation (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
+  api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
   api ("com.fasterxml.jackson.core:jackson-databind")
   api ("com.fasterxml.jackson.core:jackson-core")
   api ("com.fasterxml.jackson.core:jackson-annotations")

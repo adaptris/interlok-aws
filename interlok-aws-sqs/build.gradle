@@ -16,7 +16,7 @@ dependencies {
   }
   api ("com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8")
   // Dependency to platform/BOM
-  implementation (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
+  api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
   api ("com.fasterxml.jackson.core:jackson-databind")
   api ("com.fasterxml.jackson.core:jackson-core")
   api ("com.fasterxml.jackson.core:jackson-annotations")
