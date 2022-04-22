@@ -61,7 +61,7 @@ dependencies {
   implementation ("com.squareup.wire:wire-schema:$wireVersion")
   implementation ("com.squareup.wire:wire-compiler:$wireVersion")
 
-  api ("com.google.protobuf:protobuf-java:3.20.0")
+  api ("com.google.protobuf:protobuf-java:3.20.1")
   // Dependency to platform/BOM
   api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
   api ("com.fasterxml.jackson.core:jackson-databind")
