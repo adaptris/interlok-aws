@@ -9,7 +9,7 @@ ext {
   jacksonVersion = "2.13.2.20220328"
   nettyVersion = "4.1.76.Final"
   kotlinVersion = "1.4.32"
-  wireVersion = "4.0.1"
+  wireVersion = "4.3.0"
 }
 dependencies {
   implementation ("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion")
