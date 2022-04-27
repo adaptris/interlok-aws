@@ -26,8 +26,18 @@
      <packageUrl regex="true">^pkg:maven/com\.squareup\.wire/wire\-.*@.*$</packageUrl>
      <cve>CVE-2018-8909</cve>
 	 <!--
-	   This is a valid CVE but there is nothing we can do about it for now and I don't think that interlok-aws-kineis usage is affected.
+	   This is a valid CVE but there is nothing we can do about it for now and I don't think that interlok-aws-kinesis usage is affected.
 	 -->
      <cve>CVE-2021-41100</cve>
+  </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: wire-grpc-server-generator-4.3.0.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.squareup\.wire/wire\-grpc\-server\-generator@.*$</packageUrl>
+	 <!--
+	   com.wire:wire-server is affected not com.squareup.wire:wire-grpc-server-generator
+	 -->
+     <cve>CVE-2021-41119</cve>
   </suppress>
 </suppressions>
