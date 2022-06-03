@@ -24,7 +24,7 @@ ext {
   organizationName = "Adaptris Ltd"
 
   slf4jVersion = '1.7.36'
-  mockitoVersion = '4.6.0'
+  mockitoVersion = '4.6.1'
 }
 
 ext.buildDetails = [
