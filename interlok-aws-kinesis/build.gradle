@@ -5,11 +5,11 @@ ext {
   componentName = 'Interlok AWS/Kinesis'
   componentDesc = "Components that interact AWS Kinesis data streams"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = "1.12.233"
+  awsSDKVersion = "1.12.250"
   jacksonVersion = "2.13.3"
-  nettyVersion = "4.1.77.Final"
+  nettyVersion = "4.1.78.Final"
   kotlinVersion = "1.4.32"
-  wireVersion = "4.3.0"
+  wireVersion = "4.4.0"
 }
 dependencies {
   implementation ("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion")
@@ -61,7 +61,7 @@ dependencies {
   implementation ("com.squareup.wire:wire-schema:$wireVersion")
   implementation ("com.squareup.wire:wire-compiler:$wireVersion")
 
-  api ("com.google.protobuf:protobuf-java:3.20.1")
+  api ("com.google.protobuf:protobuf-java:3.21.2")
   // Dependency to platform/BOM
   api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
   api ("com.fasterxml.jackson.core:jackson-databind")
