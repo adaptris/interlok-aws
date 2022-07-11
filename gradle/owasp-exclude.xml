@@ -40,4 +40,12 @@
 	 -->
      <cve>CVE-2021-41119</cve>
   </suppress>
+  <suppress>
+     <notes><![CDATA[
+     file name: jetty-io-9.4.48.v20220622.jar
+	 Only Jetty versions 10.0.0 thru 10.0.9, and 11.0.0 thru 11.0.9 versions are affected
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/org\.eclipse\.jetty/jetty\-io@.*$</packageUrl>
+     <vulnerabilityName>CVE-2022-2191</vulnerabilityName>
+  </suppress>
 </suppressions>
