@@ -3,7 +3,7 @@ ext {
   componentDesc = "Common components for accessing AWS"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   jacksonVersion = '2.13.3'
-  awsSDKVersion = '1.12.258'
+  awsSDKVersion = '1.12.260'
 }
 
 dependencies {
