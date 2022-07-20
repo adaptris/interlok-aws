@@ -2,30 +2,19 @@ ext {
   componentName = 'Interlok AWS/SNS'
   componentDesc = "Publishing to AWS SNS topics"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.12.263'
+  awsSDKVersion = '1.12.264'
   jacksonVersion = '2.13.3'
 }
 
 dependencies {
-  api ("com.amazonaws:aws-java-sdk-sns:$awsSDKVersion") {
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
-    exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
-  }
-  api ("com.amazonaws:aws-java-sdk-core:$awsSDKVersion") {
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
-    exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
-  }
-  // Dependency to platform/BOM
   api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
+  api (platform("com.amazonaws:aws-java-sdk-bom:$awsSDKVersion"))
+  api ("com.amazonaws:aws-java-sdk-sns")
+  api ("com.amazonaws:aws-java-sdk-core")
+  // Dependency to platform/BOM
   api ("com.fasterxml.jackson.core:jackson-databind")
   api ("com.fasterxml.jackson.core:jackson-core")
   api ("com.fasterxml.jackson.core:jackson-annotations")
-  // It will probably march in lockstep, but since it's a different
-  // group I will make it separate.
   api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor")
   api project(':interlok-aws-common')
 }
