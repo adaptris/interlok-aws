@@ -5,14 +5,16 @@ import static com.adaptris.aws.sqs.LocalstackHelper.areTestsEnabled;
 import static com.adaptris.aws.sqs.LocalstackHelper.getProperty;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import java.util.concurrent.ExecutionException;
+
 import java.util.concurrent.TimeUnit;
+
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.FixedIntervalPoller;
@@ -56,12 +58,6 @@ public class LocalstackRoundtripTest {
   public void test_02_TestPublish() throws Exception {
     Assume.assumeTrue(areTestsEnabled());
     AmazonSQSProducer sqsProducer = new AmazonSQSProducer().withQueue(getProperty(SQS_QUEUE));
-    sqsProducer.withMessageAsyncCallback((e) -> {
-      try {
-        System.err.println(e.get().getMessageId());
-      } catch (InterruptedException | ExecutionException e1) {
-      }
-    });
     AmazonSQSConnection conn = helper.createConnection();
     StandaloneProducer sp = new StandaloneProducer(conn, sqsProducer);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage(MSG_CONTENTS);

@@ -16,7 +16,6 @@
 
 package com.adaptris.aws.sqs;
 
-import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,9 +23,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+
 import org.apache.commons.lang3.StringUtils;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
@@ -45,12 +47,14 @@ import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.util.TimeInterval;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.sqs.AmazonSQSAsync;
+import com.amazonaws.services.sqs.AmazonSQS;
+import com.amazonaws.services.sqs.model.InvalidMessageContentsException;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -71,6 +75,7 @@ import lombok.Setter;
 @DisplayOrder(order = {"queue", "ownerAwsAccountId", "delaySeconds", "sendAttributes"})
 public class AmazonSQSProducer extends ProduceOnlyProducerImp {
 
+  private static final int HTTP_SUCCESS = 200;
   /**
    * Delay seconds for every message
    */
@@ -117,9 +122,6 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
   @NotBlank
   private String queue;
 
-
-  private transient SendMessageAsyncCallback callback = (e) -> {  };
-
   private transient ExpiringMapCache cachedQueueURLs;
 
 
@@ -141,8 +143,8 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
     Args.notNull(retrieveConnection(AmazonSQSConnection.class), "connection");
   }
 
-  private AmazonSQSAsync getSQS() throws CoreException {
-    return retrieveConnection(AmazonSQSConnection.class).getASyncClient();
+  private AmazonSQS getSQS() throws CoreException {
+    return retrieveConnection(AmazonSQSConnection.class).getSyncClient();
   }
 
   @Override
@@ -167,8 +169,15 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
       SendMessageRequest sendMessageRequest =
           configureDelay(new SendMessageRequest(queueUrl, msg.getContent()));
       applyMetadata(sendMessageRequest, msg);
-      Future<SendMessageResult> future = getSQS().sendMessageAsync(sendMessageRequest);
-      callback.handleResult(future);
+      SendMessageResult result = null;
+      try {
+        result = getSQS().sendMessage(sendMessageRequest);
+      } catch (InvalidMessageContentsException | com.amazonaws.services.sqs.model.UnsupportedOperationException invEx) {
+        throw new ProduceException(invEx);
+      }
+      if(result.getSdkHttpMetadata().getHttpStatusCode() != HTTP_SUCCESS)
+        throw new ProduceException("SQS Server returned status code: " + result.getSdkHttpMetadata().getHttpStatusCode()) ;
+      
     }
     catch (Exception e) {
       throw new ProduceException(e);
@@ -208,16 +217,9 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
     return queueURL;
   }
 
-  // Just for testing with localstack.
-  protected AmazonSQSProducer withMessageAsyncCallback(SendMessageAsyncCallback callback) {
-    this.callback = Args.notNull(callback, "callback");
-    return this;
-  }
-
-
   @Override
   public String endpoint(AdaptrisMessage msg) throws ProduceException {
-    return resolveProduceDestination(getQueue(), msg);
+    return msg.resolve(getQueue());
   }
 
   public AmazonSQSProducer withQueue(String s) {
@@ -225,10 +227,8 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
     return this;
   }
 
-
   @FunctionalInterface
   public interface SendMessageAsyncCallback {
-    void handleResult(Future<SendMessageResult> future);
+    public void handleResult(Future<SendMessageResult> future);
   }
-
 }
