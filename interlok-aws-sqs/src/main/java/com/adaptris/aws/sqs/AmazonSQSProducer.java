@@ -48,7 +48,6 @@ import com.adaptris.util.TimeInterval;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.services.sqs.AmazonSQS;
-import com.amazonaws.services.sqs.model.InvalidMessageContentsException;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
@@ -170,11 +169,8 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
           configureDelay(new SendMessageRequest(queueUrl, msg.getContent()));
       applyMetadata(sendMessageRequest, msg);
       SendMessageResult result = null;
-      try {
-        result = getSQS().sendMessage(sendMessageRequest);
-      } catch (InvalidMessageContentsException | com.amazonaws.services.sqs.model.UnsupportedOperationException invEx) {
-        throw new ProduceException(invEx);
-      }
+      result = getSQS().sendMessage(sendMessageRequest);
+      
       if(result.getSdkHttpMetadata().getHttpStatusCode() != HTTP_SUCCESS)
         throw new ProduceException("SQS Server returned status code: " + result.getSdkHttpMetadata().getHttpStatusCode()) ;
       
