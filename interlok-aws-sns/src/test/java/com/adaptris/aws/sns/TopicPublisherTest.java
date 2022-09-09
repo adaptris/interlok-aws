@@ -20,13 +20,23 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.CoreException;
+import com.adaptris.core.MetadataElement;
 import com.adaptris.core.ServiceException;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.common.MetadataDataInputParameter;
@@ -37,6 +47,7 @@ import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import com.adaptris.interlok.types.InterlokMessage;
 import com.adaptris.util.GuidGenerator;
 import com.amazonaws.services.sns.AmazonSNSClient;
+import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 
 public class TopicPublisherTest extends ExampleProducerCase {
@@ -57,17 +68,16 @@ public class TopicPublisherTest extends ExampleProducerCase {
   }
 
   @Test
-  @SuppressWarnings("deprecation")
   public void testSubject() throws Exception {
     PublishToTopic producer =
         new PublishToTopic().withTopicArn("arn:aws:sns:us-east-1:123456789012:MyNewTopic");
     assertNull(producer.getSnsSubject());
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     msg.addMetadata("hello", "world");
-    assertNull(producer.resolveSubject(msg));
+    assertNull(producer.subject(msg));
 
     producer.withSubject("%message{hello}");
-    assertEquals("world", producer.resolveSubject(msg));
+    assertEquals("world", producer.subject(msg));
   }
 
   @Test
@@ -86,16 +96,12 @@ public class TopicPublisherTest extends ExampleProducerCase {
   public void testPublish() throws Exception {
     AmazonSNSClient mockClient = Mockito.mock(AmazonSNSClient.class);
     PublishResult mockResult = Mockito.mock(PublishResult.class);
-    Mockito.when(mockClient.publish(any())).thenReturn(mockResult);
     String resultId = new GuidGenerator().getUUID();
     Mockito.when(mockResult.getMessageId()).thenReturn(resultId);
-    PublishToTopic producer = new PublishToTopic()
-        .withTopicArn("arn:aws:sns:us-east-1:123456789012:MyNewTopic").withSubject("the subject");
-
-    StandaloneProducer p =
-        new StandaloneProducer(new MockAmazonSNSConnection(mockClient), producer);
+    Mockito.when(mockClient.publish(any())).thenReturn(mockResult);
+    StandaloneProducer sp = initProducer(mockClient, "the subject", null);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    ExampleServiceCase.execute(p, msg);
+    ExampleServiceCase.execute(sp, msg);
     assertTrue(msg.headersContainsKey(PublishToTopic.SNS_MSG_ID_KEY));
     assertEquals(resultId, msg.getMetadataValue(PublishToTopic.SNS_MSG_ID_KEY));
   }
@@ -104,16 +110,13 @@ public class TopicPublisherTest extends ExampleProducerCase {
   public void testPublish_NoSubject() throws Exception {
     AmazonSNSClient mockClient = Mockito.mock(AmazonSNSClient.class);
     PublishResult mockResult = Mockito.mock(PublishResult.class);
-    Mockito.when(mockClient.publish(any())).thenReturn(mockResult);
     String resultId = new GuidGenerator().getUUID();
     Mockito.when(mockResult.getMessageId()).thenReturn(resultId);
+    Mockito.when(mockClient.publish(any())).thenReturn(mockResult);
 
-    PublishToTopic producer =
-        new PublishToTopic().withTopicArn("arn:aws:sns:us-east-1:123456789012:MyNewTopic");
-    StandaloneProducer p =
-        new StandaloneProducer(new MockAmazonSNSConnection(mockClient), producer);
+    StandaloneProducer sp = initProducer(mockClient, null, null);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    ExampleServiceCase.execute(p, msg);
+    ExampleServiceCase.execute(sp, msg);
     assertTrue(msg.headersContainsKey(PublishToTopic.SNS_MSG_ID_KEY));
     assertEquals(resultId, msg.getMetadataValue(PublishToTopic.SNS_MSG_ID_KEY));
   }
@@ -122,27 +125,142 @@ public class TopicPublisherTest extends ExampleProducerCase {
   public void testPublish_Failure() throws Exception {
     AmazonSNSClient mockClient = Mockito.mock(AmazonSNSClient.class);
     PublishResult mockResult = Mockito.mock(PublishResult.class);
-    Mockito.when(mockClient.publish(any())).thenReturn(mockResult);
     String resultId = new GuidGenerator().getUUID();
     Mockito.when(mockResult.getMessageId()).thenReturn(resultId);
+    Mockito.when(mockClient.publish(any())).thenReturn(mockResult);
     PublishToTopic producer =
         new PublishToTopic().withTopicArn("arn:aws:sns:us-east-1:123456789012:MyNewTopic")
-            .withSource(new DataInputParameter<String>() {
-              @Override
-              public String extract(InterlokMessage arg0) throws InterlokException {
-                throw new InterlokException();
-              }
-            });
+        .withSource(new DataInputParameter<String>() {
+          @Override
+          public String extract(InterlokMessage arg0) throws InterlokException {
+            throw new InterlokException();
+          }
+        });
 
-    StandaloneProducer p =
+    StandaloneProducer sp =
         new StandaloneProducer(new MockAmazonSNSConnection(mockClient), producer);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
     try {
-      ExampleServiceCase.execute(p, msg);
+      ExampleServiceCase.execute(sp, msg);
       fail();
     } catch (ServiceException expected) {
 
     }
+  }
+
+  @Test
+  public void testPublishWithSendAttributes() throws Exception {
+    AmazonSNSClient mockClient = Mockito.mock(AmazonSNSClient.class);
+    PublishResult mockResult = Mockito.mock(PublishResult.class);
+    String resultId = new GuidGenerator().getUUID();
+    Mockito.when(mockResult.getMessageId()).thenReturn(resultId);
+    when(mockClient.publish(any())).thenAnswer(new Answer<Object>() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+
+        PublishRequest request = (PublishRequest) args[0];
+        assertTrue(request.getMessageAttributes() != null);
+        assertEquals("myValue1", request.getMessageAttributes().get("myKey1").getStringValue());
+        assertEquals("myValue2", request.getMessageAttributes().get("myKey2").getStringValue());
+        assertEquals("myValue3", request.getMessageAttributes().get("myKey3").getStringValue());
+
+        return mockResult;
+      }
+    });
+
+    List<String> sendAttributes = new ArrayList<>();
+    sendAttributes.add("myKey1");
+    sendAttributes.add("myKey2");
+    sendAttributes.add("myKey3");
+
+    StandaloneProducer sp = initProducer(mockClient, null, sendAttributes);
+
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
+    msg.replaceAllMetadata(List.of(new MetadataElement("myKey1", "myValue1"), new MetadataElement("myKey2", "myValue2"),
+        new MetadataElement("myKey3", "myValue3")));
+    ExampleServiceCase.execute(sp, msg);
+    verify(mockClient).publish(any());
+  }
+
+  @Test
+  public void testPublishWithSendAttributesOneMissing() throws Exception {
+    AmazonSNSClient mockClient = Mockito.mock(AmazonSNSClient.class);
+    PublishResult mockResult = Mockito.mock(PublishResult.class);
+    String resultId = new GuidGenerator().getUUID();
+    Mockito.when(mockResult.getMessageId()).thenReturn(resultId);
+    when(mockClient.publish(any())).thenAnswer(new Answer<Object>() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+
+        PublishRequest request = (PublishRequest) args[0];
+        assertTrue(request.getMessageAttributes() != null);
+        assertEquals("myValue1", request.getMessageAttributes().get("myKey1").getStringValue());
+        assertNull(request.getMessageAttributes().get("myKey2"));
+        assertEquals("myValue3", request.getMessageAttributes().get("myKey3").getStringValue());
+
+        return mockResult;
+      }
+    });
+
+    List<String> sendAttributes = new ArrayList<>();
+    sendAttributes.add("myKey1");
+    sendAttributes.add("myKey2");
+    sendAttributes.add("myKey3");
+
+    StandaloneProducer sp = initProducer(mockClient, null, sendAttributes);
+
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
+    msg.replaceAllMetadata(List.of(new MetadataElement("myKey1", "myValue1"), new MetadataElement("myKey3", "myValue3")));
+    ExampleServiceCase.execute(sp, msg);
+    verify(mockClient).publish(any());
+  }
+
+  @Test
+  public void testPublishWithSendAttributesOneEmpty() throws Exception {
+    AmazonSNSClient mockClient = Mockito.mock(AmazonSNSClient.class);
+    PublishResult mockResult = Mockito.mock(PublishResult.class);
+    String resultId = new GuidGenerator().getUUID();
+    Mockito.when(mockResult.getMessageId()).thenReturn(resultId);
+    when(mockClient.publish(any())).thenAnswer(new Answer<Object>() {
+      @Override
+      public Object answer(InvocationOnMock invocation) {
+        Object[] args = invocation.getArguments();
+
+        PublishRequest request = (PublishRequest) args[0];
+        assertTrue(request.getMessageAttributes() != null);
+        assertEquals("myValue1", request.getMessageAttributes().get("myKey1").getStringValue());
+        assertNull(request.getMessageAttributes().get("myKey2"));
+        assertEquals("myValue3", request.getMessageAttributes().get("myKey3").getStringValue());
+
+        return mockResult;
+      }
+    });
+
+    List<String> sendAttributes = new ArrayList<>();
+    sendAttributes.add("myKey1");
+    sendAttributes.add("myKey2");
+    sendAttributes.add("myKey3");
+
+    StandaloneProducer sp = initProducer(mockClient, null, sendAttributes);
+
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
+    msg.replaceAllMetadata(
+        List.of(new MetadataElement("myKey1", "myValue1"), new MetadataElement("myKey2", ""), new MetadataElement("myKey3", "myValue3")));
+    ExampleServiceCase.execute(sp, msg);
+    verify(mockClient).publish(any());
+  }
+
+  private StandaloneProducer initProducer(AmazonSNSClient mockClient, String subject, List<String> sendAttributes) {
+    PublishToTopic producer = new PublishToTopic().withTopicArn("arn:aws:sns:us-east-1:123456789012:MyNewTopic").withSubject(subject);
+
+    if (sendAttributes != null) {
+      producer.setSendAttributes(sendAttributes);
+    }
+
+    StandaloneProducer p = new StandaloneProducer(new MockAmazonSNSConnection(mockClient), producer);
+    return p;
   }
 
   private class MockAmazonSNSConnection extends AmazonSNSConnection {
