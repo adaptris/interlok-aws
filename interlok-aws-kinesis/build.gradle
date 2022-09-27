@@ -34,11 +34,13 @@ dependencies {
     // Exclude netty so we can pin the version.
     exclude group: "io.netty"
     exclude group: "org.apache.avro"
+    exclude group: "org.apache.kafka", module: "kafka-client"
   }
   implementation ("org.apache.avro:avro:1.11.1") {
     exclude group: "org.apache.commons", module: "commons-compress"
   }
-
+  implementation ("org.apache.kafka:kafka-clients:2.8.2")
+  
   implementation ("org.apache.commons:commons-compress:1.21")
 
   api ("com.google.guava:guava:31.1-jre")
