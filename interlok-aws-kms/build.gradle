@@ -6,7 +6,7 @@ ext {
   componentDesc = "Components that interact with AWS KMS to perform sign/encrypt/decrypt/verify operations"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   awsSDKVersion = '1.12.319'
-  jacksonVersion = '2.13.4'
+  jacksonVersion = '2.13.4.20221013'
 }
 
 dependencies {
