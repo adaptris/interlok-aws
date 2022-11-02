@@ -12,11 +12,10 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
-*/
+ */
 
 package com.adaptris.aws.sqs;
 
-import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -24,9 +23,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
@@ -51,6 +55,7 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
+
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -67,7 +72,7 @@ import lombok.Setter;
 @XStreamAlias("amazon-sqs-producer")
 @AdapterComponent
 @ComponentProfile(summary = "Send messages to Amazon SQS", tag = "producer,amazon,sqs",
-    recommended = {AmazonSQSConnection.class})
+recommended = {AmazonSQSConnection.class})
 @DisplayOrder(order = {"queue", "ownerAwsAccountId", "delaySeconds", "sendAttributes"})
 public class AmazonSQSProducer extends ProduceOnlyProducerImp {
 
@@ -117,6 +122,53 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
   @NotBlank
   private String queue;
 
+  /**
+   * <p>
+   * This parameter applies only to FIFO (first-in-first-out) queues.
+   * </p>
+   * <p>
+   * The tag that specifies that a message belongs to a specific message group. Messages that belong to the same message group are processed
+   * in a FIFO manner (however, messages in different message groups might be processed out of order). To interleave multiple ordered
+   * streams within a single queue, use <code>MessageGroupId</code> values (for example, session data for multiple users).
+   * </p>
+   * <ul>
+   * <li>
+   * <p>
+   * You must associate a non-empty <code>MessageGroupId</code> with a message. If you don't provide a <code>MessageGroupId</code>, the
+   * action fails.
+   * </p>
+   * </li>
+   * <li>
+   * <p>
+   * <code>ReceiveMessage</code> might return messages with multiple <code>MessageGroupId</code> values. For each
+   * <code>MessageGroupId</code>, the messages are sorted by time sent. The caller can't specify a <code>MessageGroupId</code>.
+   * </p>
+   * </li>
+   * </ul>
+   * <p>
+   * The length of <code>MessageGroupId</code> is 128 characters. Valid values: alphanumeric characters and punctuation
+   * <code>(!"#$%&amp;'()*+,-./:;&lt;=&gt;?@[\]^_`{|}~)</code>.
+   * </p>
+   * <p>
+   * For best practices of using <code>MessageGroupId</code>, see
+   * <a href= "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/using-messagegroupid-property.html" >Using the
+   * MessageGroupId Property</a> in the <i>Amazon SQS Developer Guide</i>.
+   * </p>
+   * <important>
+   * <p>
+   * <code>MessageGroupId</code> is required for FIFO queues. You can't use it for Standard queues.
+   * </p>
+   * </important>
+   *
+   * @param messageGroupId
+   * @return Returns a reference to this object so that method calls can be chained together.
+   */
+  @InputFieldHint(expression = true)
+  @Getter
+  @Setter
+  @Size(max = 128)
+  private String messageGroupId;
+
 
   private transient SendMessageAsyncCallback callback = (e) -> {  };
 
@@ -163,9 +215,9 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
   @Override
   public void doProduce(AdaptrisMessage msg, String endpoint) throws ProduceException {
     try {
-      String queueUrl = resolveQueueURL(endpoint);
+      String queueUrl = queueURL(endpoint);
       SendMessageRequest sendMessageRequest =
-          configureDelay(new SendMessageRequest(queueUrl, msg.getContent()));
+          configureDelay(new SendMessageRequest(queueUrl, msg.getContent())).withMessageGroupId(messageGroupId(msg));
       applyMetadata(sendMessageRequest, msg);
       Future<SendMessageResult> future = getSQS().sendMessageAsync(sendMessageRequest);
       callback.handleResult(future);
@@ -180,24 +232,21 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
     return req;
   }
 
-  private SendMessageRequest applyMetadata(SendMessageRequest sendMessageRequest, AdaptrisMessage msg) {
-    if(getSendAttributes().size() > 0) {
-      Map<String, MessageAttributeValue> attributes = new HashMap<>();
-      for(String attribute : getSendAttributes()) {
+  private SendMessageRequest applyMetadata(SendMessageRequest request, AdaptrisMessage msg) {
+    Map<String, MessageAttributeValue> attributes = null;
+    if (CollectionUtils.isNotEmpty(getSendAttributes())) {
+      attributes = new HashMap<>();
+      for (String attribute : getSendAttributes()) {
         String adpMetadataValue = msg.getMetadataValue(attribute);
-        if (!StringUtils.isEmpty(adpMetadataValue)) {
-          MessageAttributeValue mav = new MessageAttributeValue();
-          mav.setDataType("String");
-          mav.setStringValue(msg.getMetadataValue(attribute));
-          attributes.put(attribute, mav);
+        if (StringUtils.isNotEmpty(adpMetadataValue)) {
+          attributes.put(attribute, new MessageAttributeValue().withDataType("String").withStringValue(adpMetadataValue));
         }
       }
-      sendMessageRequest.withMessageAttributes(attributes);
     }
-    return sendMessageRequest;
+    return request.withMessageAttributes(attributes);
   }
 
-  private String resolveQueueURL(String queueName)
+  private String queueURL(String queueName)
       throws AmazonServiceException, AmazonClientException, CoreException {
     String queueURL = (String) cachedQueueURLs.get(queueName);
     // It's not in the cache. Look up the queue url from Amazon and cache it.
@@ -206,6 +255,10 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
       cachedQueueURLs.put(queueName, queueURL);
     }
     return queueURL;
+  }
+
+  protected String messageGroupId(AdaptrisMessage msg) throws Exception {
+    return msg.resolve(getMessageGroupId());
   }
 
   // Just for testing with localstack.
@@ -217,7 +270,7 @@ public class AmazonSQSProducer extends ProduceOnlyProducerImp {
 
   @Override
   public String endpoint(AdaptrisMessage msg) throws ProduceException {
-    return resolveProduceDestination(getQueue(), msg);
+    return msg.resolve(getQueue());
   }
 
   public AmazonSQSProducer withQueue(String s) {

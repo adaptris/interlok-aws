@@ -5,27 +5,24 @@ ext {
   componentName = 'Interlok AWS/Kinesis'
   componentDesc = "Components that interact AWS Kinesis data streams"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = "1.12.228"
-  jacksonVersion = "2.13.3"
-  nettyVersion = "4.1.77.Final"
-  kotlinVersion = "1.4.32"
-  wireVersion = "4.3.0"
+  nettyVersion = "4.1.84.Final"
+  kotlinVersion = "1.7.10"
+  wireVersion = "4.4.2"
+  awsSDKVersion = '1.12.319'
+  jacksonVersion = '2.13.4.20221013'
 }
 dependencies {
+  api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
+  api (platform("com.amazonaws:aws-java-sdk-bom:$awsSDKVersion"))
   implementation ("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion")
-  
-  api ("com.amazonaws:aws-java-sdk-kinesis:$awsSDKVersion")
+
+  api ("com.amazonaws:aws-java-sdk-kinesis")
+  // The BOM from the parent overrides the 1.12.130 dependency on sdk-s3
   api ("com.amazonaws:amazon-kinesis-client:1.14.8") {
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
-    exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
     exclude group: "com.google.protobuf", module: "protobuf-java"
   }
-  api ("com.amazonaws:aws-java-sdk-core:$awsSDKVersion") {
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
-    exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
+
+  api ("com.amazonaws:aws-java-sdk-core") {
     exclude group: "org.apache.avro"
   }
   api ("commons-codec:commons-codec:1.15")
@@ -33,42 +30,40 @@ dependencies {
   // 0.13.1 does containthe windows binaries
   // 0.14 does not contain the windows binary.
   api ("com.amazonaws:amazon-kinesis-producer:0.14.12") {
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.google.protobuf", module: "protobuf-java"
     // Exclude netty so we can pin the version.
     exclude group: "io.netty"
     exclude group: "org.apache.avro"
+    exclude group: "org.apache.kafka", module: "kafka-client"
   }
-
-  implementation ("org.apache.avro:avro:1.11.0") {
+  implementation ("org.apache.avro:avro:1.11.1") {
     exclude group: "org.apache.commons", module: "commons-compress"
   }
+  implementation ("org.apache.kafka:kafka-clients:2.8.2")
   
   implementation ("org.apache.commons:commons-compress:1.21")
 
   api ("com.google.guava:guava:31.1-jre")
-  implementation ("io.netty:netty-buffer:$nettyVersion")
-  implementation ("io.netty:netty-common:$nettyVersion")
-  implementation ("io.netty:netty-handler:$nettyVersion")
-  implementation ("io.netty:netty-transport:$nettyVersion")
-  implementation ("io.netty:netty-transport-native-epoll:$nettyVersion")
-  implementation ("io.netty:netty-transport-native-unix-common:$nettyVersion")
-  implementation ("io.netty:netty-transport-native-kqueue:$nettyVersion")
-  implementation ("io.netty:netty-codec:$nettyVersion")
-  implementation ("io.netty:netty-codec-http:$nettyVersion")
-    
+  implementation (platform("io.netty:netty-bom:$nettyVersion"))
+
+  implementation ("io.netty:netty-buffer")
+  implementation ("io.netty:netty-common")
+  implementation ("io.netty:netty-handler")
+  implementation ("io.netty:netty-transport")
+  implementation ("io.netty:netty-transport-native-epoll")
+  implementation ("io.netty:netty-transport-native-unix-common")
+  implementation ("io.netty:netty-transport-native-kqueue")
+  implementation ("io.netty:netty-codec")
+  implementation ("io.netty:netty-codec-http")
+
   implementation ("com.squareup.wire:wire-schema:$wireVersion")
   implementation ("com.squareup.wire:wire-compiler:$wireVersion")
 
-  api ("com.google.protobuf:protobuf-java:3.20.1")
+  api ("com.google.protobuf:protobuf-java:3.21.7")
   // Dependency to platform/BOM
-  api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
   api ("com.fasterxml.jackson.core:jackson-databind")
   api ("com.fasterxml.jackson.core:jackson-core")
   api ("com.fasterxml.jackson.core:jackson-annotations")
-  // It will probably march in lockstep, but since it's a different
-  // group I will make it separate.
   api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor")
   api project(':interlok-aws-common')
 }

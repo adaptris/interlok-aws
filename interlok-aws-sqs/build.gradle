@@ -2,8 +2,8 @@ ext {
   componentName = 'Interlok AWS/SQS'
   componentDesc = "Publishing & Consuming from AWS SQS natively or via their JMS provider"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.12.228'
-  jacksonVersion = '2.13.3'
+  awsSDKVersion = '1.12.319'
+  jacksonVersion = '2.13.4.20221013'
 }
 
 dependencies {
@@ -14,7 +14,7 @@ dependencies {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
     exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
   }
-  api ("com.amazonaws:amazon-sqs-java-messaging-lib:1.0.8")
+  api ("com.amazonaws:amazon-sqs-java-messaging-lib:1.1.0")
   // Dependency to platform/BOM
   api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
   api ("com.fasterxml.jackson.core:jackson-databind")
