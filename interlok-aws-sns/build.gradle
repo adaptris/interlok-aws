@@ -3,7 +3,7 @@ ext {
   componentDesc = "Publishing to AWS SNS topics"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   awsSDKVersion = '1.12.319'
-  jacksonVersion = '2.13.4.20221013'
+  jacksonVersion = '2.14.0'
 }
 
 dependencies {
