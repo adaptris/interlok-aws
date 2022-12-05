@@ -23,7 +23,7 @@ dependencies {
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
   api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor")
-  api ("org.apache.httpcomponents:httpclient:4.5.13")
+  api ("org.apache.httpcomponents:httpclient:4.5.14")
   api ("commons-codec:commons-codec:1.15")
   api project(':interlok-aws-common')
 }
