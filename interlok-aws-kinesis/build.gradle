@@ -56,8 +56,12 @@ dependencies {
   implementation ("io.netty:netty-codec")
   implementation ("io.netty:netty-codec-http")
 
+  implementation ("com.charleskorn.kaml:kaml:0.53.0")
+  
   implementation ("com.squareup.wire:wire-schema:$wireVersion")
-  implementation ("com.squareup.wire:wire-compiler:$wireVersion")
+  implementation ("com.squareup.wire:wire-compiler:$wireVersion") {
+    exclude group: "com.charleskorn.kaml", module: "kaml"
+  }
 
   api ("com.google.protobuf:protobuf-java:3.22.2")
   // Dependency to platform/BOM
