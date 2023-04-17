@@ -11,6 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     # Perform the auto approve action only when the PR is raised by dependabot
     steps:
+      - name: Checkout branch
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.client_payload.branch }}
       - name: Approve a Dependabot PR If Not Already Approved
         continue-on-error: true
         # Only if the check-approve-merge script return true (minor or patch versions and valid dependencies)
