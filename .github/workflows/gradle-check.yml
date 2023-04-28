@@ -4,6 +4,7 @@ on:
   push:
     branches-ignore:
     - develop
+    - develop-v4
 
 jobs:
   gradle-check:
