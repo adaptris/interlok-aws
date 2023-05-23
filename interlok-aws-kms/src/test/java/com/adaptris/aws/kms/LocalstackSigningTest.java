@@ -7,14 +7,14 @@ import static com.adaptris.aws.kms.LocalstackHelper.KMS_URL;
 import static com.adaptris.aws.kms.LocalstackHelper.MSG_CONTENTS;
 import static com.adaptris.aws.kms.LocalstackHelper.SIG_METADATA_KEY;
 import static com.adaptris.aws.kms.LocalstackHelper.hash;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.StaticCredentialsBuilder;
@@ -28,7 +28,6 @@ import com.adaptris.util.text.Base64ByteTranslator;
 import com.amazonaws.services.kms.AWSKMSClient;
 import com.amazonaws.services.kms.model.CreateKeyRequest;
 import com.amazonaws.services.kms.model.CreateKeyResult;
-import com.amazonaws.services.kms.model.CustomerMasterKeySpec;
 import com.amazonaws.services.kms.model.KeyUsageType;
 import com.amazonaws.services.kms.model.MessageType;
 import com.amazonaws.services.kms.model.OriginType;
@@ -37,12 +36,12 @@ import com.amazonaws.services.kms.model.SigningAlgorithmSpec;
 // Note that local uses local-kms under the covers
 // https://github.com/nsmithuk/local-kms explicitly states that asymmetric operations are not supported.
 // So this conceptually is correct; but it won't work.
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class LocalstackSigningTest {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
-    Assume.assumeTrue(false);
+    assumeTrue(false);
     // Assume.assumeTrue(areTestsEnabled());
   }
 
@@ -104,7 +103,6 @@ public class LocalstackSigningTest {
     CreateKeyRequest req = new CreateKeyRequest().withDescription("junit")
         .withKeyUsage(KeyUsageType.SIGN_VERIFY)
         .withBypassPolicyLockoutSafetyCheck(true)
-        .withCustomerMasterKeySpec(CustomerMasterKeySpec.RSA_2048)
         .withOrigin(OriginType.AWS_KMS);
     CreateKeyResult result = client.createKey(req);
     System.err.println(result.getKeyMetadata().getSigningAlgorithms());
