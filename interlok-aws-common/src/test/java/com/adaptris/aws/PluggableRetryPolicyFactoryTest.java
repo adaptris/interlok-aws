@@ -1,7 +1,10 @@
 package com.adaptris.aws;
 
-import static org.junit.Assert.assertNotNull;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
+
 
 public class PluggableRetryPolicyFactoryTest {
 
@@ -22,11 +25,13 @@ public class PluggableRetryPolicyFactoryTest {
     assertNotNull(retry.build());
   }
 
-  @Test(expected = RuntimeException.class)
+  @Test
   public void testBuild_ClassNotFound() throws Exception {
     PluggableRetryPolicyFactory retry = new PluggableRetryPolicyFactory().withMaxErrorRetry(99)
         .withUseClientConfigurationMaxErrorRetry(true).withBackoffStrategyClass("com.Blah");
-    retry.build();
+    assertThrows(RuntimeException.class, ()->{
+      retry.build();
+    }, "Failed to build, class not found");
   }
 
 }
