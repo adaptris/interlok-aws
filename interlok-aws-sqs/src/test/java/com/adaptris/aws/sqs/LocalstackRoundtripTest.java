@@ -3,16 +3,17 @@ package com.adaptris.aws.sqs;
 import static com.adaptris.aws.sqs.LocalstackHelper.SQS_QUEUE;
 import static com.adaptris.aws.sqs.LocalstackHelper.areTestsEnabled;
 import static com.adaptris.aws.sqs.LocalstackHelper.getProperty;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.FixedIntervalPoller;
@@ -27,25 +28,25 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.ListQueuesResult;
 
 // A new local stack instance; send some messages, and then receive then.
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class LocalstackRoundtripTest {
 
   private static final String MSG_CONTENTS = "hello world";
   private LocalstackHelper helper;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     helper = new LocalstackHelper();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     helper.shutdown();
   }
 
   @Test
   public void test_01_TestCreateQueue() throws Exception {
-    Assume.assumeTrue(areTestsEnabled());
+    assumeTrue(areTestsEnabled());
     AmazonSQS sqs = helper.getSyncClient();
     sqs.createQueue(getProperty(SQS_QUEUE));
     ListQueuesResult result = sqs.listQueues();
@@ -54,7 +55,7 @@ public class LocalstackRoundtripTest {
 
   @Test
   public void test_02_TestPublish() throws Exception {
-    Assume.assumeTrue(areTestsEnabled());
+    assumeTrue(areTestsEnabled());
     AmazonSQSProducer sqsProducer = new AmazonSQSProducer().withQueue(getProperty(SQS_QUEUE));
     sqsProducer.withMessageAsyncCallback((e) -> {
       try {
@@ -75,7 +76,7 @@ public class LocalstackRoundtripTest {
   public void test_03_TestConsume() throws Exception {
     StandaloneConsumer standaloneConsumer = null;
     try {
-      Assume.assumeTrue(areTestsEnabled());
+      assumeTrue(areTestsEnabled());
       AmazonSQSConsumer consumer = new AmazonSQSConsumer().withQueue(getProperty(SQS_QUEUE));
       AmazonSQSConnection conn = helper.createConnection();
       FixedIntervalPoller poller = new FixedIntervalPoller(new TimeInterval(300L, TimeUnit.MILLISECONDS));
@@ -99,7 +100,7 @@ public class LocalstackRoundtripTest {
 
   @Test
   public void test_99_TestDeleteQueue() throws Exception {
-    Assume.assumeTrue(areTestsEnabled());
+    assumeTrue(areTestsEnabled());
     AmazonSQS sqs = helper.getSyncClient();
     sqs.deleteQueue(helper.toQueueURL(getProperty(SQS_QUEUE)));
   }

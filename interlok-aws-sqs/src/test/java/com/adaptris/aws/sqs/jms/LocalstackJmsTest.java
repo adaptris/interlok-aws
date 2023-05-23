@@ -3,14 +3,15 @@ package com.adaptris.aws.sqs.jms;
 import static com.adaptris.aws.sqs.LocalstackHelper.SQS_JMS_QUEUE;
 import static com.adaptris.aws.sqs.LocalstackHelper.areTestsEnabled;
 import static com.adaptris.aws.sqs.LocalstackHelper.getProperty;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import org.junit.After;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import com.adaptris.aws.sqs.LocalstackHelper;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -28,25 +29,25 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.ListQueuesResult;
 
 // A new local stack instance; send some messages, and then receive then.
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class LocalstackJmsTest {
 
   private static final String MSG_CONTENTS = "hello world";
   private LocalstackHelper helper;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     helper = new LocalstackHelper();
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     helper.shutdown();
   }
 
   @Test
   public void test_01_TestCreateQueue() throws Exception {
-    Assume.assumeTrue(areTestsEnabled());
+    assumeTrue(areTestsEnabled());
     AmazonSQS sqs = helper.getSyncClient();
     sqs.createQueue(getProperty(SQS_JMS_QUEUE));
     ListQueuesResult result = sqs.listQueues();
@@ -55,7 +56,7 @@ public class LocalstackJmsTest {
 
   @Test
   public void test_02_TestPublish() throws Exception {
-    Assume.assumeTrue(areTestsEnabled());
+    assumeTrue(areTestsEnabled());
     PtpProducer producer = new PtpProducer().withQueue(getProperty(SQS_JMS_QUEUE));
     JmsConnection conn = helper.createJmsConnection();
     StandaloneProducer sp = new StandaloneProducer(conn, producer);
@@ -69,7 +70,7 @@ public class LocalstackJmsTest {
     StandaloneConsumer standaloneConsumer = null;
     long start = System.currentTimeMillis();
     try {
-      Assume.assumeTrue(areTestsEnabled());
+      assumeTrue(areTestsEnabled());
       PtpConsumer consumer = new PtpConsumer().withQueue(getProperty(SQS_JMS_QUEUE));
       JmsConnection conn = helper.createJmsConnection();
       // System.err.println("Create Objects : " + (System.currentTimeMillis() - start));
@@ -96,7 +97,7 @@ public class LocalstackJmsTest {
 
   @Test
   public void test_99_TestDeleteQueue() throws Exception {
-    Assume.assumeTrue(areTestsEnabled());
+    assumeTrue(areTestsEnabled());
     AmazonSQS sqs = helper.getSyncClient();
     sqs.deleteQueue(helper.toQueueURL(getProperty(SQS_JMS_QUEUE)));
   }
