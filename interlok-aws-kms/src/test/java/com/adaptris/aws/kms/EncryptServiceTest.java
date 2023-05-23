@@ -2,14 +2,15 @@ package com.adaptris.aws.kms;
 
 import static com.adaptris.aws.kms.LocalstackHelper.MSG_CONTENTS;
 import static com.adaptris.aws.kms.LocalstackHelper.hash;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.nio.ByteBuffer;
 import java.util.EnumSet;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -58,7 +59,7 @@ public class EncryptServiceTest extends ExampleServiceCase {
     assertNotEquals(MSG_CONTENTS, msg.getContent());
   }
 
-  @Test(expected = ServiceException.class)
+  @Test
   public void testSign_Broken() throws Exception {
     AWSKMSClient client = Mockito.mock(AWSKMSClient.class);
 
@@ -69,7 +70,9 @@ public class EncryptServiceTest extends ExampleServiceCase {
     AdaptrisMessage msg = new DefectiveMessageFactory(EnumSet.of(WhenToBreak.METADATA_GET)).newMessage(MSG_CONTENTS);
 
     EncryptService service = retrieveObjectForSampleConfig().withEncryptionContext(null).withConnection(connectionMock);
-    execute(service, msg);
+    assertThrows(ServiceException.class, ()->{
+      execute(service, msg);
+    }, "Failed, signing is broken");
   }
 
 
