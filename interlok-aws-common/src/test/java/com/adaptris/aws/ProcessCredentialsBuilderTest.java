@@ -1,17 +1,21 @@
 package com.adaptris.aws;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.ProcessCredentialsProvider;
 
 public class ProcessCredentialsBuilderTest {
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testBuild_Defaults() throws Exception {
     ProcessCredentialsBuilder auth = new ProcessCredentialsBuilder();
-    AWSCredentialsProvider provider = auth.build();
+    assertThrows(IllegalArgumentException.class, ()->{
+      AWSCredentialsProvider provider = auth.build();
+    }, "Failed to build");
   }
 
   @Test

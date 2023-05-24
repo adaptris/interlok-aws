@@ -7,15 +7,16 @@ import static com.adaptris.aws.s3.LocalstackConfig.build;
 import static com.adaptris.aws.s3.LocalstackConfig.createConnection;
 import static com.adaptris.aws.s3.LocalstackConfig.getConfiguration;
 import static com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase.execute;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
 import java.util.Iterator;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import com.adaptris.aws.s3.CreateBucketOperation;
 import com.adaptris.aws.s3.DeleteBucketOperation;
 import com.adaptris.aws.s3.S3Service;
@@ -25,12 +26,12 @@ import com.adaptris.core.CoreConstants;
 import com.adaptris.interlok.cloud.RemoteBlob;
 import com.adaptris.interlok.junit.scaffolding.BaseCase;
 
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class LocalstackRetryStoreTest {
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
-    Assume.assumeTrue(areTestsEnabled());
+    assumeTrue(areTestsEnabled());
   }
 
   @Test

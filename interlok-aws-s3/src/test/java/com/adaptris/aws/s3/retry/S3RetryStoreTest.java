@@ -1,7 +1,8 @@
 package com.adaptris.aws.s3.retry;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import java.io.ByteArrayInputStream;
@@ -19,7 +20,7 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import com.adaptris.aws.s3.AmazonS3Connection;
 import com.adaptris.aws.s3.ClientWrapper;
@@ -190,7 +191,7 @@ public class S3RetryStoreTest {
     }
   }
 
-  @Test(expected = InterlokException.class)
+  @Test
   public void testWrite_Exception() throws Exception {
 
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
@@ -210,7 +211,9 @@ public class S3RetryStoreTest {
         new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
     try {
       BaseCase.start(store);
-      store.write(msg);
+      assertThrows(InterlokException.class, ()->{
+        store.write(msg);
+      }, "Failed to write");
     } finally {
       BaseCase.stop(store);
     }
@@ -273,7 +276,7 @@ public class S3RetryStoreTest {
     }
   }
 
-  @Test(expected = InterlokException.class)
+  @Test
   public void testGetMetadata_Exception() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
     TransferManager transferManager = Mockito.mock(TransferManager.class);
@@ -290,8 +293,10 @@ public class S3RetryStoreTest {
         new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
     try {
       BaseCase.start(store);
-      Map<String, String> map = store.getMetadata("XXXX");
-      assertTrue(map.containsKey(CLASS_UNDER_TEST_KEY));
+      assertThrows(InterlokException.class, ()->{
+        Map<String, String> map = store.getMetadata("XXXX");
+        assertTrue(map.containsKey(CLASS_UNDER_TEST_KEY));
+      }, "Get metadata exception thrown");
     } finally {
       BaseCase.stop(store);
     }
@@ -335,7 +340,7 @@ public class S3RetryStoreTest {
     }
   }
 
-  @Test(expected = InterlokException.class)
+  @Test
   public void testBuildForRetry_Failure() throws Exception {
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
     TransferManager transferManager = Mockito.mock(TransferManager.class);
@@ -352,7 +357,9 @@ public class S3RetryStoreTest {
     try {
       BaseCase.start(store);
       Map<String, String> metadata = new HashMap<>();
-      AdaptrisMessage msg = store.buildForRetry("XXX", metadata, null);
+      assertThrows(InterlokException.class, ()->{
+        AdaptrisMessage msg = store.buildForRetry("XXX", metadata, null);
+      }, "Build for retry failed");
     } finally {
       BaseCase.stop(store);
     }

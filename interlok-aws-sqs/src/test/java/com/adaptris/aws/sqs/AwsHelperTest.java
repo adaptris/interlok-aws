@@ -16,12 +16,12 @@
 
 package com.adaptris.aws.sqs;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.GetQueueUrlRequest;
@@ -31,7 +31,7 @@ public class AwsHelperTest extends AwsHelper {
   private static final String QUEUE_URL = "https://localhost/myqueueName";
   private AmazonSQS sqsClientMock;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
     sqsClientMock = mock(AmazonSQS.class);
