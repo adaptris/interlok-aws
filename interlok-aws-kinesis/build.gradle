@@ -8,7 +8,7 @@ ext {
   nettyVersion = "4.1.91.Final"
   kotlinVersion = "1.8.20"
   wireVersion = "4.5.5"
-  awsSDKVersion = '1.12.454'
+  awsSDKVersion = '1.12.476'
   jacksonVersion = '2.15.1'
 }
 dependencies {
