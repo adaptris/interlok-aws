@@ -1,9 +1,10 @@
 package com.adaptris.aws.s3;
 
 import static com.adaptris.aws.s3.MockedOperationTest.createSummary;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -13,12 +14,11 @@ import java.util.List;
 import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
-import com.adaptris.core.ServiceCase;
 import com.adaptris.core.ServiceException;
 import com.adaptris.interlok.cloud.BlobListRenderer;
 import com.adaptris.interlok.cloud.RemoteBlobFilterWrapper;
@@ -27,7 +27,7 @@ import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
-@SuppressWarnings("deprecation")
+
 public class BucketListTest {
 
   @Test
@@ -49,7 +49,7 @@ public class BucketListTest {
         new S3BucketList().withConnection(mockConnection).withBucket("srcBucket")
             .withPrefix("srcKeyPrefix").withOutputStyle(null);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    ServiceCase.execute(bucket, msg);
+    S3ServiceTest.execute(bucket, msg);
 
     Mockito.verify(client, Mockito.times(1)).listObjectsV2(any(ListObjectsV2Request.class));
     assertEquals("srcBucket", argument.getValue().getBucketName());
@@ -80,7 +80,7 @@ public class BucketListTest {
         new S3BucketList().withConnection(mockConnection).withBucket("srcBucket")
             .withPrefix("srcKeyPrefix").withFilter(filter);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    ServiceCase.execute(bucket, msg);
+    S3ServiceTest.execute(bucket, msg);
 
     Mockito.verify(client, Mockito.times(1)).listObjectsV2(any(ListObjectsV2Request.class));
     assertEquals("srcBucket", argument.getValue().getBucketName());
@@ -91,7 +91,7 @@ public class BucketListTest {
     assertEquals(1, lines.size());
   }
 
-  @Test(expected = ServiceException.class)
+  @Test
   public void testService_Failure() throws Exception {
     AmazonS3Connection mockConnection = Mockito.mock(AmazonS3Connection.class);
     AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
@@ -111,7 +111,9 @@ public class BucketListTest {
     Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(listing);
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    ServiceCase.execute(bucket, msg);
+    assertThrows(ServiceException.class, ()->{
+      S3ServiceTest.execute(bucket, msg);
+    }, "Failed to write to bucket");
   }
 
   @Test
@@ -132,7 +134,7 @@ public class BucketListTest {
         new S3BucketList().withConnection(mockConnection).withBucket("srcBucket")
             .withPrefix("srcKeyPrefix").withMaxKeys(2).withOutputStyle(null);
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    ServiceCase.execute(bucket, msg);
+    S3ServiceTest.execute(bucket, msg);
 
     Mockito.verify(client, Mockito.times(1)).listObjectsV2(any(ListObjectsV2Request.class));
     assertEquals("srcBucket", argument.getValue().getBucketName());
@@ -174,7 +176,7 @@ public class BucketListTest {
             .withPrefix("srcKeyPrefix").withMaxKeys(2)
             .withOutputStyle(null).withBucket("srcBucket");
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage();
-    ServiceCase.execute(bucket, msg);
+    S3ServiceTest.execute(bucket, msg);
 
     Mockito.verify(client, Mockito.times(2)).listObjectsV2(any(ListObjectsV2Request.class));
 

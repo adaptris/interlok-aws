@@ -1,14 +1,15 @@
 package com.adaptris.aws.sns;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
 import java.util.Properties;
 import org.apache.commons.lang3.BooleanUtils;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.StaticCredentialsBuilder;
@@ -25,7 +26,7 @@ import com.amazonaws.services.sns.model.CreateTopicResult;
 // A new local stack instance; we're going publish an SNS message.
 // Note that there must be content to the message otherwise you get a python stack trace in
 // localstack.
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class LocalstackProducerTest {
 
   private static final String TESTS_ENABLED = "localstack.tests.enabled";
@@ -37,9 +38,9 @@ public class LocalstackProducerTest {
 
   private static final String MSG_CONTENTS = "hello world";
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
-    Assume.assumeTrue(areTestsEnabled());
+    assumeTrue(areTestsEnabled());
   }
 
 

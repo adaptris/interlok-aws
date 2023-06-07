@@ -4,9 +4,9 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.services.splitter.NoOpSplitter;
 import com.amazonaws.services.kinesis.model.PutRecordsRequestEntry;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SplittingRequestBuilderTest {
 

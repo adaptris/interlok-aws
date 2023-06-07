@@ -2,16 +2,16 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
 plugins {
-  id 'com.github.spotbugs' version '5.0.13' apply false
+  id 'com.github.spotbugs' version '5.0.14' apply false
   id "io.freefair.lombok" version "6.5.1" apply false
-  id 'org.owasp.dependencycheck' version '7.4.4' apply false
-  id "org.gradle.test-retry" version "1.4.1" apply false
+  id 'org.owasp.dependencycheck' version '8.2.1' apply false
+  id "org.gradle.test-retry" version "1.5.3" apply false
   id 'nebula.optional-base' version '7.0.0' apply false
 }
 
 ext {
-  interlokCoreVersion = project.findProperty('interlokCoreVersion') ?: '4.8-SNAPSHOT'
-  releaseVersion = project.findProperty('releaseVersion') ?: '4.8-SNAPSHOT'
+  interlokCoreVersion = project.findProperty('interlokCoreVersion') ?: '5.0-SNAPSHOT'
+  releaseVersion = project.findProperty('releaseVersion') ?: '5.0-SNAPSHOT'
   nexusBaseUrl = project.findProperty('nexusBaseUrl') ?: 'https://nexus.adaptris.net/nexus'
   mavenPublishUrl = project.findProperty('mavenPublishUrl') ?: nexusBaseUrl + '/content/repositories/snapshots'
   javadocsBaseUrl = nexusBaseUrl + "/content/sites/javadocs/com/adaptris"
@@ -24,7 +24,7 @@ ext {
   interlokCommonJavadocs= project.findProperty('interlokJavadocs') ?: javadocsBaseUrl + "/interlok-common/" + interlokCoreVersion
   organizationName = "Adaptris Ltd"
 
-  slf4jVersion = '2.0.3'
+  slf4jVersion = '2.0.7'
   mockitoVersion = '5.2.0'
 }
 
@@ -108,8 +108,8 @@ subprojects {
   apply plugin: 'org.gradle.test-retry'
   apply plugin: 'nebula.optional-base'
 
-  sourceCompatibility = JavaVersion.VERSION_11
-  targetCompatibility = JavaVersion.VERSION_11
+  sourceCompatibility = JavaVersion.VERSION_17
+  targetCompatibility = JavaVersion.VERSION_17
   group   = 'com.adaptris'
   version = releaseVersion
   def versionDir = "$buildDir/version"
@@ -162,7 +162,8 @@ subprojects {
     implementation ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
 
     annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
-    testImplementation ('junit:junit:4.13.2')
+    testImplementation ("org.junit.jupiter:junit-jupiter-api:5.9.3")
+    testImplementation ("org.junit.jupiter:junit-jupiter-engine:5.9.3")
     testImplementation "org.slf4j:slf4j-simple:$slf4jVersion"
     testImplementation ("com.adaptris:interlok-stubs:$interlokCoreVersion") { changing= true }
     testImplementation ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
@@ -185,7 +186,6 @@ subprojects {
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
       options.addStringOption('Xdoclint:none', '-quiet')
-      options.addBooleanOption "-no-module-directories", true
     }
   }
 
@@ -207,7 +207,6 @@ subprojects {
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
       options.addStringOption('Xdoclint:none', '-quiet')
-      options.addBooleanOption "-no-module-directories", true
       options.docletpath = configurations.umlDoclet.files.asType(List)
       options.doclet = "nl.talsmasoftware.umldoclet.UMLDoclet"
       options.addStringOption "umlBasePath", destinationDir.getCanonicalPath()
@@ -226,6 +225,11 @@ subprojects {
       options.addStringOption "umlIncludePackagePrivateInnerClasses", "false"
       options.addStringOption "umlIncludeProtectedInnerClasses","false"
     }
+  }
+  
+  test {
+  jvmArgs = ['--add-opens', 'java.base/java.lang=ALL-UNNAMED', '--add-opens', 'java.base/java.util=ALL-UNNAMED']
+  useJUnitPlatform()
   }
 
   jacocoTestReport {
@@ -327,6 +331,7 @@ subprojects {
     failBuildOnCVSS = 7.0
     analyzers {
       assemblyEnabled=false
+      knownExploitedURL=project.findProperty('dependencyCheckKnownExploitedURL')
     }
   }
 
