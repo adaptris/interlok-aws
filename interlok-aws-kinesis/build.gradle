@@ -39,7 +39,7 @@ dependencies {
   implementation ("org.apache.avro:avro:1.11.1") {
     exclude group: "org.apache.commons", module: "commons-compress"
   }
-  implementation ("org.apache.kafka:kafka-clients:3.4.0")
+  implementation ("org.apache.kafka:kafka-clients:3.4.1")
   
   implementation ("org.apache.commons:commons-compress:1.23.0")
 
