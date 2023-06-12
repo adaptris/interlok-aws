@@ -2,7 +2,7 @@ ext {
   componentName = 'Interlok AWS/SQS'
   componentDesc = "Publishing & Consuming from AWS SQS natively or via their JMS provider"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.12.481'
+  awsSDKVersion = '1.12.486'
   jacksonVersion = '2.15.2'
 }
 
