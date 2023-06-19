@@ -63,7 +63,7 @@ dependencies {
     exclude group: "com.charleskorn.kaml", module: "kaml"
   }
 
-  api ("com.google.protobuf:protobuf-java:3.23.2")
+  api ("com.google.protobuf:protobuf-java:3.23.3")
   // Dependency to platform/BOM
   api ("com.fasterxml.jackson.core:jackson-databind")
   api ("com.fasterxml.jackson.core:jackson-core")
