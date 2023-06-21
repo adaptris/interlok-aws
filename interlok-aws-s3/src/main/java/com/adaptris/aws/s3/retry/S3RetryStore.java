@@ -204,7 +204,7 @@ public class S3RetryStore implements RetryStore {
         IOUtils.copy(in, out);
       }
       log.trace("Payload for [{}] loaded", msgId);
-      msg.setMessageHeaders(metadata);
+      msg.addMessageHeaders(metadata);
       msg.setUniqueId(msgId);
       return msg;
     } catch (Exception e) {

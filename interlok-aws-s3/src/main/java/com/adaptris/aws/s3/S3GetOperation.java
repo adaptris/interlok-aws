@@ -67,6 +67,6 @@ public class S3GetOperation extends TransferOperation {
     S3Object response = s3.getObject(request);
     log.trace("Object is {} bytes", response.getObjectMetadata().getContentLength());
     getResponseBody().insert(new InputStreamWithEncoding(response.getObjectContent(), null), msg);
-    msg.setMetadata(filterUserMetadata(response.getObjectMetadata().getUserMetadata()));
+    msg.addMetadata(filterUserMetadata(response.getObjectMetadata().getUserMetadata()));
   }
 }

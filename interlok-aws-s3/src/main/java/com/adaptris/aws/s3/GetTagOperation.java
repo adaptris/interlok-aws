@@ -53,7 +53,7 @@ public class GetTagOperation extends TagOperation {
     String srcKey = s3ObjectKey(msg);
     log.trace("Getting tags for [{}:{}]", srcBucket, srcKey);
     GetObjectTaggingRequest req = new GetObjectTaggingRequest(srcBucket, srcKey);
-    msg.setMetadata(filterTags(s3.getObjectTagging(req).getTagSet()));
+    msg.addMetadata(filterTags(s3.getObjectTagging(req).getTagSet()));
   }
 
   protected Set<MetadataElement> filterTags(List<Tag> tags) {

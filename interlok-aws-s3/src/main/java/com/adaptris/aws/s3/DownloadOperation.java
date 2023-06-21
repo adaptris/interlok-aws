@@ -71,7 +71,7 @@ public class DownloadOperation extends TransferOperation {
     Download download = tm.download(request, destFile);
     threadFactory.newThread(new MyProgressListener(Thread.currentThread().getName(), download)).start();
     download.waitForCompletion();
-    msg.setMetadata(filterUserMetadata(download.getObjectMetadata().getUserMetadata()));
+    msg.addMetadata(filterUserMetadata(download.getObjectMetadata().getUserMetadata()));
     write(destFile, msg);
   }
 
