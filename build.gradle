@@ -170,7 +170,7 @@ subprojects {
     testImplementation ("org.mockito:mockito-core:$mockitoVersion")
     testImplementation ("org.mockito:mockito-inline:$mockitoVersion")
     javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
-    umlDoclet("nl.talsmasoftware:umldoclet:1.1.4")
+    umlDoclet("nl.talsmasoftware:umldoclet:2.0.14")
 
     offlineJavadocPackages ("com.adaptris:interlok-core:$interlokCoreVersion:javadoc@jar") { changing= true}
     offlineJavadocPackages ("com.adaptris:interlok-common:$interlokCoreVersion:javadoc@jar") { changing= true}
@@ -185,7 +185,7 @@ subprojects {
       options.linksOffline(interlokCommonJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-common-$interlokCoreVersion-javadoc.jar")
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
-      options.addStringOption('Xdoclint:none', '-quiet')
+      options.addStringOption "Xdoclint:none", "-quiet"
     }
   }
 
@@ -206,39 +206,30 @@ subprojects {
       options.linksOffline(interlokCommonJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-common-$interlokCoreVersion-javadoc.jar")
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
-      options.addStringOption('Xdoclint:none', '-quiet')
+      options.addStringOption "Xdoclint:none", "-quiet"
       options.docletpath = configurations.umlDoclet.files.asType(List)
       options.doclet = "nl.talsmasoftware.umldoclet.UMLDoclet"
-      options.addStringOption "umlBasePath", destinationDir.getCanonicalPath()
+      // Create class & package use pages
+      options.addStringOption "use"    
       options.addStringOption "umlImageFormat", "SVG"
-      options.addStringOption "umlExcludedReferences", "java.lang.Exception,java.lang.Object,java.lang.Enum"
-      options.addStringOption "umlIncludePrivateClasses","false"
-      options.addStringOption "umlIncludePackagePrivateClasses","false"
-      options.addStringOption "umlIncludeProtectedClasses","false"
-      options.addStringOption "umlIncludeAbstractSuperclassMethods","false"
-      options.addStringOption "umlIncludeConstructors","false"
-      options.addStringOption "umlIncludePublicFields","false"
-      options.addStringOption "umlIncludePackagePrivateFields","false"
-      options.addStringOption "umlIncludeProtectedFields", "false"
-      options.addStringOption "umlIncludeDeprecatedClasses", "false"
-      options.addStringOption "umlIncludePrivateInnerClasses", "false"
-      options.addStringOption "umlIncludePackagePrivateInnerClasses", "false"
-      options.addStringOption "umlIncludeProtectedInnerClasses","false"
+      options.addStringOption "umlExcludedTypeReferences", "java.lang.Exception,java.lang.Object,java.lang.Enum,java.lang.annotation.Annotation"
+      options.addStringOption "umlJavaBeanPropertiesAsFields"
+      options.addBooleanOption "failOnCyclicPackageDependencies", false
+	  title= componentName
     }
   }
   
   test {
-  jvmArgs = ['--add-opens', 'java.base/java.lang=ALL-UNNAMED', '--add-opens', 'java.base/java.util=ALL-UNNAMED']
-  useJUnitPlatform()
+    jvmArgs = ['--add-opens', 'java.base/java.lang=ALL-UNNAMED', '--add-opens', 'java.base/java.util=ALL-UNNAMED']
+    useJUnitPlatform()
   }
 
   jacocoTestReport {
-      reports {
-          xml.required= true
-          html.required= true
-      }
+    reports {
+      xml.required= true
+      html.required= true
+    }
   }
-
 
   sourceSets {
     main {
@@ -357,8 +348,6 @@ subprojects {
     version = "1.18.22"
   }
 
-
   check.dependsOn jacocoTestReport
   javadoc.dependsOn offlinePackageList, umlJavadoc
-
 }
