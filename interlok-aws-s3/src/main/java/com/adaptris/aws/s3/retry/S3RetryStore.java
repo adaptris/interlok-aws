@@ -2,6 +2,7 @@ package com.adaptris.aws.s3.retry;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
@@ -279,4 +280,35 @@ public class S3RetryStore implements RetryStore {
     }
     return String.format("%s/(.*)/%s", getPrefix(), PAYLOAD_FILE_NAME);
   }
+
+  @Override
+  public void acknowledge(String acknowledgeId) throws InterlokException {
+   // null implementation
+  }
+
+  @Override
+  public void deleteAcknowledged() throws InterlokException {
+   // null implementation 
+  }
+
+  @Override
+  public List<AdaptrisMessage> obtainExpiredMessages() throws InterlokException {
+    return null; // null implementation
+  }
+
+  @Override
+  public void updateRetryCount(String messageId) throws InterlokException {
+   // null implementation  
+  }
+
+  @Override
+  public List<AdaptrisMessage> obtainMessagesToRetry() throws com.adaptris.core.http.jetty.retry.InterlokException {
+    return null; // null implementation
+  }
+
+  @Override
+  public void makeConnection(AdaptrisConnection connection) {
+   // null implementation
+  }
+
 }
