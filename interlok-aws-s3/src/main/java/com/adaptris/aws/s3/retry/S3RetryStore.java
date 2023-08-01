@@ -302,7 +302,7 @@ public class S3RetryStore implements RetryStore {
   }
 
   @Override
-  public List<AdaptrisMessage> obtainMessagesToRetry() throws com.adaptris.core.http.jetty.retry.InterlokException {
+  public List<AdaptrisMessage> obtainMessagesToRetry() throws InterlokException {
     return null; // null implementation
   }
 
