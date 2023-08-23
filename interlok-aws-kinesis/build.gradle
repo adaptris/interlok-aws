@@ -7,7 +7,7 @@ ext {
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   nettyVersion = "4.1.96.Final"
   kotlinVersion = "1.8.22"
-  wireVersion = "4.8.0"
+  wireVersion = "4.8.1"
   awsSDKVersion = '1.12.533'
   jacksonVersion = '2.15.2'
 }
@@ -63,7 +63,7 @@ dependencies {
     exclude group: "com.charleskorn.kaml", module: "kaml"
   }
 
-  api ("com.google.protobuf:protobuf-java:3.24.0")
+  api ("com.google.protobuf:protobuf-java:3.24.1")
   // Dependency to platform/BOM
   api ("com.fasterxml.jackson.core:jackson-databind")
   api ("com.fasterxml.jackson.core:jackson-core")
