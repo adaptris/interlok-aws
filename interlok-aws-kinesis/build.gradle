@@ -41,7 +41,7 @@ dependencies {
   }
   implementation ("org.apache.kafka:kafka-clients:3.5.1")
   
-  implementation ("org.apache.commons:commons-compress:1.23.0")
+  implementation ("org.apache.commons:commons-compress:1.24.0")
 
   api ("com.google.guava:guava:32.1.2-jre")
   implementation (platform("io.netty:netty-bom:$nettyVersion"))
