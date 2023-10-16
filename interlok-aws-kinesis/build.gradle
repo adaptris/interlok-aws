@@ -9,7 +9,7 @@ ext {
   kotlinVersion = "1.8.22"
   wireVersion = "4.9.1"
   awsSDKVersion = '1.12.565'
-  jacksonVersion = '2.15.2'
+  jacksonVersion = '2.15.3'
 }
 dependencies {
   api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
