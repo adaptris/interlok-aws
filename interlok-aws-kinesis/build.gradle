@@ -8,6 +8,7 @@ ext {
   nettyVersion = "4.1.100.Final"
   kotlinVersion = "1.8.22"
   wireVersion = "4.9.1"
+  okioVersion = "3.5.0"
   awsSDKVersion = "1.12.567"
   jacksonVersion = "2.15.3"
   jsonOrgVersion = "20231013"
@@ -64,6 +65,9 @@ dependencies {
   implementation ("com.squareup.wire:wire-compiler:$wireVersion") {
     exclude group: "com.charleskorn.kaml", module: "kaml"
   }
+
+  implementation ("com.squareup.okio:okio:$okioVersion")
+  implementation ("com.squareup.okio:okio-fakefilesystem:$okioVersion")
 
   api ("com.google.protobuf:protobuf-java:3.24.4")
   // Dependency to platform/BOM
