@@ -4,7 +4,7 @@ import org.apache.tools.ant.filters.*
 plugins {
   id 'com.github.spotbugs' version '5.2.0' apply false
   id "io.freefair.lombok" version "8.4" apply false
-  id 'org.owasp.dependencycheck' version '8.4.0' apply false
+  id 'org.owasp.dependencycheck' version '8.4.2' apply false
   id "org.gradle.test-retry" version "1.5.6" apply false
   id 'nebula.optional-base' version '7.0.0' apply false
 }
