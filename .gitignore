@@ -29,3 +29,4 @@ gradle.properties
 unit-tests.properties
 unit-tests.properties.resolved
 **/src/main/generated
+out

@@ -1,0 +1,8 @@
+junit.ConsumerCase.baseDir=@BUILD_DIR@/examples/consumers
+junit.ServiceCase.baseDir=@BUILD_DIR@/examples/services
+junit.ProducerCase.baseDir=@BUILD_DIR@/examples/producers
+junit.WorkflowCase.baseDir=@BUILD_DIR@/examples/workflows
+junit.localstack.tests.enabled=false
+junit.localstack.kinesis.url=http://127.0.0.1:4566
+junit.localstack.kinesis.signingRegion=us-east-1
+junit.localstack.kinesis.stream=my-stream
