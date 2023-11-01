@@ -2,11 +2,13 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
 plugins {
-  id 'com.github.spotbugs' version '5.2.1' apply false
+  // Manage optional dependencies in maven pom.
+  id "nebula.optional-base" version "7.0.0"  apply false
+  id "com.github.spotbugs" version "5.2.1" apply false
+  id "org.sonarqube" version "4.4.1.3373"
+  id "org.owasp.dependencycheck" version "8.4.2" apply false
   id "io.freefair.lombok" version "8.4" apply false
-  id 'org.owasp.dependencycheck' version '8.4.2' apply false
   id "org.gradle.test-retry" version "1.5.6" apply false
-  id 'nebula.optional-base' version '7.0.0' apply false
 }
 
 ext {
@@ -78,9 +80,16 @@ def propertyTemplate(dir, filename) {
   return filename
 }
 
-
 task clean(type: Delete) {
   delete project.buildDir
+}
+
+sonar {
+  properties {
+    property "sonar.projectKey", "adaptris_interlok-aws"
+    property "sonar.organization", "adaptris-org"
+    property "sonar.host.url", "https://sonarcloud.io"
+  }
 }
 
 allprojects {
@@ -99,14 +108,15 @@ allprojects {
 
 subprojects {
   // Apply the java plugin to add support for Java
-  apply plugin: 'java-library'
-  apply plugin: 'maven-publish'
+  apply plugin: "java-library"
+  apply plugin: "maven-publish"
   apply plugin: "jacoco"
+  apply plugin: "nebula.optional-base"
+  apply plugin: "com.github.spotbugs"
+  apply plugin: "org.sonarqube"
+  apply plugin: "org.owasp.dependencycheck"
   apply plugin: "io.freefair.lombok"
-  apply plugin: 'com.github.spotbugs'
-  apply plugin: 'org.owasp.dependencycheck'
-  apply plugin: 'org.gradle.test-retry'
-  apply plugin: 'nebula.optional-base'
+  apply plugin: "org.gradle.test-retry"
 
   sourceCompatibility = JavaVersion.VERSION_17
   targetCompatibility = JavaVersion.VERSION_17
