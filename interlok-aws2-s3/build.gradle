@@ -2,11 +2,11 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
 ext {
-  componentName='Interlok AWS2/S3'
+  componentName="Interlok AWS2/S3"
   componentDesc="Services that interact (upload/download/delete) with AWS S3 Buckets and artefacts"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '2.20.149'
-  jacksonVersion='2.15.2'
+  awsSDKVersion = "2.20.162"
+  jacksonVersion="2.15.3"
 }
 
 dependencies {
@@ -27,7 +27,7 @@ dependencies {
   api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
-  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.15.3")
+  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:$jacksonVersion")
   api project(':interlok-aws2-common')
 }
 

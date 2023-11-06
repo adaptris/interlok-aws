@@ -1,9 +1,9 @@
 ext {
-  componentName='Interlok AWS2/Common'
+  componentName="Interlok AWS2/Common"
   componentDesc="Common components for accessing AWS"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  jacksonVersion='2.15.2'
-  awsSDKVersion = '2.20.149'
+  awsSDKVersion = "2.20.162"
+  jacksonVersion="2.15.3"
 }
 
 dependencies {
@@ -30,7 +30,7 @@ dependencies {
   api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
-  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.15.3")
+  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:$jacksonVersion")
   api ("com.adaptris:interlok-apache-http:$interlokCoreVersion") { changing = true}
 }
 
