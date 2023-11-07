@@ -2,15 +2,15 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
 ext {
-  componentName='Interlok AWS2/KMS'
+  componentName="Interlok AWS2/KMS"
   componentDesc="Components that interact with AWS KMS to perform sign/encrypt/decrypt/verify operations"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '2.17.40'
-  jacksonVersion='2.15.3'
+  awsSDKVersion = "2.20.162"
+  jacksonVersion="2.15.3"
 }
 
 dependencies {
-  api project(':interlok-aws2-common')
+  api project(":interlok-aws2-common")
   api ("software.amazon.awssdk:kms:$awsSDKVersion") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
@@ -28,7 +28,7 @@ dependencies {
   api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
-  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.5")
+  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:$jacksonVersion")
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
