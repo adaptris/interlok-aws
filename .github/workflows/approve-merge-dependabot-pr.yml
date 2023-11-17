@@ -6,29 +6,15 @@ on:
       - approve-merge-dependabot-pr
 
 jobs:
-  approve-merge:
+  build:
     name: Approve And Merge Dependabot PR
-    runs-on: ubuntu-latest
-    # Perform the auto approve action only when the PR is raised by dependabot
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v3
-        with:
-          ref: ${{ github.event.client_payload.branch }}
-      - name: Approve a Dependabot PR If Not Already Approved
-        continue-on-error: true
-        # Only if the check-approve-merge script return true (minor or patch versions and valid dependencies)
-        if:  ${{ github.event.client_payload.auto-approve-merge == 'true' }}
-        run: gh pr review --approve "$PR_URL"
-        env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GH_TOKEN: ${{ github.token }}
-      - name: Merge a Dependabot PR
-        continue-on-error: true
-        # Only if the check-approve-merge script return true (minor or patch versions and valid dependencies)
-        if:  ${{ github.event.client_payload.auto-approve-merge == 'true' }}
-        # Auto merge the PR using dependabot command '@dependabot merge'
-        run: gh pr comment --body "@dependabot merge" "$PR_URL"
-        env:
-          PR_URL: ${{ github.event.client_payload.pull_request.html_url }}
-          GH_TOKEN: ${{ github.token }}
+    uses: interlok-tooling/reusable-workflows/.github/workflows/approve-merge-dependabot-pr.yml@main
+    with:
+      branch: ${{ github.event.client_payload.branch }}
+      pull_request: ${{ github.event.client_payload.pull_request }}
+      pull_request_title: ${{ github.event.client_payload.pull_request_title }}
+      auto-approve-merge: ${{ github.event.client_payload.auto-approve-merge }}
+      sha: ${{ github.event.client_payload.sha }}
+      update-type: ${{ github.event.client_payload.update-type }}
+    secrets:
+      DEPENDABOT_APPROVE_MERGE_GITHUB_TOKEN: ${{ secrets.DEPENDABOT_APPROVE_MERGE_GITHUB_TOKEN }}

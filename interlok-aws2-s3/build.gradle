@@ -1,0 +1,112 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+import org.apache.tools.ant.filters.*
+
+ext {
+  componentName="Interlok AWS2/S3"
+  componentDesc="Services that interact (upload/download/delete) with AWS S3 Buckets and artefacts"
+  delombokTargetDir = new File("${project.projectDir}/src/main/generated")
+  awsSDKVersion = "2.21.15"
+  jacksonVersion="2.15.3"
+}
+
+dependencies {
+  api ("software.amazon.awssdk:s3:$awsSDKVersion") {
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
+    exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
+  }
+  api ("software.amazon.awssdk:sdk-core:$awsSDKVersion") {
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
+    exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
+    exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
+  }
+  api ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
+  api ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
+  api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
+  // It will probably march in lockstep, but since it's a different
+  // group I will make it separate.
+  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:$jacksonVersion")
+  api project(':interlok-aws2-common')
+}
+
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+task examplesJar(type: Jar, dependsOn: test) {
+    classifier = 'examples'
+    from new File(buildDir, '/examples')
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.extensions.delombokTask
+}
+jar {
+  manifest {
+    attributes("Built-By": System.getProperty('user.name'),
+              "Build-Jdk": System.getProperty('java.version'),
+              "Implementation-Title": componentName,
+              "Implementation-Version": project.version,
+              "Implementation-Vendor-Id": project.group,
+              "Implementation-Vendor": organizationName)
+  }
+}
+
+task getDeps(type: Copy) {
+  from sourceSets.main.runtimeClasspath
+  into 'runtime/'
+}
+
+artifacts {
+    archives javadocJar
+    archives examplesJar
+    archives sourcesJar
+}
+
+publishing {
+  publications {
+      mavenJava(MavenPublication) {
+          from components.java
+
+          artifact javadocJar { classifier "javadoc" }
+          artifact examplesJar { classifier "examples" }
+          artifact sourcesJar { classifier "sources" }
+          pom.withXml {
+            asNode().appendNode("name", componentName)
+            asNode().appendNode("description", componentDesc)
+            def properties = asNode().appendNode("properties")
+            properties.appendNode("target", "3.3.0+")
+            properties.appendNode("tags", "aws,s3")
+            properties.appendNode("license", "false")
+            properties.appendNode("readme", "https://github.com/adaptris/interlok-aws/raw/develop/README.md")
+            properties.appendNode("repository", "https://github.com/adaptris/interlok-aws")
+          }
+      }
+  }
+  repositories {
+    maven {
+      credentials {
+        username repoUsername
+        password repoPassword
+      }
+      url mavenPublishUrl
+    }
+  }
+}
+
+
+delombok {
+  target = delombokTargetDir
+}
+
+task deleteGeneratedFiles(type: Delete) {
+  delete file(testResourcesDir() + "/unit-tests.properties"), file(testResourcesDir() + "/unit-tests.properties.resolved"), delombokTargetDir
+}
+
+clean.dependsOn deleteGeneratedFiles
+processTestResources.dependsOn copyUnitTestProperties

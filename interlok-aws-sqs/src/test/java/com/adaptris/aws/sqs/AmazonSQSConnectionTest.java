@@ -16,13 +16,13 @@
 
 package com.adaptris.aws.sqs;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import com.adaptris.aws.AWSKeysAuthentication;
@@ -46,7 +46,7 @@ public class AmazonSQSConnectionTest {
 
   private AutoCloseable mocking;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
     amazonSQSConnection = new AmazonSQSConnection();
 
@@ -60,7 +60,7 @@ public class AmazonSQSConnectionTest {
     amazonSQSConnection.setRegion(Regions.AP_NORTHEAST_1.getName());
   }
 
-  @After
+  @AfterEach
   public void tearDown() throws Exception {
     amazonSQSConnection.stop();
     amazonSQSConnection.close();

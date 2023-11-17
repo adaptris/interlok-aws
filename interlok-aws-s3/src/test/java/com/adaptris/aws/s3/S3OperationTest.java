@@ -16,9 +16,9 @@
 
 package com.adaptris.aws.s3;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import com.adaptris.aws.s3.meta.S3ContentDisposition;
 import com.adaptris.aws.s3.meta.S3ContentEncoding;
 import com.adaptris.aws.s3.meta.S3ContentLanguage;
@@ -150,8 +150,8 @@ public class S3OperationTest {
     assertEquals("expiration time rule id", meta.getExpirationTimeRuleId());
     assertEquals("content encoding", meta.getContentEncoding());
     Date expirationDate = meta.getHttpExpiresDate();
-    assertTrue("Expiration date too small", expirationDate.getTime() > (new Date().getTime() + 9000));
-    assertTrue("Expiration date too large", expirationDate.getTime() < (new Date().getTime() + 11000));
+    assertTrue(expirationDate.getTime() > (new Date().getTime() + 9000), "Expiration date too small");
+    assertTrue(expirationDate.getTime() < (new Date().getTime() + 11000), "Expiration date too large");
     assertEquals(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION, meta.getSSEAlgorithm());
   }
 

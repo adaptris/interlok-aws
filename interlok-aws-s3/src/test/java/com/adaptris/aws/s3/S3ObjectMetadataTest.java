@@ -1,11 +1,11 @@
 package com.adaptris.aws.s3;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import com.adaptris.aws.s3.meta.S3ContentDisposition;
 import com.adaptris.aws.s3.meta.S3ContentEncoding;
 import com.adaptris.aws.s3.meta.S3ContentLanguage;
@@ -70,10 +70,8 @@ public class S3ObjectMetadataTest {
     ObjectMetadata meta = new ObjectMetadata();
     om.apply(msg, meta);
     Date expirationDate = meta.getHttpExpiresDate();
-    assertTrue("Expiration date too small",
-        expirationDate.getTime() > (new Date().getTime() + 9000));
-    assertTrue("Expiration date too large",
-        expirationDate.getTime() < (new Date().getTime() + 11000));
+    assertTrue(expirationDate.getTime() > (new Date().getTime() + 9000),"Expiration date too small");
+    assertTrue(expirationDate.getTime() < (new Date().getTime() + 11000), "Expiration date too large");
   }
 
 

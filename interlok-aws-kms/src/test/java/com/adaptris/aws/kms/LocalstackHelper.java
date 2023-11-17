@@ -1,7 +1,7 @@
 package com.adaptris.aws.kms;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.InputStream;
 import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +31,7 @@ public class LocalstackHelper {
 
   public static byte[] hash(String s) throws Exception {
     MessageDigest digest = MessageDigest.getInstance(HASH_ALG);
-    try (InputStream in = new ReaderInputStream(new StringReader(s), StandardCharsets.UTF_8);
+    try (InputStream in = ReaderInputStream.builder().setReader(new StringReader(s)).setCharset(StandardCharsets.UTF_8).get();
         DigestOutputStream out = new DigestOutputStream(new DevNullOutputStream(), digest)) {
       IOUtils.copy(in, out);
     }

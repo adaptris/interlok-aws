@@ -2,8 +2,8 @@ ext {
   componentName = 'Interlok AWS/SQS'
   componentDesc = "Publishing & Consuming from AWS SQS natively or via their JMS provider"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.12.447'
-  jacksonVersion = '2.14.2'
+  awsSDKVersion = '1.12.576'
+  jacksonVersion = '2.15.3'
 }
 
 dependencies {
@@ -24,7 +24,7 @@ dependencies {
   // group I will make it separate.
   api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor")
   api ("org.apache.httpcomponents:httpclient:4.5.14")
-  api ("commons-codec:commons-codec:1.15")
+  api ("commons-codec:commons-codec:1.16.0")
   api project(':interlok-aws-common')
 }
 
@@ -69,8 +69,8 @@ publishing {
           artifact sourcesJar { classifier "sources" }
           pom.withXml {
             asNode().appendNode("name", componentName)
-			asNode().appendNode("description", componentDesc)
-			asNode().appendNode("url", "https://interlok.adaptris.net/interlok-docs/#/")
+	        asNode().appendNode("description", componentDesc)
+	        asNode().appendNode("url", "https://interlok.adaptris.net/interlok-docs/#/")
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.3.0+")
             properties.appendNode("tags", "aws,sqs")
