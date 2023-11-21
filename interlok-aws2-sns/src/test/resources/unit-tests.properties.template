@@ -1,0 +1,11 @@
+junit.ConsumerCase.baseDir=@BUILD_DIR@/examples/consumers
+junit.ServiceCase.baseDir=@BUILD_DIR@/examples/services
+junit.ProducerCase.baseDir=@BUILD_DIR@/examples/producers
+junit.WorkflowCase.baseDir=@BUILD_DIR@/examples/workflows
+
+junit.localstack.tests.enabled=false
+junit.localstack.sns.url=http://localhost:4575
+junit.localstack.sns.signingRegion=us-east-1
+# The full ARN will be created in the test itself
+# junit.localstack.sns.topic=arn:aws:sns:us-east-1:123456789012:MyNewTopic
+junit.localstack.sns.topic=MyNewTopic
