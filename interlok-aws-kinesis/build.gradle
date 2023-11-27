@@ -6,7 +6,7 @@ ext {
   componentDesc = "Components that interact AWS Kinesis data streams"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   nettyVersion = "4.1.101.Final"
-  kotlinVersion = "1.9.20"
+  kotlinVersion = "1.9.21"
   wireVersion = "4.9.2"
   okioVersion = "3.6.0"
   awsSDKVersion = "1.12.592"
