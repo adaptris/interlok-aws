@@ -46,7 +46,7 @@ dependencies {
   
   implementation ("org.apache.commons:commons-compress:1.25.0")
 
-  api ("com.google.guava:guava:32.1.3-jre")
+  api ("com.google.guava:guava:33.0.0-jre")
   implementation (platform("io.netty:netty-bom:$nettyVersion"))
 
   implementation ("io.netty:netty-buffer")
