@@ -3,7 +3,7 @@ ext {
   componentDesc = "Publishing & Consuming from AWS SQS natively or via their JMS provider"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   awsSDKVersion = '1.12.576'
-  jacksonVersion = '2.15.3'
+  jacksonVersion = '2.16.1'
 }
 
 dependencies {

@@ -4,11 +4,11 @@ import org.apache.tools.ant.filters.*
 plugins {
   // Manage optional dependencies in maven pom.
   id "nebula.optional-base" version "7.0.0"  apply false
-  id "com.github.spotbugs" version "5.2.1" apply false
+  id "com.github.spotbugs" version "6.0.6" apply false
   id "org.sonarqube" version "4.4.1.3373"
-  id "org.owasp.dependencycheck" version "8.4.2" apply false
+  id "org.owasp.dependencycheck" version "9.0.8" apply false
   id "io.freefair.lombok" version "8.4" apply false
-  id "org.gradle.test-retry" version "1.5.6" apply false
+  id "org.gradle.test-retry" version "1.5.8" apply false
 }
 
 ext {
@@ -26,7 +26,7 @@ ext {
   interlokCommonJavadocs= project.findProperty('interlokJavadocs') ?: javadocsBaseUrl + "/interlok-common/" + interlokCoreVersion
   organizationName = "Adaptris Ltd"
 
-  slf4jVersion = '2.0.9'
+  slf4jVersion = '2.0.11'
   mockitoVersion = '4.9.0'
 }
 
@@ -307,8 +307,8 @@ subprojects {
   }
 
   spotbugsMain {
-    effort = "max"
-    reportLevel = "high"
+    effort = com.github.spotbugs.snom.Effort.valueOf("MAX")
+    reportLevel = com.github.spotbugs.snom.Confidence.valueOf("HIGH")
     reports {
       xml {
         required.set(false)

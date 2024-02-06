@@ -1,25 +1,14 @@
 ext {
-  componentName="Interlok AWS2/Common"
-  componentDesc="Common components for accessing AWS"
+  componentName='Interlok AWS2/SQS'
+  componentDesc="Publishing & Consuming from AWS SQS natively or via their JMS provider"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   awsSDKVersion = "2.21.6"
   jacksonVersion = "2.16.1"
 }
 
 dependencies {
+  api ("software.amazon.awssdk:sqs:$awsSDKVersion")
   api ("software.amazon.awssdk:sdk-core:$awsSDKVersion") {
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
-    exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
-  }
-  api ("software.amazon.awssdk:apache-client:$awsSDKVersion") {
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
-    exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
-    exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
-  }
-  api ("software.amazon.awssdk:sts:$awsSDKVersion") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
@@ -30,8 +19,10 @@ dependencies {
   api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
-  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:$jacksonVersion")
-  api ("com.adaptris:interlok-apache-http:$interlokCoreVersion") { changing = true}
+  api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.16.1")
+  api ("org.apache.httpcomponents:httpclient:4.5.14")
+  api ("commons-codec:commons-codec:1.16.0")
+  api project(':interlok-aws2-common')
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
@@ -74,11 +65,11 @@ publishing {
           artifact examplesJar { classifier "examples" }
           artifact sourcesJar { classifier "sources" }
           pom.withXml {
-            asNode().appendNode("name", componentName)
             asNode().appendNode("description", componentDesc)
+            asNode().appendNode("name", componentName)
             def properties = asNode().appendNode("properties")
             properties.appendNode("target", "3.3.0+")
-            properties.appendNode("tags", "aws")
+            properties.appendNode("tags", "aws,sqs")
             properties.appendNode("license", "false")
             properties.appendNode("readme", "https://github.com/adaptris/interlok-aws/raw/develop/README.md")
             properties.appendNode("repository", "https://github.com/adaptris/interlok-aws")
@@ -96,12 +87,14 @@ publishing {
   }
 }
 
+
 delombok {
   target = delombokTargetDir
 }
 
 task deleteGeneratedFiles(type: Delete) {
-  delete delombokTargetDir
+  delete file(testResourcesDir() + "/unit-tests.properties"), file(testResourcesDir() + "/unit-tests.properties.resolved"), delombokTargetDir
 }
 
 clean.dependsOn deleteGeneratedFiles
+processTestResources.dependsOn copyUnitTestProperties
