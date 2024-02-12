@@ -20,7 +20,7 @@ dependencies {
 
   api ("com.amazonaws:aws-java-sdk-kinesis")
   // The BOM from the parent overrides the 1.12.130 dependency on sdk-s3
-  api ("com.amazonaws:amazon-kinesis-client:1.15.0") {
+  api ("com.amazonaws:amazon-kinesis-client:1.15.1") {
     exclude group: "com.google.protobuf", module: "protobuf-java"
   }
 
