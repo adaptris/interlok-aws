@@ -5,7 +5,7 @@ ext {
   componentName = 'Interlok AWS/KMS'
   componentDesc = "Components that interact with AWS KMS to perform sign/encrypt/decrypt/verify operations"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.12.651'
+  awsSDKVersion = '1.12.657'
   jacksonVersion = '2.16.1'
 }
 
