@@ -9,7 +9,7 @@ ext {
   kotlinVersion = "1.9.23"
   wireVersion = "4.9.8"
   okioVersion = "3.9.0"
-  awsSDKVersion = "1.12.686"
+  awsSDKVersion = "1.12.691"
   jacksonVersion = "2.17.0"
   jsonOrgVersion = "20240303"
 }
