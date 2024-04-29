@@ -24,7 +24,7 @@ dependencies {
   // group I will make it separate.
   api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor")
   api ("org.apache.httpcomponents:httpclient:4.5.14")
-  api ("commons-codec:commons-codec:1.16.1")
+  api ("commons-codec:commons-codec:1.17.0")
   api project(':interlok-aws-common')
 }
 
