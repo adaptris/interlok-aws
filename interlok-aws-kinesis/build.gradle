@@ -69,7 +69,7 @@ dependencies {
   implementation ("com.squareup.okio:okio:$okioVersion")
   implementation ("com.squareup.okio:okio-fakefilesystem:$okioVersion")
 
-  api ("com.google.protobuf:protobuf-java:3.25.3")
+  api ("com.google.protobuf:protobuf-java:4.27.2")
   // Dependency to platform/BOM
   api ("com.fasterxml.jackson.core:jackson-databind")
   api ("com.fasterxml.jackson.core:jackson-core")
