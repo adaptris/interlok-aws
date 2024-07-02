@@ -4,11 +4,11 @@ import org.apache.tools.ant.filters.*
 plugins {
   // Manage optional dependencies in maven pom.
   id "nebula.optional-base" version "7.0.0"  apply false
-  id "com.github.spotbugs" version "6.0.6" apply false
+  id "com.github.spotbugs" version "6.0.14" apply false
   id "org.sonarqube" version "4.4.1.3373"
-  id "org.owasp.dependencycheck" version "9.0.8" apply false
-  id "io.freefair.lombok" version "8.4" apply false
-  id "org.gradle.test-retry" version "1.5.8" apply false
+  id "org.owasp.dependencycheck" version "9.0.10" apply false
+  id "io.freefair.lombok" version "8.6" apply false
+  id "org.gradle.test-retry" version "1.5.9" apply false
 }
 
 ext {
@@ -26,7 +26,7 @@ ext {
   interlokCommonJavadocs= project.findProperty('interlokJavadocs') ?: javadocsBaseUrl + "/interlok-common/" + interlokCoreVersion
   organizationName = "Adaptris Ltd"
 
-  slf4jVersion = '2.0.11'
+  slf4jVersion = '2.0.13'
   mockitoVersion = '4.9.0'
 }
 
@@ -172,8 +172,8 @@ subprojects {
     implementation ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
 
     annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
-    testImplementation ("org.junit.jupiter:junit-jupiter-api:5.10.1")
-    testImplementation ("org.junit.jupiter:junit-jupiter-engine:5.10.1")
+    testImplementation ("org.junit.jupiter:junit-jupiter-api:5.10.2")
+    testImplementation ("org.junit.jupiter:junit-jupiter-engine:5.10.2")
     testImplementation "org.slf4j:slf4j-simple:$slf4jVersion"
     testImplementation ("com.adaptris:interlok-stubs:$interlokCoreVersion") { changing= true }
     testImplementation ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
