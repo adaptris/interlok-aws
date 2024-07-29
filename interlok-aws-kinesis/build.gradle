@@ -59,7 +59,7 @@ dependencies {
   implementation ("io.netty:netty-codec")
   implementation ("io.netty:netty-codec-http")
 
-  implementation ("com.charleskorn.kaml:kaml:0.60.0")
+  implementation ("com.charleskorn.kaml:kaml:0.61.0")
   
   implementation ("com.squareup.wire:wire-schema:$wireVersion")
   implementation ("com.squareup.wire:wire-compiler:$wireVersion") {
