@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-package com.adaptris.aws2.kinesis;
+package com.adaptris.aws.kinesis;
 
 import com.adaptris.aws2.AWSKeysAuthentication;
 import com.adaptris.aws2.StaticCredentialsBuilder;

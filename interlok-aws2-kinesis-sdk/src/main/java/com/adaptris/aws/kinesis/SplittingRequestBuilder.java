@@ -1,4 +1,4 @@
-package com.adaptris.aws2.kinesis;
+package com.adaptris.aws.kinesis;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
