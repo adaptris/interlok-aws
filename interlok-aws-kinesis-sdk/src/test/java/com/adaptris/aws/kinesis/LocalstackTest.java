@@ -3,29 +3,28 @@ package com.adaptris.aws.kinesis;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
-import com.adaptris.aws2.AWSKeysAuthentication;
-import com.adaptris.aws2.CustomEndpoint;
-import com.adaptris.aws2.StaticCredentialsBuilder;
+import com.adaptris.aws.AWSKeysAuthentication;
+import com.adaptris.aws.CustomEndpoint;
+import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.StandaloneProducer;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.core.util.PropertyHelper;
 import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
+import com.amazonaws.SDKGlobalConfiguration;
+import com.amazonaws.services.kinesis.AmazonKinesis;
+import com.amazonaws.services.kinesis.model.GetRecordsRequest;
+import com.amazonaws.services.kinesis.model.GetRecordsResult;
+import com.amazonaws.services.kinesis.model.GetShardIteratorRequest;
+import com.amazonaws.services.kinesis.model.Shard;
+import com.amazonaws.services.kinesis.model.ShardIteratorType;
 import org.apache.commons.lang3.BooleanUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.services.kinesis.KinesisClient;
-import software.amazon.awssdk.services.kinesis.model.DescribeStreamRequest;
-import software.amazon.awssdk.services.kinesis.model.GetRecordsRequest;
-import software.amazon.awssdk.services.kinesis.model.GetRecordsResponse;
-import software.amazon.awssdk.services.kinesis.model.GetShardIteratorRequest;
-import software.amazon.awssdk.services.kinesis.model.Shard;
-import software.amazon.awssdk.services.kinesis.model.ShardIteratorType;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -52,7 +51,7 @@ public class LocalstackTest {
   @BeforeEach
   public void setUp() throws Exception {
     assumeTrue(areTestsEnabled());
-    System.setProperty(SdkSystemSetting.CBOR_ENABLED.property(), "true");
+    System.setProperty(SDKGlobalConfiguration.AWS_CBOR_DISABLE_SYSTEM_PROPERTY, "true");
     this.connection = connection();
     LifecycleHelper.initAndStart(connection);
   }
@@ -60,14 +59,15 @@ public class LocalstackTest {
   @AfterEach
   public void tearDown() throws Exception {
     LifecycleHelper.stopAndClose(connection);
-    System.clearProperty(SdkSystemSetting.CBOR_ENABLED.property());
+    System.clearProperty(SDKGlobalConfiguration.AWS_CBOR_DISABLE_SYSTEM_PROPERTY);
   }
 
   @Test
   public void test_01_PutRecord() throws Exception {
     KinesisSDKStreamProducer producer = new KinesisSDKStreamProducer()
       .withStream(getProperty(KINESIS_STREAM))
-      .withPartitionKey("key");
+      .withPartitionKey("key")
+      .withCreateIfNotExists(true);
 
     AWSKinesisSDKConnection conn = connection();
     StandaloneProducer sp = new StandaloneProducer(conn, producer);
@@ -99,33 +99,31 @@ public class LocalstackTest {
       .withCustomEndpoint(new CustomEndpoint().withServiceEndpoint(serviceEndpoint).withSigningRegion(signingRegion));
   }
 
-  private KinesisClient kinesisClient() {
+  private AmazonKinesis kinesisClient() {
     return connection.kinesisClient();
   }
 
   private String getRecords(String streamName) {
-    KinesisClient client = kinesisClient();
+    AmazonKinesis client = kinesisClient();
 
-    List<Shard> initialShardData = client.describeStream(DescribeStreamRequest.builder().streamName(streamName).build()).streamDescription().shards();
+    List<Shard> initialShardData = client.describeStream(streamName).getStreamDescription().getShards();
 
     List<String> initialShardIterators = initialShardData.stream().map(s ->
-      client.getShardIterator(GetShardIteratorRequest.builder()
-        .streamName(streamName)
-        .shardId(s.shardId())
-        .startingSequenceNumber(s.sequenceNumberRange().startingSequenceNumber())
-        .shardIteratorType(ShardIteratorType.AT_SEQUENCE_NUMBER)
-        .build()
-      ).shardIterator()
+      client.getShardIterator(new GetShardIteratorRequest()
+        .withStreamName(streamName)
+        .withShardId(s.getShardId())
+        .withStartingSequenceNumber(s.getSequenceNumberRange().getStartingSequenceNumber())
+        .withShardIteratorType(ShardIteratorType.AT_SEQUENCE_NUMBER)
+      ).getShardIterator()
     ).collect(Collectors.toList());
 
     String shardIterator = initialShardIterators.get(0);
 
-    GetRecordsRequest getRecordsRequest = GetRecordsRequest.builder()
-            .shardIterator(shardIterator)
-            .limit(25)
-            .build();
+    GetRecordsRequest getRecordsRequest = new GetRecordsRequest();
+    getRecordsRequest.setShardIterator(shardIterator);
+    getRecordsRequest.setLimit(25);
 
-    GetRecordsResponse recordResult = client.getRecords(getRecordsRequest);
-    return new String (recordResult.records().get(0).data().asByteArray(), StandardCharsets.UTF_8);
+    GetRecordsResult recordResult = client.getRecords(getRecordsRequest);
+    return new String (recordResult.getRecords().get(0).getData().array(), StandardCharsets.UTF_8);
   }
 }

@@ -3,8 +3,8 @@ package com.adaptris.aws.kinesis;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.services.splitter.NoOpSplitter;
+import com.amazonaws.services.kinesis.model.PutRecordsRequestEntry;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.kinesis.model.PutRecordsRequestEntry;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -1,4 +1,4 @@
-package com.adaptris.aws.kinesis;
+package com.adaptris.aws2.kinesis;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;

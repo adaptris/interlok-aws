@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-package com.adaptris.aws.kinesis;
+package com.adaptris.aws2.kinesis;
 
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.ComponentProfile;
