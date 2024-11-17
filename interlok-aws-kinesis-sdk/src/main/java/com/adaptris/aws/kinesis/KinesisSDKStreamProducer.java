@@ -178,8 +178,7 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
   // https://docs.aws.amazon.com/streams/latest/dev/kinesis-using-sdk-java-create-stream.html
   private void doAwaitStreamActive(AmazonKinesis kinesisClient, String endpoint) throws ProduceException {
 
-    DescribeStreamRequest describeStreamRequest = new DescribeStreamRequest();
-    describeStreamRequest.setStreamName(endpoint);
+    DescribeStreamRequest describeStreamRequest = new DescribeStreamRequest().withStreamName(endpoint);
 
     long startTime = System.currentTimeMillis();
     long endTime = startTime + ( 10 * 60 * 1000 );
