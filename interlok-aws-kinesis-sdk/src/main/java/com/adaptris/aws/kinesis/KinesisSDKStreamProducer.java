@@ -51,8 +51,17 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
   private static final int DEFAULT_BATCH_WINDOW = 100;
 
   // 0 means ON_DEMAND, > 0 means PROVISIONED
-  private static final int SHARD_COUNT_NONE = 0;
+  public static final int SHARD_COUNT_NONE = 0;
 
+  @Getter
+  @Setter
+  @InputFieldDefault(value = "600000")
+  private long createStreamMaxWaitTimeMillis = 10 * 60 * 1000;
+
+  @Getter
+  @Setter
+  @InputFieldDefault(value = "20000")
+  private long createStreamPollTimeMillis = 20 * 1000;
 
   /**
    * The kinesis stream name.
@@ -104,6 +113,7 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
   @Min(SHARD_COUNT_NONE)
   @Getter
   @Setter
+  @InputFieldDefault(value = "0")
   private int shardCount = SHARD_COUNT_NONE;
 
   @Override
@@ -141,8 +151,37 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
     return (T) this;
   }
 
+  /**
+   * If createIfNotExists is true, when creating the stream, this is the shard count
+   * @param shardCount
+   * @return
+   * @param <T>
+   */
   public <T extends KinesisSDKStreamProducer> T withShardCount(int shardCount) {
     setShardCount(shardCount);
+    return (T) this;
+  }
+
+  /**
+   * If createIfNotExists is true, when creating the stream, this is the max wait time for the stream to become active
+   * @param millis
+   * @return
+   * @param <T>
+   */
+  public <T extends KinesisSDKStreamProducer> T withCreateStreamMaxWaitTimeMillis(long millis) {
+    setCreateStreamMaxWaitTimeMillis(millis);
+    return (T) this;
+  }
+
+  /**
+   * If createIfNotExists is true, when creating the stream, this is the wait time between polling to check if
+   * the stream is active
+   * @param millis
+   * @return
+   * @param <T>
+   */
+  public <T extends KinesisSDKStreamProducer> T withCreateStreamPollTimeMillis(long millis) {
+    setCreateStreamPollTimeMillis(millis);
     return (T) this;
   }
 
@@ -181,10 +220,10 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
     DescribeStreamRequest describeStreamRequest = new DescribeStreamRequest().withStreamName(endpoint);
 
     long startTime = System.currentTimeMillis();
-    long endTime = startTime + ( 10 * 60 * 1000 );
+    long endTime = startTime + ( createStreamMaxWaitTimeMillis );
     while ( System.currentTimeMillis() < endTime ) {
       try {
-        Thread.sleep(20 * 1000);
+        Thread.sleep(createStreamPollTimeMillis);
       }
       catch ( Exception e ) {}
 

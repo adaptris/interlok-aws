@@ -40,7 +40,7 @@ import software.amazon.awssdk.services.kinesis.KinesisClientBuilder;
 @XStreamAlias("aws-kinesis-sdk-connection")
 @AdapterComponent
 @ComponentProfile(summary = "Connection for supporting connectivity to Amazon Kinesis", tag = "connections,amazon,aws,kinesis",
-    since = "3.12.1")
+    since = "5.0.4")
 @DisplayOrder(order = {"region", "authentication", "clientConfiguration", "retryPolicy",
     "customEndpoint"})
 @NoArgsConstructor
