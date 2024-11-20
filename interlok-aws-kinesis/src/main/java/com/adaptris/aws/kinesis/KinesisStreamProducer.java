@@ -1,4 +1,4 @@
-package com.adaptris.aws2.kinesis;
+package com.adaptris.aws.kinesis;
 
 import java.nio.ByteBuffer;
 import javax.validation.constraints.NotBlank;

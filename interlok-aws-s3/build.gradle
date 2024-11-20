@@ -5,15 +5,15 @@ ext {
   componentName = 'Interlok AWS/S3'
   componentDesc = "Services that interact (upload/download/delete) with AWS S3 Buckets and artefacts"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '2.29.9'
+  awsSDKVersion = '1.12.777'
   jacksonVersion = '2.18.1'
 }
 
 dependencies {
   api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
-  api (platform("software.amazon.awssdk:sdk-core:$awsSDKVersion"))
+  api (platform("com.amazonaws:aws-java-sdk-bom:$awsSDKVersion"))
   api ("com.amazonaws:aws-java-sdk-s3")
-  api ("software.amazon.awssdk:sdk-core")
+  api ("com.amazonaws:aws-java-sdk-core")
   // Dependency to platform/BOM
   api ("com.fasterxml.jackson.core:jackson-databind")
   api ("com.fasterxml.jackson.core:jackson-core")

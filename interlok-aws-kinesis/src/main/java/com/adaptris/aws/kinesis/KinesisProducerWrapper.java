@@ -1,4 +1,4 @@
-package com.adaptris.aws2.kinesis;
+package com.adaptris.aws.kinesis;
 
 import com.amazonaws.services.kinesis.producer.KinesisProducer;
 

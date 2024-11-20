@@ -1,4 +1,4 @@
-package com.adaptris.aws2.kinesis;
+package com.adaptris.aws.kinesis;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import com.adaptris.annotation.ComponentProfile;

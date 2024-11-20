@@ -14,23 +14,38 @@
     limitations under the License.
 */
 
-package com.adaptris.aws2.kinesis;
+package com.adaptris.aws.kinesis;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import java.io.IOException;
 import org.junit.jupiter.api.Test;
-import com.adaptris.aws.StaticCredentialsBuilder;
+import org.mockito.Mockito;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.junit.scaffolding.util.Os;
-import com.adaptris.util.KeyValuePairSet;
 import com.amazonaws.services.kinesis.producer.KinesisProducer;
 
-public class InlineConnectionTest extends ConnectionFromProperties {
+public class ConnectionFromPropertiesTest extends ConnectionFromProperties {
+  
+  @Test
+  public void testConfigLocation() {
+    ConnectionFromProperties conn = new ConnectionFromProperties();
+    assertNull(conn.getConfigLocation());
+    assertNotNull(conn.withConfigLocation("kinesis_default.properties").getConfigLocation());
+    try {
+      conn.setConfigLocation(null);
+      fail();
+    } catch (Exception expected) {
+
+    }
+  }
 
   @Test
   public void testLifecycle() throws Exception {
-    InlineProducerConfiguration conn = new InlineProducerConfiguration();
+    ConnectionFromProperties conn = new ConnectionFromProperties().withConfigLocation("kinesis_default.properties");
     try {
       LifecycleHelper.initAndStart(conn);
     } finally {
@@ -42,9 +57,7 @@ public class InlineConnectionTest extends ConnectionFromProperties {
   public void testKinesisProducer() throws Exception {
     // On Windows the "kinesis_producer" executable is often missing
     assumeFalse(Os.isFamily(Os.WINDOWS_FAMILY));
-    InlineProducerConfiguration conn = new InlineProducerConfiguration()
-        .withCredentials(new StaticCredentialsBuilder()).withMetricsCredentials(null)
-        .withConfig(new KeyValuePairSet());
+    ConnectionFromProperties conn = new ConnectionFromProperties().withConfigLocation("kinesis_default.properties");
     try {
       LifecycleHelper.initAndStart(conn);
       KinesisProducer prod = conn.kinesisProducer();
@@ -53,6 +66,24 @@ public class InlineConnectionTest extends ConnectionFromProperties {
       assertTrue(prod == p2);
     } finally {
       LifecycleHelper.stopAndClose(conn);
+    }
+  }
+
+  @Test
+  public void testShutdownQuietly() throws Exception {
+    KinesisProducer mock = Mockito.mock(KinesisProducer.class);
+    shutdownQuietly(null);
+    shutdownQuietly(mock);
+  }
+
+  @Test
+  public void testReadConfig() throws Exception {
+    assertNotNull(readConfig("kinesis_default.properties"));
+    try {
+      readConfig("blahblahb-blahblah.properties");
+      fail();
+    } catch (IOException e) {
+
     }
   }
 }

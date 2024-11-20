@@ -14,7 +14,7 @@
     limitations under the License.
 */
 
-package com.adaptris.aws2.kinesis;
+package com.adaptris.aws.kinesis;
 
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AdaptrisConnectionImp;

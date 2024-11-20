@@ -14,10 +14,13 @@
     limitations under the License.
 */
 
-package com.adaptris.aws2.kinesis;
+package com.adaptris.aws.kinesis;
 
 import java.util.Properties;
 import javax.validation.Valid;
+
+import com.adaptris.aws.AWSCredentialsProviderBuilder;
+import com.adaptris.aws.StaticCredentialsBuilder;
 import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdapterComponent;
 import com.adaptris.annotation.AdvancedConfig;
@@ -25,8 +28,6 @@ import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
-import com.adaptris.aws.AWSCredentialsProviderBuilder;
-import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.util.KeyValuePairBag;
 import com.adaptris.util.KeyValuePairSet;
