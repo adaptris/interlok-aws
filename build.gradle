@@ -2,10 +2,10 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.apache.tools.ant.filters.*
 
 plugins {
-  id 'com.github.spotbugs' version '6.0.21' apply false
+  id 'com.github.spotbugs' version '6.0.26' apply false
   id "io.freefair.lombok" version "6.5.1" apply false
   id 'org.owasp.dependencycheck' version '9.0.10' apply false
-  id "org.gradle.test-retry" version "1.5.10" apply false
+  id "org.gradle.test-retry" version "1.6.0" apply false
   id 'nebula.optional-base' version '7.0.0' apply false
 }
 
@@ -169,7 +169,7 @@ subprojects {
     testImplementation ("org.mockito:mockito-core:$mockitoVersion")
     testImplementation ("org.mockito:mockito-inline:$mockitoVersion")
     javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
-    umlDoclet("nl.talsmasoftware:umldoclet:2.2.0")
+    umlDoclet("nl.talsmasoftware:umldoclet:2.2.1")
 
     offlineJavadocPackages ("com.adaptris:interlok-core:$interlokCoreVersion:javadoc@jar") { changing= true}
     offlineJavadocPackages ("com.adaptris:interlok-common:$interlokCoreVersion:javadoc@jar") { changing= true}
