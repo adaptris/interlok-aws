@@ -1,4 +1,4 @@
-package com.adaptris.aws.kinesis;
+package com.adaptris.aws2.kinesis;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,21 +16,21 @@ import com.adaptris.core.util.Args;
 import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.interlok.util.CloseableIterable;
 import com.adaptris.util.NumberUtils;
-import com.amazonaws.services.kinesis.AmazonKinesis;
-import com.amazonaws.services.kinesis.model.CreateStreamRequest;
-import com.amazonaws.services.kinesis.model.DescribeStreamRequest;
-import com.amazonaws.services.kinesis.model.DescribeStreamResult;
-import com.amazonaws.services.kinesis.model.PutRecordsRequest;
-import com.amazonaws.services.kinesis.model.PutRecordsRequestEntry;
-import com.amazonaws.services.kinesis.model.PutRecordsResult;
-import com.amazonaws.services.kinesis.model.ResourceNotFoundException;
-import com.amazonaws.services.kinesis.model.StreamMode;
-import com.amazonaws.services.kinesis.model.StreamModeDetails;
-import com.amazonaws.services.kinesis.model.StreamStatus;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import software.amazon.awssdk.services.kinesis.KinesisClient;
+import software.amazon.awssdk.services.kinesis.model.CreateStreamRequest;
+import software.amazon.awssdk.services.kinesis.model.DescribeStreamRequest;
+import software.amazon.awssdk.services.kinesis.model.DescribeStreamResponse;
+import software.amazon.awssdk.services.kinesis.model.PutRecordsRequest;
+import software.amazon.awssdk.services.kinesis.model.PutRecordsRequestEntry;
+import software.amazon.awssdk.services.kinesis.model.PutRecordsResponse;
+import software.amazon.awssdk.services.kinesis.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.kinesis.model.StreamMode;
+import software.amazon.awssdk.services.kinesis.model.StreamModeDetails;
+import software.amazon.awssdk.services.kinesis.model.StreamStatus;
 
 /**
  * Producer to amazon kinesis using the SDK.
@@ -188,7 +188,7 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
   @Override
   protected void doProduce(AdaptrisMessage msg, String endpoint) throws ProduceException {
     try {
-      AmazonKinesis kinesisClient = retrieveConnection(AWSKinesisSDKConnection.class).kinesisClient();
+      KinesisClient kinesisClient = retrieveConnection(AWSKinesisSDKConnection.class).kinesisClient();
       long total = 0;
       try (CloseableIterable<PutRecordsRequestEntry> docs = CloseableIterable.ensureCloseable(requestBuilder().build(getPartitionKey(), msg))) {
         int count = 0;
@@ -215,10 +215,9 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
 
   // According to the docs, we need to wait for the stream to be active
   // https://docs.aws.amazon.com/streams/latest/dev/kinesis-using-sdk-java-create-stream.html
-  private void doAwaitStreamActive(AmazonKinesis kinesisClient, String endpoint) throws ProduceException {
+  private void doAwaitStreamActive(KinesisClient kinesisClient, String endpoint) throws ProduceException {
 
-    DescribeStreamRequest describeStreamRequest = new DescribeStreamRequest().withStreamName(endpoint);
-
+    DescribeStreamRequest describeStreamRequest = DescribeStreamRequest.builder().streamName(endpoint).build();
     long startTime = System.currentTimeMillis();
     long endTime = startTime + ( createStreamMaxWaitTimeMillis );
     while ( System.currentTimeMillis() < endTime ) {
@@ -228,8 +227,8 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
       catch ( Exception e ) {}
 
       try {
-        DescribeStreamResult describeStreamResponse = kinesisClient .describeStream( describeStreamRequest );
-        StreamStatus streamStatus = StreamStatus.fromValue(describeStreamResponse.getStreamDescription().getStreamStatus());
+        DescribeStreamResponse describeStreamResponse = kinesisClient.describeStream( describeStreamRequest );
+        StreamStatus streamStatus = describeStreamResponse.streamDescription().streamStatus();
         if ( streamStatus.equals( StreamStatus.ACTIVE ) ) {
           break;
         }
@@ -248,25 +247,25 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
     }
   }
 
-  private void doCreate(AmazonKinesis kinesisClient, String endpoint, int shardCount) throws ProduceException {
-    CreateStreamRequest request = new CreateStreamRequest().withStreamName(endpoint);
+  private void doCreate(KinesisClient kinesisClient, String endpoint, int shardCount) throws ProduceException {
+    CreateStreamRequest.Builder builder = CreateStreamRequest.builder().streamName(endpoint);
     // only if shard count > 0, we assume PROVISIONED, else ON_DEMAND
     if (shardCount > SHARD_COUNT_NONE) {
-      request.withStreamModeDetails(new StreamModeDetails().withStreamMode(StreamMode.PROVISIONED))
-      .withShardCount(shardCount);
+      builder.streamModeDetails(StreamModeDetails.builder().streamMode(StreamMode.PROVISIONED).build())
+      .shardCount(shardCount);
     } else {
-      request.withStreamModeDetails(new StreamModeDetails().withStreamMode(StreamMode.ON_DEMAND));
+      builder.streamModeDetails(StreamModeDetails.builder().streamMode(StreamMode.ON_DEMAND).build());
     }
-    kinesisClient.createStream(request);
+    kinesisClient.createStream(builder.build());
 
     doAwaitStreamActive(kinesisClient, endpoint);
 
   }
 
-  private void doSend(AmazonKinesis kinesisClient, String endpoint, List <PutRecordsRequestEntry> putRecordsRequestEntryList) throws ProduceException{
+  protected void doSend(KinesisClient kinesisClient, String endpoint, List <PutRecordsRequestEntry> putRecordsRequestEntryList) throws ProduceException{
     try {
-      PutRecordsRequest putRecordsRequest  = new PutRecordsRequest().withStreamName(endpoint).withRecords(putRecordsRequestEntryList);
-      PutRecordsResult putRecordsResult = kinesisClient.putRecords(putRecordsRequest);
+      PutRecordsRequest putRecordsRequest  = PutRecordsRequest.builder().streamName(endpoint).records(putRecordsRequestEntryList).build();
+      PutRecordsResponse putRecordsResult = kinesisClient.putRecords(putRecordsRequest);
       log.trace("PutRecordResults: {}", putRecordsResult);
     } catch (ResourceNotFoundException rnfex) {
       if (createIfNotExists) {
