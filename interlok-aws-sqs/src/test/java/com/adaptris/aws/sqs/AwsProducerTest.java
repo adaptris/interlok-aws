@@ -12,13 +12,14 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
-*/
+ */
 
 package com.adaptris.aws.sqs;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -28,8 +29,8 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
@@ -66,10 +67,10 @@ public class AwsProducerTest extends ExampleProducerCase {
   private SendMessageResult mockResult;
   private SdkHttpMetadata mockMetadata;
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
-    producedMessages = new ArrayList<AdaptrisMessage>();
+    producedMessages = new ArrayList<>();
 
     sqsClientMock = mock(AmazonSQS.class);
     GetQueueUrlResult queueUrlResultMock = mock(GetQueueUrlResult.class);
@@ -138,17 +139,15 @@ public class AwsProducerTest extends ExampleProducerCase {
     verify(sqsClientMock, times(numMsgs)).sendMessage((SendMessageRequest) any());
   }
 
-  @Test(expected = IllegalArgumentException.class)
   public void testNoConnection() throws Exception {
     when(connectionMock.retrieveConnection(AmazonSQSConnection.class)).thenReturn(null);
-    initialiseMockProducer();
+    assertThrows(IllegalArgumentException.class, () -> initialiseMockProducer());
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void testNoDestination() throws Exception {
+  @Test
+  public void testNoQueue() throws Exception {
     AmazonSQSProducer producer = new AmazonSQSProducer();
-    LifecycleHelper.prepare(producer);
-    LifecycleHelper.init(producer);
+    assertThrows(IllegalArgumentException.class, () -> LifecycleHelper.prepare(producer));
   }
 
   @Test
@@ -157,15 +156,15 @@ public class AwsProducerTest extends ExampleProducerCase {
         .thenAnswer(new Answer<Object>() {
       @Override
       public Object answer(InvocationOnMock invocation) {
-          Object[] args = invocation.getArguments();
+        Object[] args = invocation.getArguments();
 
-          SendMessageRequest request = (SendMessageRequest) args[0];
-          assertTrue(request.getMessageAttributes() != null);
-          assertEquals("myValue1", request.getMessageAttributes().get("myKey1").getStringValue());
-          assertEquals("myValue2", request.getMessageAttributes().get("myKey2").getStringValue());
-          assertEquals("myValue3", request.getMessageAttributes().get("myKey3").getStringValue());
+        SendMessageRequest request = (SendMessageRequest) args[0];
+        assertTrue(request.getMessageAttributes() != null);
+        assertEquals("myValue1", request.getMessageAttributes().get("myKey1").getStringValue());
+        assertEquals("myValue2", request.getMessageAttributes().get("myKey2").getStringValue());
+        assertEquals("myValue3", request.getMessageAttributes().get("myKey3").getStringValue());
 
-          return mockResult;
+        return mockResult;
       }
     });
 
@@ -190,15 +189,15 @@ public class AwsProducerTest extends ExampleProducerCase {
         .thenAnswer(new Answer<Object>() {
       @Override
       public Object answer(InvocationOnMock invocation) {
-          Object[] args = invocation.getArguments();
+        Object[] args = invocation.getArguments();
 
-          SendMessageRequest request = (SendMessageRequest) args[0];
-          assertTrue(request.getMessageAttributes() != null);
-          assertEquals("myValue1", request.getMessageAttributes().get("myKey1").getStringValue());
-          assertNull(request.getMessageAttributes().get("myKey2"));
-          assertEquals("myValue3", request.getMessageAttributes().get("myKey3").getStringValue());
+        SendMessageRequest request = (SendMessageRequest) args[0];
+        assertTrue(request.getMessageAttributes() != null);
+        assertEquals("myValue1", request.getMessageAttributes().get("myKey1").getStringValue());
+        assertNull(request.getMessageAttributes().get("myKey2"));
+        assertEquals("myValue3", request.getMessageAttributes().get("myKey3").getStringValue());
 
-          return mockResult;
+        return mockResult;
       }
     });
 
@@ -223,15 +222,15 @@ public class AwsProducerTest extends ExampleProducerCase {
         .thenAnswer(new Answer<Object>() {
       @Override
       public Object answer(InvocationOnMock invocation) {
-          Object[] args = invocation.getArguments();
+        Object[] args = invocation.getArguments();
 
-          SendMessageRequest request = (SendMessageRequest) args[0];
-          assertTrue(request.getMessageAttributes() != null);
-          assertEquals("myValue1", request.getMessageAttributes().get("myKey1").getStringValue());
-          assertNull(request.getMessageAttributes().get("myKey2"));
-          assertEquals("myValue3", request.getMessageAttributes().get("myKey3").getStringValue());
+        SendMessageRequest request = (SendMessageRequest) args[0];
+        assertTrue(request.getMessageAttributes() != null);
+        assertEquals("myValue1", request.getMessageAttributes().get("myKey1").getStringValue());
+        assertNull(request.getMessageAttributes().get("myKey2"));
+        assertEquals("myValue3", request.getMessageAttributes().get("myKey3").getStringValue());
 
-          return mockResult;
+        return mockResult;
       }
     });
 
@@ -264,8 +263,9 @@ public class AwsProducerTest extends ExampleProducerCase {
 
   private AdaptrisMessage createMessage(MetadataElement ... metadataElements ){
     AdaptrisMessage msg = this.createMessage();
-    for(MetadataElement element : metadataElements)
+    for(MetadataElement element : metadataElements) {
       msg.addMetadata(element);
+    }
     return msg;
   }
 

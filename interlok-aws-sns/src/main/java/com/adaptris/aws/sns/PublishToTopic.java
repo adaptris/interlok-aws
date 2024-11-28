@@ -12,15 +12,24 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
-*/
+ */
 
 package com.adaptris.aws.sns;
 
-import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.ComponentProfile;
@@ -32,15 +41,16 @@ import com.adaptris.core.CoreException;
 import com.adaptris.core.ProduceException;
 import com.adaptris.core.common.StringPayloadDataInputParameter;
 import com.adaptris.core.util.ExceptionHelper;
-import com.adaptris.interlok.InterlokException;
 import com.adaptris.interlok.config.DataInputParameter;
-import com.adaptris.interlok.types.InterlokMessage;
 import com.adaptris.interlok.util.Args;
+import com.amazonaws.services.sns.model.MessageAttributeValue;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
+
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import lombok.Setter;
 
 /**
@@ -61,10 +71,9 @@ import lombok.Setter;
 {
     AmazonSNSConnection.class
 }, metadata =
-{
-    "SNS_MessageID"
-})
-@NoArgsConstructor
+  {
+      "SNS_MessageID"
+  })
 @DisplayOrder(order = {"topicArn", "snsSubject"})
 public class PublishToTopic extends NotificationProducer {
 
@@ -74,14 +83,6 @@ public class PublishToTopic extends NotificationProducer {
   public static final String SNS_MSG_ID_KEY = "SNS_MessageID";
 
   private static final DataInputParameter<String> DEFAULT_SOURCE = new StringPayloadDataInputParameter();
-  private static final DataInputParameter<String> EMPTY = new DataInputParameter<String>() {
-
-    @Override
-    public String extract(InterlokMessage m) throws InterlokException {
-      return "";
-    }
-
-  };
 
   @AutoPopulated
   @Valid
@@ -111,6 +112,47 @@ public class PublishToTopic extends NotificationProducer {
   @Setter
   private String snsSubject;
 
+  /**
+   * Specify a list of a metadata keys that should be attached to a message.
+   * <p>
+   * Amazon SNS supports a limited set of attributes (10 at current count) that can be attached to a message; use this list to specify the
+   * metadata keys that must be sent as attributes, otherwise all metadata is ignored.
+   * </p>
+   *
+   *
+   */
+  @XStreamImplicit(itemFieldName = "send-attribute")
+  @NotNull
+  @AutoPopulated
+  @Getter
+  @Setter
+  @NonNull
+  private List<String> sendAttributes;
+
+  /**
+   * <p>
+   * This parameter applies only to FIFO (first-in-first-out) topics. The <code>MessageGroupId</code> can contain up to 128 alphanumeric
+   * characters <code>(a-z, A-Z, 0-9)</code> and punctuation <code>(!"#$%&amp;'()*+,-./:;&lt;=&gt;?@[\]^_`{|}~)</code>.
+   * </p>
+   * <p>
+   * The <code>MessageGroupId</code> is a tag that specifies that a message belongs to a specific message group. Messages that belong to the
+   * same message group are processed in a FIFO manner (however, messages in different message groups might be processed out of order).
+   * Every message must include a <code>MessageGroupId</code>.
+   * </p>
+   *
+   * @param messageGroupId
+   * @return Returns a reference to this object so that method calls can be chained together.
+   */
+  @InputFieldHint(expression = true)
+  @Getter
+  @Setter
+  @Size(max = 128)
+  private String messageGroupId;
+
+  public PublishToTopic() {
+    setSendAttributes(new ArrayList<String>());
+  }
+
   @Override
   public void prepare() throws CoreException {
     Args.notBlank(getTopicArn(), "topic-arn");
@@ -129,38 +171,43 @@ public class PublishToTopic extends NotificationProducer {
     this.source = source;
   }
 
-  public <T extends PublishToTopic> T withSource(DataInputParameter<String> source) {
+  public PublishToTopic withSource(DataInputParameter<String> source) {
     setSource(source);
-    return (T)this;
+    return this;
   }
 
-  public <T extends PublishToTopic> T withTopicArn(String s) {
+  public PublishToTopic withTopicArn(String s) {
     setTopicArn(s);
-    return (T) this;
+    return this;
   }
 
-  public <T extends PublishToTopic> T withSubject(String s) {
+  public PublishToTopic withSubject(String s) {
     setSnsSubject(s);
-    return (T) this;
+    return this;
   }
 
   protected DataInputParameter<String> source() {
     return ObjectUtils.defaultIfNull(getSource(), DEFAULT_SOURCE);
   }
 
-  protected String resolveSubject(AdaptrisMessage msg) throws Exception {
+  protected String subject(AdaptrisMessage msg) throws Exception {
     return msg.resolve(getSnsSubject());
+  }
+
+  protected String messageGroupId(AdaptrisMessage msg) throws Exception {
+    return msg.resolve(getMessageGroupId());
   }
 
 
   @Override
   protected void doProduce(AdaptrisMessage msg, String endpoint) throws ProduceException {
     try {
-      PublishRequest request = new PublishRequest(endpoint, source().extract(msg));
-      String subject = resolveSubject(msg);
+      PublishRequest request = new PublishRequest(endpoint, source().extract(msg)).withMessageGroupId(messageGroupId(msg));
+      String subject = subject(msg);
       if (!StringUtils.isBlank(subject)) {
         request.setSubject(subject);
       }
+      applyMetadata(request, msg);
       PublishResult result = client().publish(request);
       msg.addMetadata(SNS_MSG_ID_KEY, result.getMessageId());
     } catch (Exception e) {
@@ -170,7 +217,21 @@ public class PublishToTopic extends NotificationProducer {
 
   @Override
   public String endpoint(AdaptrisMessage msg) throws ProduceException {
-    return resolveProduceDestination(getTopicArn(), msg);
+    return msg.resolve(getTopicArn());
+  }
+
+  private PublishRequest applyMetadata(PublishRequest request, AdaptrisMessage msg) {
+    Map<String, MessageAttributeValue> attributes = null;
+    if (CollectionUtils.isNotEmpty(getSendAttributes())) {
+      attributes = new HashMap<>();
+      for (String attribute : getSendAttributes()) {
+        String adpMetadataValue = msg.getMetadataValue(attribute);
+        if (StringUtils.isNotEmpty(adpMetadataValue)) {
+          attributes.put(attribute, new MessageAttributeValue().withDataType("String").withStringValue(adpMetadataValue));
+        }
+      }
+    }
+    return request.withMessageAttributes(attributes);
   }
 
 }

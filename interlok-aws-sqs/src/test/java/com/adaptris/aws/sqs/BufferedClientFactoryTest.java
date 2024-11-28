@@ -16,8 +16,8 @@
 
 package com.adaptris.aws.sqs;
 
-import static org.junit.Assert.assertNotNull;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import org.junit.jupiter.api.Test;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.ClientConfigurationBuilder;
 import com.adaptris.aws.EndpointBuilder;

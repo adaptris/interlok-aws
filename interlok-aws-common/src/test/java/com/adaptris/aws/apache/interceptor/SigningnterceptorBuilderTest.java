@@ -1,9 +1,11 @@
 package com.adaptris.aws.apache.interceptor;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.apache.http.HttpRequestInterceptor;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import com.adaptris.aws.AWSCredentialsProviderBuilder;
 import com.adaptris.aws.STSAssumeroleCredentialsBuilder;
 import com.adaptris.aws.StaticCredentialsBuilder;
@@ -23,12 +25,14 @@ public class SigningnterceptorBuilderTest {
 
   }
 
-  @Test(expected=Exception.class)
+  @Test
   public void testBuild_Exception() {
     ApacheSigningInterceptor builder =
         new ApacheSigningInterceptor().withRegion("region").withService("service")
             .withCredentials(new FailingCredentialsBuilder());
-    HttpRequestInterceptor interceptor = builder.build();
+    assertThrows(Exception.class, ()->{
+      HttpRequestInterceptor interceptor = builder.build();
+    }, "Failed to build");
   }
 
   @Test

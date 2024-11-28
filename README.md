@@ -1,5 +1,12 @@
 # interlok-aws
-[![GitHub tag](https://img.shields.io/github/tag/adaptris/interlok-aws.svg)](https://github.com/adaptris/interlok-aws/tags) ![license](https://img.shields.io/github/license/adaptris/interlok-aws.svg) [![Actions Status](https://github.com/adaptris/interlok-aws/workflows/Java%20CI/badge.svg)](https://github.com/adaptris/interlok-aws/actions) [![codecov](https://codecov.io/gh/adaptris/interlok-aws/branch/develop/graph/badge.svg)](https://codecov.io/gh/adaptris/interlok-aws) [![Known Vulnerabilities](https://snyk.io/test/github/adaptris/interlok-aws/badge.svg?targetFile=interlok-aws-sqs%2Fbuild.gradle)](https://snyk.io/test/github/adaptris/interlok-aws?targetFile=interlok-aws-sqs%2Fbuild.gradle) [![Language grade: Java](https://img.shields.io/lgtm/grade/java/g/adaptris/interlok-aws.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/adaptris/interlok-aws/context:java)
+
+[![GitHub tag](https://img.shields.io/github/tag/adaptris/interlok-aws.svg)](https://github.com/adaptris/interlok-aws/tags)
+[![license](https://img.shields.io/github/license/adaptris/interlok-aws.svg)](https://github.com/adaptris/interlok-aws/blob/develop/LICENSE)
+[![Actions Status](https://github.com/adaptris/interlok-aws/actions/workflows/gradle-publish.yml/badge.svg)](https://github.com/adaptris/interlok-aws/actions)
+[![codecov](https://codecov.io/gh/adaptris/interlok-aws/branch/develop/graph/badge.svg)](https://codecov.io/gh/adaptris/interlok-aws)
+[![CodeQL](https://github.com/adaptris/interlok-aws/workflows/CodeQL/badge.svg)](https://github.com/adaptris/interlok-aws/security/code-scanning)
+[![Known Vulnerabilities](https://snyk.io/test/github/adaptris/interlok-aws/badge.svg?targetFile=build.gradle)](https://snyk.io/test/github/adaptris/interlok-aws?targetFile=build.gradle)
+[![Closed PRs](https://img.shields.io/github/issues-pr-closed/adaptris/interlok-aws)](https://github.com/adaptris/interlok-aws/pulls?q=is%3Apr+is%3Aclosed)
 
 The suggested name was `musical-octo-waffle`
 

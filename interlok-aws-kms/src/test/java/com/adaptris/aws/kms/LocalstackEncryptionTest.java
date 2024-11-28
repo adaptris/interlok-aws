@@ -7,12 +7,13 @@ import static com.adaptris.aws.kms.LocalstackHelper.MSG_CONTENTS;
 import static com.adaptris.aws.kms.LocalstackHelper.areTestsEnabled;
 import static com.adaptris.aws.kms.LocalstackHelper.assertEqual;
 import static com.adaptris.aws.kms.LocalstackHelper.assertNotEqual;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import java.nio.charset.StandardCharsets;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.CustomEndpoint;
 import com.adaptris.aws.StaticCredentialsBuilder;
@@ -25,20 +26,19 @@ import com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase;
 import com.amazonaws.services.kms.AWSKMSClient;
 import com.amazonaws.services.kms.model.CreateKeyRequest;
 import com.amazonaws.services.kms.model.CreateKeyResult;
-import com.amazonaws.services.kms.model.CustomerMasterKeySpec;
 import com.amazonaws.services.kms.model.KeyUsageType;
 import com.amazonaws.services.kms.model.OriginType;
 
 // Note that local uses local-kms under the covers
 // https://github.com/nsmithuk/local-kms explicitly states that asymmetric operations are not supported.
 // So we just test using a symmetric key / default.
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class LocalstackEncryptionTest {
 
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
-    Assume.assumeTrue(areTestsEnabled());
+    assumeTrue(areTestsEnabled());
   }
 
   @Test
@@ -96,7 +96,6 @@ public class LocalstackEncryptionTest {
     CreateKeyRequest req = new CreateKeyRequest().withDescription("junit")
         .withKeyUsage(KeyUsageType.ENCRYPT_DECRYPT)
         .withBypassPolicyLockoutSafetyCheck(true)
-        .withCustomerMasterKeySpec(CustomerMasterKeySpec.SYMMETRIC_DEFAULT)
         .withOrigin(OriginType.AWS_KMS);
     CreateKeyResult result = client.createKey(req);
     return result.getKeyMetadata().getKeyId();

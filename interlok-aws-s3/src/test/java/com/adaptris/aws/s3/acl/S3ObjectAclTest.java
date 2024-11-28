@@ -1,6 +1,6 @@
 package com.adaptris.aws.s3.acl;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.List;
@@ -9,7 +9,7 @@ import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.Grant;
 import com.amazonaws.services.s3.model.Permission;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class S3ObjectAclTest {
 

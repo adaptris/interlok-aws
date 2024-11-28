@@ -1,11 +1,13 @@
 package com.adaptris.aws.s3.retry;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 import com.adaptris.interlok.cloud.RemoteBlob;
 
 public class RetryableBlobIterableTest {
@@ -19,11 +21,13 @@ public class RetryableBlobIterableTest {
     assertFalse(blob.getName().startsWith("my-prefix/"));
 
   }
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testIterator_Double() throws Exception {
     RetryableBlobIterable itr = new RetryableBlobIterable(build(10), (s) -> nameMapper(s));
-    itr.iterator();
-    itr.iterator();
+    assertThrows(IllegalStateException.class, ()->{
+      itr.iterator();
+      itr.iterator();
+    }, "Iterator run twice, illegalstate exception has been thrown");  
   }
 
   private Iterable<RemoteBlob> build(int count) {

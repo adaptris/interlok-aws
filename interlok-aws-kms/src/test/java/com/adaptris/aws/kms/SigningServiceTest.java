@@ -4,14 +4,15 @@ import static com.adaptris.aws.kms.LocalstackHelper.HASH_METADATA_KEY;
 import static com.adaptris.aws.kms.LocalstackHelper.MSG_CONTENTS;
 import static com.adaptris.aws.kms.LocalstackHelper.SIG_METADATA_KEY;
 import static com.adaptris.aws.kms.LocalstackHelper.hash;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.nio.ByteBuffer;
 import java.util.Base64;
 import java.util.EnumSet;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -91,7 +92,7 @@ public class SigningServiceTest extends ExampleServiceCase {
 
   }
 
-  @Test(expected = ServiceException.class)
+  @Test
   public void testSign_Broken() throws Exception {
     AWSKMSClient client = Mockito.mock(AWSKMSClient.class);
     AdaptrisMessage msg =
@@ -103,7 +104,9 @@ public class SigningServiceTest extends ExampleServiceCase {
     when(connectionMock.awsClient()).thenReturn(client);
 
     GenerateSignatureService service = retrieveObjectForSampleConfig().withConnection(connectionMock);
-    execute(service, msg);
+    assertThrows(ServiceException.class, ()->{
+      execute(service, msg);
+    }, "Failed, signing is broken");
   }
 
 }

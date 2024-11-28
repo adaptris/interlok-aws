@@ -15,7 +15,7 @@
 */
 
 package com.adaptris.aws.sqs;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.doThrow;
@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Consumer;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.StaticCredentialsBuilder;
 import com.adaptris.core.AdaptrisMessage;
@@ -64,7 +64,7 @@ public class AwsConsumerTest extends ExampleConsumerCase {
   private AmazonSQSConnection connectionMock;
 
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
 
     sqsClientMock = mock(AmazonSQS.class);

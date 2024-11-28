@@ -4,12 +4,13 @@ import static com.adaptris.aws.kms.LocalstackHelper.HASH_METADATA_KEY;
 import static com.adaptris.aws.kms.LocalstackHelper.MSG_CONTENTS;
 import static com.adaptris.aws.kms.LocalstackHelper.SIG_METADATA_KEY;
 import static com.adaptris.aws.kms.LocalstackHelper.hash;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import java.util.Base64;
 import java.util.EnumSet;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
@@ -81,7 +82,7 @@ public class VerifyServiceTest extends ExampleServiceCase {
 
   }
 
-  @Test(expected = ServiceException.class)
+  @Test
   public void testSign_InvalidSignature() throws Exception {
     AWSKMSClient client = Mockito.mock(AWSKMSClient.class);
     VerifyResult result = new VerifyResult().withKeyId("keyId")
@@ -98,10 +99,12 @@ public class VerifyServiceTest extends ExampleServiceCase {
     msg.addMessageHeader(HASH_METADATA_KEY, Base64.getEncoder().encodeToString(hash(MSG_CONTENTS)));
 
     VerifySignatureService service = retrieveObjectForSampleConfig().withConnection(connectionMock);
-    execute(service, msg);
+    assertThrows(ServiceException.class, ()->{
+      execute(service, msg);
+    }, "Failed, invalid signature");
   }
 
-  @Test(expected = ServiceException.class)
+  @Test
   public void testVerify_Broken() throws Exception {
     AWSKMSClient client = Mockito.mock(AWSKMSClient.class);
 
@@ -113,7 +116,9 @@ public class VerifyServiceTest extends ExampleServiceCase {
     msg.addMessageHeader(HASH_METADATA_KEY, Base64.getEncoder().encodeToString(hash(MSG_CONTENTS)));
 
     VerifySignatureService service = retrieveObjectForSampleConfig().withConnection(connectionMock);
-    execute(service, msg);
+    assertThrows(ServiceException.class, ()->{
+      execute(service, msg);
+    }, "Failed, verify broken");
   }
 
 

@@ -13,15 +13,35 @@ updates:
     registries:
       - "interlok"
     schedule:
-      interval: "daily"
+      interval: "weekly"
     allow:
       - dependency-type: "all"
+    labels:
+      - "dependencies"
+      - "java"
+      - "develop"
     reviewers:
-      - quotidian-ennui
-      - mcwarman
-      - aaron-mcgrath-adp
       - sebastien-belin-adp
       - higgyfella
+
+  - package-ecosystem: "gradle"
+    directory: "/"
+    open-pull-requests-limit: 20
+    registries:
+      - "interlok"
+    schedule:
+      interval: "weekly"
+    target-branch: "develop-v4"
+    allow:
+      - dependency-type: "all"
+    labels:
+      - "dependencies"
+      - "java"
+      - "develop-v4"
+    reviewers:
+      - sebastien-belin-adp
+      - higgyfella
+
   - package-ecosystem: "github-actions"
     directory: "/"
     open-pull-requests-limit: 20
@@ -29,9 +49,24 @@ updates:
       interval: "weekly"
     allow:
       - dependency-type: "all"
+    labels:
+      - "github_actions"
+      - "develop"
     reviewers:
-      - quotidian-ennui
-      - mcwarman
-      - aaron-mcgrath-adp
+      - sebastien-belin-adp
+      - higgyfella
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    open-pull-requests-limit: 20
+    schedule:
+      interval: "weekly"
+    target-branch: "develop-v4"
+    allow:
+      - dependency-type: "all"
+    labels:
+      - "github_actions"
+      - "develop-v4"
+    reviewers:
       - sebastien-belin-adp
       - higgyfella

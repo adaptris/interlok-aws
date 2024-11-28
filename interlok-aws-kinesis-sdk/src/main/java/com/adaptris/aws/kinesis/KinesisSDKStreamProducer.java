@@ -17,9 +17,16 @@ import com.adaptris.core.util.ExceptionHelper;
 import com.adaptris.interlok.util.CloseableIterable;
 import com.adaptris.util.NumberUtils;
 import com.amazonaws.services.kinesis.AmazonKinesis;
+import com.amazonaws.services.kinesis.model.CreateStreamRequest;
+import com.amazonaws.services.kinesis.model.DescribeStreamRequest;
+import com.amazonaws.services.kinesis.model.DescribeStreamResult;
 import com.amazonaws.services.kinesis.model.PutRecordsRequest;
 import com.amazonaws.services.kinesis.model.PutRecordsRequestEntry;
 import com.amazonaws.services.kinesis.model.PutRecordsResult;
+import com.amazonaws.services.kinesis.model.ResourceNotFoundException;
+import com.amazonaws.services.kinesis.model.StreamMode;
+import com.amazonaws.services.kinesis.model.StreamModeDetails;
+import com.amazonaws.services.kinesis.model.StreamStatus;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,6 +49,19 @@ import lombok.Setter;
 public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
 
   private static final int DEFAULT_BATCH_WINDOW = 100;
+
+  // 0 means ON_DEMAND, > 0 means PROVISIONED
+  public static final int SHARD_COUNT_NONE = 0;
+
+  @Getter
+  @Setter
+  @InputFieldDefault(value = "600000")
+  private long createStreamMaxWaitTimeMillis = 10 * 60 * 1000;
+
+  @Getter
+  @Setter
+  @InputFieldDefault(value = "20000")
+  private long createStreamPollTimeMillis = 20 * 1000;
 
   /**
    * The kinesis stream name.
@@ -79,6 +99,23 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
   @Setter
   private Integer batchWindow;
 
+  /**
+   * Toggles whether to create the stream if it does not exist at the time of sending
+   */
+  @Getter
+  @Setter
+  private boolean createIfNotExists = false;
+
+  /**
+   * If creating a stream, this specifies the number of shards for StreamMode.PROVISIONED.
+   * A value of 0 means StreamMode.ON_DEMAND.
+   */
+  @Min(SHARD_COUNT_NONE)
+  @Getter
+  @Setter
+  @InputFieldDefault(value = "0")
+  private int shardCount = SHARD_COUNT_NONE;
+
   @Override
   public void prepare() throws CoreException {
     Args.notBlank(getPartitionKey(), "partition-key");
@@ -109,6 +146,44 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
     return (T) this;
   }
 
+  public <T extends KinesisSDKStreamProducer> T withCreateIfNotExists(boolean createIfNotExists) {
+    setCreateIfNotExists(createIfNotExists);
+    return (T) this;
+  }
+
+  /**
+   * If createIfNotExists is true, when creating the stream, this is the shard count
+   * @param shardCount
+   * @return
+   * @param <T>
+   */
+  public <T extends KinesisSDKStreamProducer> T withShardCount(int shardCount) {
+    setShardCount(shardCount);
+    return (T) this;
+  }
+
+  /**
+   * If createIfNotExists is true, when creating the stream, this is the max wait time for the stream to become active
+   * @param millis
+   * @return
+   * @param <T>
+   */
+  public <T extends KinesisSDKStreamProducer> T withCreateStreamMaxWaitTimeMillis(long millis) {
+    setCreateStreamMaxWaitTimeMillis(millis);
+    return (T) this;
+  }
+
+  /**
+   * If createIfNotExists is true, when creating the stream, this is the wait time between polling to check if
+   * the stream is active
+   * @param millis
+   * @return
+   * @param <T>
+   */
+  public <T extends KinesisSDKStreamProducer> T withCreateStreamPollTimeMillis(long millis) {
+    setCreateStreamPollTimeMillis(millis);
+    return (T) this;
+  }
 
   @Override
   protected void doProduce(AdaptrisMessage msg, String endpoint) throws ProduceException {
@@ -138,12 +213,71 @@ public class KinesisSDKStreamProducer extends ProduceOnlyProducerImp {
     }
   }
 
-  private void doSend(AmazonKinesis kinesisClient, String endpoint, List <PutRecordsRequestEntry> putRecordsRequestEntryList){
-    PutRecordsRequest putRecordsRequest  = new PutRecordsRequest();
-    putRecordsRequest.setStreamName(endpoint);
-    putRecordsRequest.setRecords(putRecordsRequestEntryList);
-    PutRecordsResult putRecordsResult = kinesisClient.putRecords(putRecordsRequest);
-    log.trace("PutRecordResults: {}", putRecordsResult);
+  // According to the docs, we need to wait for the stream to be active
+  // https://docs.aws.amazon.com/streams/latest/dev/kinesis-using-sdk-java-create-stream.html
+  private void doAwaitStreamActive(AmazonKinesis kinesisClient, String endpoint) throws ProduceException {
+
+    DescribeStreamRequest describeStreamRequest = new DescribeStreamRequest().withStreamName(endpoint);
+
+    long startTime = System.currentTimeMillis();
+    long endTime = startTime + ( createStreamMaxWaitTimeMillis );
+    while ( System.currentTimeMillis() < endTime ) {
+      try {
+        Thread.sleep(createStreamPollTimeMillis);
+      }
+      catch ( Exception e ) {}
+
+      try {
+        DescribeStreamResult describeStreamResponse = kinesisClient .describeStream( describeStreamRequest );
+        StreamStatus streamStatus = StreamStatus.fromValue(describeStreamResponse.getStreamDescription().getStreamStatus());
+        if ( streamStatus.equals( StreamStatus.ACTIVE ) ) {
+          break;
+        }
+        //
+        // sleep for one second
+        //
+        try {
+          Thread.sleep( 1000 );
+        }
+        catch ( Exception e ) {}
+      }
+      catch ( ResourceNotFoundException e ) {}
+    }
+    if ( System.currentTimeMillis() >= endTime ) {
+      throw new ProduceException( "Stream " + endpoint + " never went active" );
+    }
+  }
+
+  private void doCreate(AmazonKinesis kinesisClient, String endpoint, int shardCount) throws ProduceException {
+    CreateStreamRequest request = new CreateStreamRequest().withStreamName(endpoint);
+    // only if shard count > 0, we assume PROVISIONED, else ON_DEMAND
+    if (shardCount > SHARD_COUNT_NONE) {
+      request.withStreamModeDetails(new StreamModeDetails().withStreamMode(StreamMode.PROVISIONED))
+      .withShardCount(shardCount);
+    } else {
+      request.withStreamModeDetails(new StreamModeDetails().withStreamMode(StreamMode.ON_DEMAND));
+    }
+    kinesisClient.createStream(request);
+
+    doAwaitStreamActive(kinesisClient, endpoint);
+
+  }
+
+  private void doSend(AmazonKinesis kinesisClient, String endpoint, List <PutRecordsRequestEntry> putRecordsRequestEntryList) throws ProduceException{
+    try {
+      PutRecordsRequest putRecordsRequest  = new PutRecordsRequest().withStreamName(endpoint).withRecords(putRecordsRequestEntryList);
+      PutRecordsResult putRecordsResult = kinesisClient.putRecords(putRecordsRequest);
+      log.trace("PutRecordResults: {}", putRecordsResult);
+    } catch (ResourceNotFoundException rnfex) {
+      if (createIfNotExists) {
+        log.debug("Creating stream as it does not exist");
+        doCreate(kinesisClient, endpoint, shardCount);
+        log.debug("Resending records to newly created stream");
+        doSend(kinesisClient, endpoint, putRecordsRequestEntryList);
+      } else {
+        throw new ProduceException(rnfex);
+      }
+    }
   }
 
   @Override

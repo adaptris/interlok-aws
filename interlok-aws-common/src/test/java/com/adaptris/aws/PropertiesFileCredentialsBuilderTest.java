@@ -1,11 +1,14 @@
 package com.adaptris.aws;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import org.junit.Test;
+
+import org.junit.jupiter.api.Test;
 import com.adaptris.core.stubs.TempFileUtils;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.ClasspathPropertiesFileCredentialsProvider;
@@ -13,10 +16,12 @@ import com.amazonaws.auth.PropertiesFileCredentialsProvider;
 
 public class PropertiesFileCredentialsBuilderTest {
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void testBuild_Defaults() throws Exception {
     PropertiesFileCredentialsBuilder auth = new PropertiesFileCredentialsBuilder();
-    AWSCredentialsProvider provider = auth.build();
+    assertThrows(IllegalArgumentException.class, ()->{
+      AWSCredentialsProvider provider = auth.build();
+    }, "Failed to build");
   }
 
   @Test

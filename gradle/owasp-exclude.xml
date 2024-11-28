@@ -42,10 +42,42 @@
   </suppress>
   <suppress>
      <notes><![CDATA[
+     file name: wire-grpc-server-generator-4.4.3.jar
+     ]]></notes>
+     <packageUrl regex="true">^pkg:maven/com\.squareup\.wire/wire\-grpc\-server\-generator@.*$</packageUrl>
+	 <!--
+	   com.wire:wire-server is affected not com.squareup.wire:wire-grpc-server-generator
+	 -->
+     <cve>CVE-2022-31122</cve>
+  </suppress>	
+  <suppress>
+     <notes><![CDATA[
      file name: jetty-io-9.4.48.v20220622.jar
 	 Only Jetty versions 10.0.0 thru 10.0.9, and 11.0.0 thru 11.0.9 versions are affected
      ]]></notes>
      <packageUrl regex="true">^pkg:maven/org\.eclipse\.jetty/jetty\-io@.*$</packageUrl>
      <vulnerabilityName>CVE-2022-2191</vulnerabilityName>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+ file name: json-20201115.jar
+ CVE-2022-45688 in org.json/json - misleading CPE
+ The cpe on the NIST site: cpe:2.3:a:hutool:hutool:5.8.10:*:*:*:*:*:*:* does not seem related to org.json/json
+ https://github.com/jeremylong/DependencyCheck/issues/5401
+ users can already have some control by setting the -Xss JVM option
+ ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org.json/json@.*$</packageUrl>
+    <cve>CVE-2022-45688</cve>
+    <cpe>cpe:/a:hutool:hutool</cpe>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+    file name: wire-compiler-4.7.0.jar, wire-grpc-client-jvm-4.7.0.jar, wire-grpc-server-4.7.0.jar, wire-grpc-server-generator-4.7.0.jar, wire-java-generator-4.7.0.jar, wire-kotlin-generator-4.7.0.jar, wire-runtime-jvm-4.7.0.jar, wire-schema-jvm-4.7.0.jar, wire-swift-generator-4.7.0.jar
+	The three CVEs are for https://github.com/wireapp/wire-server and not https://github.com/square/wire
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.squareup\.wire/wire\-.*@.*$</packageUrl>
+    <cve>CVE-2023-22737</cve>
+    <cve>CVE-2022-31122</cve>
+    <cve>CVE-2021-41119</cve>
   </suppress>
 </suppressions>

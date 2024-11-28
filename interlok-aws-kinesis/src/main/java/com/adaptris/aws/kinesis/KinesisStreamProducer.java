@@ -1,6 +1,5 @@
 package com.adaptris.aws.kinesis;
 
-import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination;
 import java.nio.ByteBuffer;
 import javax.validation.constraints.NotBlank;
 import com.adaptris.annotation.ComponentProfile;

@@ -11,15 +11,16 @@ import static com.adaptris.aws.s3.LocalstackConfig.build;
 import static com.adaptris.aws.s3.LocalstackConfig.extendedCopyTests;
 import static com.adaptris.aws.s3.LocalstackConfig.getConfiguration;
 import static com.adaptris.interlok.junit.scaffolding.services.ExampleServiceCase.execute;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
+
 import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.junit.Assume;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
-import org.junit.runners.MethodSorters;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.ServiceException;
@@ -29,14 +30,14 @@ import com.adaptris.interlok.cloud.RemoteBlobFilterWrapper;
 
 // A new local stack instance; we're going upload, copy, tag, download, get, delete in that order
 // So, sadly we are being really lame, and forcing the ordering...
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@TestMethodOrder(MethodOrderer.MethodName.class)
 public class LocalstackServiceTest {
 
   private static final String MSG_CONTENTS = "hello world";
 
-  @Before
+  @BeforeEach
   public void setUp() throws Exception {
-    Assume.assumeTrue(areTestsEnabled());
+    assumeTrue(areTestsEnabled());
   }
 
   @Test
@@ -141,7 +142,7 @@ public class LocalstackServiceTest {
   @Test
   public void test_10_ExtendedCopy_WithoutDestinationBucket() throws Exception {
     // INTERLOK-3544 localstack is broken for the test.
-    Assume.assumeTrue(extendedCopyTests());
+    assumeTrue(extendedCopyTests());
     tagObject(getConfig(S3_UPLOAD_FILENAME));
 
     ExtendedCopyOperation copy = new ExtendedCopyOperation()
@@ -168,7 +169,7 @@ public class LocalstackServiceTest {
   @Test
   public void test_11_DeleteCopy() throws Exception {
     // INTERLOK-3544 localstack is broken for the test.
-    Assume.assumeTrue(extendedCopyTests());
+    assumeTrue(extendedCopyTests());
     DeleteOperation delete =
         new DeleteOperation().withObjectName(getConfig(S3_COPY_TO_FILENAME))
             .withBucket(getConfig(S3_BUCKETNAME));
