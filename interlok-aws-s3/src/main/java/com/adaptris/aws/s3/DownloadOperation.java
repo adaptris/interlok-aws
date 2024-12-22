@@ -21,6 +21,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+
+import com.adaptris.core.fs.FsHelper;
 import org.apache.commons.io.FileCleaningTracker;
 import org.apache.commons.io.FileDeleteStrategy;
 import com.adaptris.annotation.AdapterComponent;
@@ -63,7 +65,7 @@ public class DownloadOperation extends TransferOperation {
     TransferManager tm = wrapper.transferManager();
     File tempDir = null;
     if (!isEmpty(getTempDirectory())) {
-      tempDir = new File(getTempDirectory());
+      tempDir = FsHelper.toFile(getTempDirectory(), new File(getTempDirectory()));
     }
     GetObjectRequest request = new GetObjectRequest(s3Bucket(msg), s3ObjectKey(msg));
     log.debug("Getting {} from bucket {}", request.getKey(), request.getBucketName());
