@@ -11,7 +11,7 @@ ext {
   okioVersion = "3.9.1"
   awsSDKVersion = "1.12.777"
   jacksonVersion = "2.18.2"
-  jsonOrgVersion = "20240303"
+  jsonOrgVersion = "20241224"
 }
 dependencies {
   api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
