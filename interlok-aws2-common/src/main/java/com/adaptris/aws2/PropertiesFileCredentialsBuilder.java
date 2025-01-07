@@ -1,6 +1,7 @@
 package com.adaptris.aws2;
 
 import com.adaptris.annotation.ComponentProfile;
+import com.adaptris.core.fs.FsHelper;
 import com.adaptris.core.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
@@ -59,7 +60,7 @@ public class PropertiesFileCredentialsBuilder implements AWSCredentialsProviderB
 
   @Override
   public AwsCredentialsProvider build() throws Exception {
-    File file = new File(Args.notBlank(getPropertyFile(), "property-file"));
+    File file = FsHelper.toFile(Args.notBlank(getPropertyFile(), "property-file"));
 
     Properties properties = new Properties();
 
