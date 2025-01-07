@@ -5,13 +5,13 @@ ext {
   componentName = 'Interlok AWS/Kinesis'
   componentDesc = "Components that interact AWS Kinesis data streams"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  nettyVersion = "4.1.115.Final"
+  nettyVersion = "4.1.116.Final"
   kotlinVersion = "2.1.0"
   wireVersion = "5.1.0"
   okioVersion = "3.9.1"
   awsSDKVersion = "1.12.777"
   jacksonVersion = "2.18.2"
-  jsonOrgVersion = "20240303"
+  jsonOrgVersion = "20241224"
 }
 dependencies {
   api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
@@ -46,7 +46,7 @@ dependencies {
   
   implementation ("org.apache.commons:commons-compress:1.27.1")
 
-  api ("com.google.guava:guava:33.3.1-jre")
+  api ("com.google.guava:guava:33.4.0-jre")
   implementation (platform("io.netty:netty-bom:$nettyVersion"))
 
   implementation ("io.netty:netty-buffer")
@@ -59,7 +59,7 @@ dependencies {
   implementation ("io.netty:netty-codec")
   implementation ("io.netty:netty-codec-http")
 
-  implementation ("com.charleskorn.kaml:kaml:0.66.0")
+  implementation ("com.charleskorn.kaml:kaml:0.67.0")
   
   implementation ("com.squareup.wire:wire-schema:$wireVersion")
   implementation ("com.squareup.wire:wire-compiler:$wireVersion") {
@@ -69,7 +69,7 @@ dependencies {
   implementation ("com.squareup.okio:okio:$okioVersion")
   implementation ("com.squareup.okio:okio-fakefilesystem:$okioVersion")
 
-  api ("com.google.protobuf:protobuf-java:4.29.1")
+  api ("com.google.protobuf:protobuf-java:4.29.2")
   // Dependency to platform/BOM
   api ("com.fasterxml.jackson.core:jackson-databind")
   api ("com.fasterxml.jackson.core:jackson-core")
