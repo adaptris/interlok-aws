@@ -8,7 +8,7 @@ ext {
   nettyVersion = "4.1.116.Final"
   kotlinVersion = "2.1.0"
   wireVersion = "5.1.0"
-  okioVersion = "3.9.1"
+  okioVersion = "3.10.2"
   awsSDKVersion = "1.12.777"
   jacksonVersion = "2.18.2"
   jsonOrgVersion = "20241224"
