@@ -27,7 +27,7 @@ import lombok.Setter;
 import org.apache.commons.lang3.BooleanUtils;
 import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 
 /**

@@ -1,7 +1,7 @@
 package com.adaptris.aws;
 
 import java.io.File;
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import org.apache.commons.lang3.BooleanUtils;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.core.util.Args;

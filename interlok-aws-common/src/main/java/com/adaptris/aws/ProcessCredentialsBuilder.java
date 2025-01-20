@@ -1,7 +1,7 @@
 package com.adaptris.aws;
 
 import java.util.concurrent.TimeUnit;
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.annotation.InputFieldDefault;

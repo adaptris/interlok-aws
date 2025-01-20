@@ -14,7 +14,7 @@
 
 package com.adaptris.aws.s3;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.adaptris.annotation.InputFieldHint;

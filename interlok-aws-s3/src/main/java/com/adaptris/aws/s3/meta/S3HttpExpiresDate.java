@@ -17,8 +17,8 @@
 package com.adaptris.aws.s3.meta;
 
 import java.util.Calendar;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
 import com.adaptris.interlok.util.Args;

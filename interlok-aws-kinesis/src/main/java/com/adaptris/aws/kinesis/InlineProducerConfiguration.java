@@ -17,7 +17,7 @@
 package com.adaptris.aws.kinesis;
 
 import java.util.Properties;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import com.adaptris.aws.AWSCredentialsProviderBuilder;
 import com.adaptris.aws.StaticCredentialsBuilder;
