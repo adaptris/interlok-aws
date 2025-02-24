@@ -2,7 +2,7 @@ ext {
   componentName = 'Interlok AWS/Common'
   componentDesc = "Common components for accessing AWS"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.12.780'
+  awsSDKVersion = '1.12.782'
   jacksonVersion = '2.18.2'
 }
 
