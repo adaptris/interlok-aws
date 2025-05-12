@@ -28,6 +28,7 @@ ext {
 
   slf4jVersion = '2.0.17'
   mockitoVersion = '4.9.0'
+  junitVersion = '5.11.4'
 }
 
 ext.buildDetails = [
@@ -172,8 +173,8 @@ subprojects {
     implementation ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
 
     annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
-    testImplementation ("org.junit.jupiter:junit-jupiter-api:5.11.3")
-    testImplementation ("org.junit.jupiter:junit-jupiter-engine:5.11.4")
+    testImplementation ("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+    testImplementation ("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
     testImplementation "org.slf4j:slf4j-simple:$slf4jVersion"
     testImplementation ("com.adaptris:interlok-stubs:$interlokCoreVersion") { changing= true }
     testImplementation ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
