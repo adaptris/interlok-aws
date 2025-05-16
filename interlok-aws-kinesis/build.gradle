@@ -5,7 +5,7 @@ ext {
   componentName = 'Interlok AWS/Kinesis'
   componentDesc = "Components that interact AWS Kinesis data streams"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  nettyVersion = "4.2.0.Final"
+  nettyVersion = "4.2.1.Final"
   kotlinVersion = "2.1.0"
   wireVersion = "5.3.0"
   okioVersion = "3.9.1"
@@ -59,7 +59,7 @@ dependencies {
   implementation ("io.netty:netty-codec")
   implementation ("io.netty:netty-codec-http")
 
-  implementation ("com.charleskorn.kaml:kaml:0.72.0")
+  implementation ("com.charleskorn.kaml:kaml:0.77.1")
   
   implementation ("com.squareup.wire:wire-schema:$wireVersion")
   implementation ("com.squareup.wire:wire-compiler:$wireVersion") {
