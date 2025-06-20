@@ -16,15 +16,24 @@
 
 package com.adaptris.aws2.s3;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
+import com.adaptris.aws2.CustomEndpoint;
 import org.junit.jupiter.api.Test;
 
 import com.adaptris.aws2.AWSKeysAuthentication;
 import com.adaptris.aws2.StaticCredentialsBuilder;
 import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.interlok.junit.scaffolding.BaseCase;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
+
+import java.net.URI;
 
 public class AmazonS3ConnectionTest extends BaseCase {
 
@@ -52,5 +61,25 @@ public class AmazonS3ConnectionTest extends BaseCase {
     }
     assertNull(c.amazonClient());
     AmazonS3Connection.shutdownQuietly(c.amazonClient());
+  }
+
+  @Test
+  public void testCreateBuilderWithCustomEndpoint() throws Exception {
+    AmazonS3Connection conn = spy(new AmazonS3Connection());
+    CustomEndpoint customEndpoint = mock(CustomEndpoint.class);
+
+    when(customEndpoint.isConfigured()).thenReturn(true);
+    when(customEndpoint.getServiceEndpoint()).thenReturn("http://localhost:9000");
+    when(customEndpoint.getSigningRegion()).thenReturn("us-west-2");
+    doReturn(customEndpoint).when(conn).getCustomEndpoint();
+
+    S3ClientBuilder builder = conn.createBuilder();
+    builder.credentialsProvider(
+            StaticCredentialsProvider.create(AwsBasicCredentials.create("test", "test"))
+    );
+    try (S3Client client = builder.build()) {
+      assertEquals(URI.create("http://localhost:9000"), client.serviceClientConfiguration().endpointOverride().get());
+      assertEquals(Region.of("us-west-2"), client.serviceClientConfiguration().region());
+    }
   }
 }
