@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 import com.adaptris.aws2.CustomEndpoint;
+import com.adaptris.core.CoreException;
 import org.junit.jupiter.api.Test;
 
 import com.adaptris.aws2.AWSKeysAuthentication;
@@ -81,5 +82,16 @@ public class AmazonS3ConnectionTest extends BaseCase {
       assertEquals(URI.create("http://localhost:9000"), client.serviceClientConfiguration().endpointOverride().get());
       assertEquals(Region.of("us-west-2"), client.serviceClientConfiguration().region());
     }
+  }
+
+  @Test
+  void testCreateBuilderThrowsException() {
+    AmazonS3Connection conn = spy(new AmazonS3Connection());
+    // Simulate getRegion() throwing a RuntimeException
+    doThrow(new RuntimeException("Simulated")).when(conn).getRegion();
+
+    CoreException ex = assertThrows(CoreException.class, conn::createBuilder);
+    assertInstanceOf(RuntimeException.class, ex.getCause());
+    assertEquals("Simulated", ex.getCause().getMessage());
   }
 }
