@@ -85,9 +85,23 @@ public class AmazonS3ConnectionTest extends BaseCase {
   }
 
   @Test
+  public void testCreateBuilderWithCustomEndpointNotConfigured() throws Exception {
+    AmazonS3Connection conn = spy(new AmazonS3Connection());
+    CustomEndpoint customEndpoint = mock(CustomEndpoint.class);
+
+    when(customEndpoint.isConfigured()).thenReturn(false);
+    doReturn(customEndpoint).when(conn).getCustomEndpoint();
+
+    S3ClientBuilder builder = conn.createBuilder();
+    assertNotNull(builder);
+
+    verify(customEndpoint, never()).getServiceEndpoint();
+    verify(customEndpoint, never()).getSigningRegion();
+  }
+
+  @Test
   void testCreateBuilderThrowsException() {
     AmazonS3Connection conn = spy(new AmazonS3Connection());
-    // Simulate getRegion() throwing a RuntimeException
     doThrow(new RuntimeException("Simulated")).when(conn).getRegion();
 
     CoreException ex = assertThrows(CoreException.class, conn::createBuilder);
