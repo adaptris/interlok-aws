@@ -7,7 +7,7 @@ ext {
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   nettyVersion = "4.2.2.Final"
   kotlinVersion = "2.1.0"
-  wireVersion = "5.3.0"
+  wireVersion = "5.3.5"
   okioVersion = "3.9.1"
   awsSDKVersion = "1.12.777"
   jacksonVersion = "2.19.1"
