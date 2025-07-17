@@ -23,6 +23,7 @@ import com.adaptris.annotation.DisplayOrder;
 import com.adaptris.annotation.InputFieldDefault;
 import com.adaptris.aws2.AWSConnection;
 import com.adaptris.aws2.ClientConfigurationBuilder;
+import com.adaptris.aws2.CustomEndpoint;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.util.ExceptionHelper;
@@ -33,6 +34,8 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
+
+import java.net.URI;
 
 /**
  * {@linkplain AdaptrisConnection} implementation for Amazon S3.
@@ -112,10 +115,16 @@ public class AmazonS3Connection extends AWSConnection implements ClientWrapper {
         builder.region(Region.of(getRegion()));
       }
 
+      if (getCustomEndpoint() != null && getCustomEndpoint().isConfigured()) {
+        final CustomEndpoint customEndpoint = getCustomEndpoint();
+        builder.endpointOverride(URI.create(customEndpoint.getServiceEndpoint()));
+        builder.region(Region.of(customEndpoint.getSigningRegion()));
+      }
+
       builder.serviceConfiguration(s3ConfigurationBuilder.build());
       builder.overrideConfiguration(ClientConfigurationBuilder.build(clientConfiguration(), retryPolicy()));
-
       builder.credentialsProvider(credentialsProvider().build(this));
+      
     } catch (Exception e) {
       throw ExceptionHelper.wrapCoreException(e);
     }
