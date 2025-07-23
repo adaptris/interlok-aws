@@ -205,6 +205,8 @@ public class S3RetryStore implements RetryStore {
       try (InputStream in = getInputStream(payloadName); OutputStream out = msg.getOutputStream()) {
         IOUtils.copy(in, out);
       }
+      //Delete the message to remove from the bucket
+      delete(msgId);
       log.trace("Payload for [{}] loaded", msgId);
       msg.setMessageHeaders(metadata);
       msg.setUniqueId(msgId);
