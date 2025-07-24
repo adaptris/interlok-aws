@@ -304,8 +304,7 @@ public class S3RetryStoreTest extends BaseCase {
           msg.getMetadataValue(CLASS_UNDER_TEST_KEY));
 //    GetObjectRequest.Builder builder1 = GetObjectRequest.builder();
 //    builder1.bucket("bucket");
-//    builder1.key("MyPrefix/9b466a8d-5e74-42ac-966d-74850bf7a5eb/payload.blob");
-//    wrapper.amazonClient().getObject(builder1.build());
+      Mockito.verify(client, Mockito.times(3)).deleteObject((DeleteObjectRequest) any());
     } finally {
       stop(store);
     }
