@@ -302,6 +302,7 @@ public class S3RetryStoreTest extends BaseCase {
       assertTrue(msg.headersContainsKey(CLASS_UNDER_TEST_KEY));
       assertEquals(S3RetryStore.class.getCanonicalName(),
           msg.getMetadataValue(CLASS_UNDER_TEST_KEY));
+      Mockito.verify(client, Mockito.times(3)).deleteObject((DeleteObjectRequest) any());
     } finally {
       stop(store);
     }
