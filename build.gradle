@@ -126,6 +126,7 @@ subprojects {
   lombok.disableConfig = true
 
   repositories {
+    mavenLocal()
     mavenCentral()
     if (defaultNexusRepo != "unknown") {
       maven {
