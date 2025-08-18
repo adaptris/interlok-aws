@@ -232,6 +232,18 @@ public class S3RetryStore implements RetryStore {
     }
   }
 
+  @Override
+  public String getStackTrace(String msgId) throws InterlokException {
+    try {
+      String stacktraceName = buildObjectName(msgId, STACKTRACE_FILENAME);
+      try (InputStream in = getInputStream(stacktraceName)) {
+        return IOUtils.toString(in, "UTF-8");
+      }
+    } catch (Exception e) {
+      throw ExceptionHelper.wrapInterlokException(e);
+    }
+  }
+
   private InputStream getInputStream(String objectName) throws Exception {
     S3Client s3 = clientWrapper().amazonClient();
     GetObjectRequest.Builder builder = GetObjectRequest.builder();
