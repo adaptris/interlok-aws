@@ -2,6 +2,7 @@ package com.adaptris.aws.s3.retry;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -234,7 +235,7 @@ public class S3RetryStore implements RetryStore {
     try {
       String stacktraceName = buildObjectName(msgId, STACKTRACE_FILENAME);
       try (InputStream in = getInputStream(stacktraceName)) {
-        return IOUtils.toString(in, "UTF-8");
+        return IOUtils.toString(in, StandardCharsets.UTF_8);
       }
     } catch (Exception e) {
       throw ExceptionHelper.wrapInterlokException(e);
