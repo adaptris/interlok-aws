@@ -1,7 +1,6 @@
 package com.adaptris.aws2.s3.retry;
 
 import com.adaptris.annotation.ComponentProfile;
-import com.adaptris.aws.s3.retry.AbstractS3RetryStore;
 import com.adaptris.aws2.s3.AmazonS3Connection;
 import com.adaptris.aws2.s3.ClientWrapper;
 import com.adaptris.aws2.s3.RemoteBlobIterable;
@@ -11,26 +10,38 @@ import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
 import com.adaptris.core.CoreException;
 import com.adaptris.core.MetadataCollection;
+import com.adaptris.core.http.jetty.retry.RetryStore;
 import com.adaptris.core.util.ExceptionHelper;
+import com.adaptris.core.util.LifecycleHelper;
 import com.adaptris.core.util.MessageHelper;
 import com.adaptris.interlok.InterlokException;
 import com.adaptris.interlok.cloud.RemoteBlob;
+import com.adaptris.interlok.util.Args;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -43,7 +54,61 @@ import java.util.regex.Matcher;
     tag = "retry,amazon,s3", since = "4.3.0", recommended = {AmazonS3Connection.class})
 @NoArgsConstructor
 @Slf4j
-public class S3RetryStore extends AbstractS3RetryStore {
+public class S3RetryStore implements RetryStore {
+
+  protected static final String PAYLOAD_FILE_NAME = "payload.blob";
+  protected static final String METADATA_FILE_NAME = "metadata.properties";
+  protected static final String STACKTRACE_FILENAME = "stacktrace.txt";
+
+  /**
+   * Set the connection to use to connect to S3.
+   *
+   */
+  @Valid
+  @Getter
+  @Setter
+  @NotNull
+  @NonNull
+  private AdaptrisConnection connection;
+  @Getter
+  @Setter
+  @NotBlank
+  private String bucket;
+  @Getter
+  @Setter
+  private String prefix;
+
+  private transient Pattern nameMapper = null;
+
+  @Override
+  public void prepare() throws CoreException {
+    Args.notBlank(bucket, "bucket");
+    LifecycleHelper.prepare(getConnection());
+  }
+
+  @Override
+  public void init() throws CoreException {
+    nameMapper = Pattern.compile(payloadBlobRegexp());
+    LifecycleHelper.init(getConnection());
+
+  }
+
+  @Override
+  public void start() throws CoreException {
+    LifecycleHelper.start(getConnection());
+
+  }
+
+  @Override
+  public void stop() {
+    LifecycleHelper.stop(getConnection());
+
+  }
+
+  @Override
+  public void close() {
+    LifecycleHelper.close(getConnection());
+  }
 
   public S3RetryStore withConnection(AdaptrisConnection c) {
     setConnection(c);
@@ -168,7 +233,19 @@ public class S3RetryStore extends AbstractS3RetryStore {
     }
   }
 
-  protected InputStream getInputStream(String objectName) throws Exception {
+  @Override
+  public String getStackTrace(String msgId) throws InterlokException {
+    try {
+      String stacktraceName = buildObjectName(msgId, STACKTRACE_FILENAME);
+      try (InputStream in = getInputStream(stacktraceName)) {
+        return IOUtils.toString(in, StandardCharsets.UTF_8);
+      }
+    } catch (Exception e) {
+      throw ExceptionHelper.wrapInterlokException(e);
+    }
+  }
+
+  private InputStream getInputStream(String objectName) throws Exception {
     S3Client s3 = clientWrapper().amazonClient();
     GetObjectRequest.Builder builder = GetObjectRequest.builder();
     builder.bucket(getBucket());
@@ -206,7 +283,21 @@ public class S3RetryStore extends AbstractS3RetryStore {
     m.matches();
     return m.toMatchResult().group(1);
   }
-  
+
+  String buildObjectName(String msgId, String name) {
+    if (StringUtils.isBlank(getPrefix())) {
+      return String.format("%s/%s", msgId, name);
+    }
+    return String.format("%s/%s/%s", getPrefix(), msgId, name);
+  }
+
+  String payloadBlobRegexp() {
+    if (StringUtils.isBlank(getPrefix())) {
+      return String.format("(.*)/%s", PAYLOAD_FILE_NAME);
+    }
+    return String.format("%s/(.*)/%s", getPrefix(), PAYLOAD_FILE_NAME);
+  }
+
   @Override
   public void acknowledge(String acknowledgeId) throws InterlokException {
    // null implementation
