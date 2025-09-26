@@ -1,7 +1,6 @@
 package com.adaptris.aws2.s3.retry;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 
 import java.io.ByteArrayInputStream;
@@ -329,6 +328,56 @@ public class S3RetryStoreTest extends BaseCase {
         stop(store);
       }
     });
+  }
+
+  @Test
+  public void testGetStackTrace_Success() throws Exception {
+    final String STACKTRACE_CONTENT = "stacktrace content";
+    S3Client client = Mockito.mock(S3Client.class);
+    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
+    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+
+    AmazonS3Connection conn = buildConnection(wrapper);
+
+    // Mock the response object
+    software.amazon.awssdk.services.s3.model.GetObjectResponse mockResponse =
+      Mockito.mock(software.amazon.awssdk.services.s3.model.GetObjectResponse.class);
+
+    ResponseInputStream<software.amazon.awssdk.services.s3.model.GetObjectResponse> responseStream =
+      new ResponseInputStream<>(mockResponse, AbortableInputStream.create(
+        new ByteArrayInputStream(STACKTRACE_CONTENT.getBytes(StandardCharsets.UTF_8))));
+
+    Mockito.when(client.getObject(any(GetObjectRequest.class))).thenReturn(responseStream);
+
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withConnection(conn);
+    try {
+      start(store);
+      String stackTrace = store.getStackTrace("messageId");
+      assertEquals(STACKTRACE_CONTENT, stackTrace);
+    } finally {
+      stop(store);
+    }
+  }
+
+  @Test
+  public void testGetStackTrace_Exception() throws Exception {
+    S3Client client = Mockito.mock(S3Client.class);
+    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
+    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+
+    AmazonS3Connection conn = buildConnection(wrapper);
+
+    Mockito.when(client.getObject(any(GetObjectRequest.class))).thenThrow(new RuntimeException());
+
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withConnection(conn);
+    try {
+      start(store);
+      assertThrows(InterlokException.class, () -> {
+          store.getStackTrace("messageId");
+      }, "Exception should be wrapped in InterlokException");
+    } finally {
+      stop(store);
+    }
   }
 
   private AmazonS3Connection buildConnection(ClientWrapper wrapper) {

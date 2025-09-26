@@ -35,6 +35,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -232,6 +233,18 @@ public class S3RetryStore implements RetryStore {
     }
   }
 
+  @Override
+  public String getStackTrace(String msgId) throws InterlokException {
+    try {
+      String stacktraceName = buildObjectName(msgId, STACKTRACE_FILENAME);
+      try (InputStream in = getInputStream(stacktraceName)) {
+        return IOUtils.toString(in, StandardCharsets.UTF_8);
+      }
+    } catch (Exception e) {
+      throw ExceptionHelper.wrapInterlokException(e);
+    }
+  }
+
   private InputStream getInputStream(String objectName) throws Exception {
     S3Client s3 = clientWrapper().amazonClient();
     GetObjectRequest.Builder builder = GetObjectRequest.builder();
@@ -284,7 +297,7 @@ public class S3RetryStore implements RetryStore {
     }
     return String.format("%s/(.*)/%s", getPrefix(), PAYLOAD_FILE_NAME);
   }
-  
+
   @Override
   public void acknowledge(String acknowledgeId) throws InterlokException {
    // null implementation

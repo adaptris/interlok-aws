@@ -365,6 +365,52 @@ public class S3RetryStoreTest {
     }
   }
 
+  @Test
+  public void testGetStackTrace_Success() throws Exception {
+    final String STACKTRACE_CONTENT = "stacktrace content";
+    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
+    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+
+    AmazonS3Connection conn = buildConnection(wrapper);
+
+    S3Object s3Object = Mockito.mock(S3Object.class);
+    S3ObjectInputStream inputStream = new S3ObjectInputStream(
+        new ByteArrayInputStream(STACKTRACE_CONTENT.getBytes(StandardCharsets.UTF_8)), null);
+    Mockito.when(s3Object.getObjectContent()).thenReturn(inputStream);
+    Mockito.when(client.getObject(any(GetObjectRequest.class))).thenReturn(s3Object);
+
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withConnection(conn);
+    try {
+      BaseCase.start(store);
+      String stackTrace = store.getStackTrace("messageId");
+      assertEquals(STACKTRACE_CONTENT, stackTrace);
+    } finally {
+      BaseCase.stop(store);
+    }
+  }
+
+  @Test
+  public void testGetStackTrace_Exception() throws Exception {
+    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
+    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+
+    AmazonS3Connection conn = buildConnection(wrapper);
+
+    Mockito.when(client.getObject(any(GetObjectRequest.class))).thenThrow(new RuntimeException());
+
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withConnection(conn);
+    try {
+      BaseCase.start(store);
+        assertThrows(InterlokException.class, () -> {
+          store.getStackTrace("messageId");
+        }, "Exception should be wrapped in InterlokException");
+    } finally {
+      BaseCase.stop(store);
+    }
+  }
+
   private AmazonS3Connection buildConnection(ClientWrapper wrapper) {
     AmazonS3Connection connection = Mockito.mock(AmazonS3Connection.class);
     Mockito.when(connection.retrieveConnection(ClientWrapper.class)).thenReturn(wrapper);

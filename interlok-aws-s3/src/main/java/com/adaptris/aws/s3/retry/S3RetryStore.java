@@ -2,6 +2,7 @@ package com.adaptris.aws.s3.retry;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -224,6 +225,18 @@ public class S3RetryStore implements RetryStore {
       log.trace("metadata for [{}] loaded", msgId);
       // The compiler works in mysterious ways.
       return (Map) meta;
+    } catch (Exception e) {
+      throw ExceptionHelper.wrapInterlokException(e);
+    }
+  }
+
+  @Override
+  public String getStackTrace(String msgId) throws InterlokException {
+    try {
+      String stacktraceName = buildObjectName(msgId, STACKTRACE_FILENAME);
+      try (InputStream in = getInputStream(stacktraceName)) {
+        return IOUtils.toString(in, StandardCharsets.UTF_8);
+      }
     } catch (Exception e) {
       throw ExceptionHelper.wrapInterlokException(e);
     }
