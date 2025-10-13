@@ -1,8 +1,6 @@
 package com.adaptris.aws.s3.retry;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import java.io.ByteArrayInputStream;
@@ -61,10 +59,6 @@ public class S3RetryStoreTest {
     ListObjectsV2Result result = Mockito.mock(ListObjectsV2Result.class);
     String msgId1 = UUID.randomUUID().toString();
     String msgId2 = UUID.randomUUID().toString();
-    S3ObjectSummary sbase = createSummary("bucket", msgId1 + "/payload.blob");
-    S3ObjectSummary s1 = createSummary("bucket", msgId1 + "/metadata.properties");
-    S3ObjectSummary s2 = createSummary("bucket", msgId2 + "/payload.blob");
-    S3ObjectSummary s3 = createSummary("bucket", msgId2 + "/metadata.properties");
 
     List<S3ObjectSummary> list = new ArrayList<>(
         Arrays.asList(createSummary("bucket", "MyPrefix/" + msgId1 + "/payload.blob"),
@@ -79,16 +73,96 @@ public class S3RetryStoreTest {
         new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
     try {
       BaseCase.start(store);
-      Iterable<RemoteBlob> blobs = store.report();
+      Iterable<RemoteBlob> blobs = store.report(false);
       List<String> blobNames = StreamSupport.stream(blobs.spliterator(), false)
-          .map((blob) -> blob.getName()).collect(Collectors.toList());
-      assertTrue(blobNames.contains(msgId1));
-      assertTrue(blobNames.contains(msgId2));
+          .map(RemoteBlob::getName).toList();
+      assertTrue(blobNames.stream().anyMatch(name -> name.contains(msgId1)));
+      assertTrue(blobNames.stream().anyMatch(name -> name.contains(msgId2)));
     } finally {
       BaseCase.stop(store);
     }
   }
 
+  @Test
+  public void testReportWithErrorMessage() throws Exception {
+    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    TransferManager transferManager = Mockito.mock(TransferManager.class);
+    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
+    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    Mockito.when(wrapper.transferManager()).thenReturn(transferManager);
+
+    AmazonS3Connection conn = buildConnection(wrapper);
+
+    ListObjectsV2Result result = Mockito.mock(ListObjectsV2Result.class);
+    String msgId = UUID.randomUUID().toString();
+    List<S3ObjectSummary> list = Arrays.asList(
+        createSummary("bucket", "MyPrefix/" + msgId + "/payload.blob"),
+        createSummary("bucket", "MyPrefix/" + msgId + "/metadata.properties")
+    );
+    Mockito.when(result.getObjectSummaries()).thenReturn(list);
+    Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
+
+    String stacktraceObject = "MyPrefix/" + msgId + "/stacktrace.txt";
+    Mockito.when(client.doesObjectExist("bucket", stacktraceObject)).thenReturn(true);
+    S3Object s3Object = Mockito.mock(S3Object.class);
+    String errorMsg = "This is an error message";
+    S3ObjectInputStream inputStream = new S3ObjectInputStream(
+        new ByteArrayInputStream(errorMsg.getBytes(StandardCharsets.UTF_8)), null);
+    Mockito.when(s3Object.getObjectContent()).thenReturn(inputStream);
+    Mockito.when(client.getObject(any(GetObjectRequest.class))).thenReturn(s3Object);
+
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+    try {
+      BaseCase.start(store);
+      Iterable<RemoteBlob> blobs = store.report(true);
+      List<String> errorMessages = new ArrayList<>();
+      for (RemoteBlob blob : blobs) {
+        if (blob instanceof S3RetryStore.RemoteBlowWithError) {
+          errorMessages.add(((S3RetryStore.RemoteBlowWithError) blob).getErrorMessage());
+        }
+      }
+      assertTrue(errorMessages.contains(errorMsg));
+    } finally {
+      BaseCase.stop(store);
+    }
+  }
+
+  @Test
+  public void testReportWithErrorMessage_ExceptionInStacktrace() throws Exception {
+    AmazonS3Client client = Mockito.mock(AmazonS3Client.class);
+    TransferManager transferManager = Mockito.mock(TransferManager.class);
+    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
+    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    Mockito.when(wrapper.transferManager()).thenReturn(transferManager);
+
+    AmazonS3Connection conn = buildConnection(wrapper);
+
+    String msgId = UUID.randomUUID().toString();
+    List<S3ObjectSummary> list = Arrays.asList(
+        createSummary("bucket", "MyPrefix/" + msgId + "/payload.blob"),
+        createSummary("bucket", "MyPrefix/" + msgId + "/metadata.properties")
+    );
+    ListObjectsV2Result result = Mockito.mock(ListObjectsV2Result.class);
+    Mockito.when(result.getObjectSummaries()).thenReturn(list);
+    Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
+
+    String stacktraceObject = "MyPrefix/" + msgId + "/stacktrace.txt";
+    Mockito.when(client.doesObjectExist("bucket", stacktraceObject)).thenReturn(true);
+    Mockito.when(client.getObject(any(GetObjectRequest.class))).thenThrow(new RuntimeException("Simulated error"));
+
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+    try {
+      BaseCase.start(store);
+      Iterable<RemoteBlob> blobs = store.report(true);
+      for (RemoteBlob blob : blobs) {
+        if (blob instanceof S3RetryStore.RemoteBlowWithError) {
+            assertNull(((S3RetryStore.RemoteBlowWithError) blob).getErrorMessage());
+        }
+      }
+    } finally {
+      BaseCase.stop(store);
+    }
+  }
 
   // Designed to check to toMessageId method and other things that are predicated on getPrefix
   // it's all about the coverage...

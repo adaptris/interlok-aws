@@ -133,11 +133,39 @@ public class S3RetryStore implements RetryStore {
   // If the corresponding msg-id/metadata.properties doesn't exist, then it'll fail when we
   // attempt to retry it.
   @Override
-  public Iterable<RemoteBlob> report() throws InterlokException {
+  public Iterable<RemoteBlob> report(boolean includeErrorMessage) throws InterlokException {
     S3Client s3 = clientWrapper().amazonClient();
     ListObjectsV2Request.Builder requestBuilder = ListObjectsV2Request.builder();
     requestBuilder.bucket(getBucket()).prefix(getPrefix());
-    return new RetryableBlobIterable(new RemoteBlobIterable(s3, requestBuilder.build(), (blob) -> blob.getName().endsWith(PAYLOAD_FILE_NAME)), (name) -> toMessageID(name));
+    RemoteBlobIterable baseIterable =
+        new RemoteBlobIterable(s3, requestBuilder.build(), (blob) -> blob.getName().endsWith(PAYLOAD_FILE_NAME));
+
+    List<RemoteBlob> result = new java.util.ArrayList<>();
+    for (RemoteBlob blob : baseIterable) {
+      String msgId = toMessageID(blob.getName());
+      String errorMessage = null;
+      if (includeErrorMessage) {
+        String stacktraceObject = buildObjectName(msgId, STACKTRACE_FILENAME);
+        try {
+          // Try to get the stacktrace file, if it exists
+          GetObjectRequest.Builder getBuilder = GetObjectRequest.builder()
+              .bucket(getBucket())
+              .key(stacktraceObject);
+          try (InputStream in = s3.getObject(getBuilder.build())) {
+            java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(in, StandardCharsets.UTF_8));
+            errorMessage = reader.readLine();
+          }
+        } catch (Exception e) {
+          errorMessage = null;
+        }
+      }
+      if (includeErrorMessage) {
+        result.add(new RemoteBlowWithError(blob, errorMessage));
+      } else {
+        result.add(blob);
+      }
+    }
+    return result;
   }
 
   @Override
@@ -326,5 +354,22 @@ public class S3RetryStore implements RetryStore {
   @Override
   public void makeConnection(AdaptrisConnection connection) {
    // null implementation
+  }
+
+  public static class RemoteBlowWithError extends RemoteBlob {
+    private final RemoteBlob remoteBlob;
+    @Getter
+    private final String errorMessage;
+
+    public RemoteBlowWithError(RemoteBlob delegate, String errorMessage) {
+      super();
+      this.remoteBlob = delegate;
+      this.errorMessage = errorMessage;
+    }
+
+    @Override
+    public String getName() {
+      return remoteBlob.getName();
+    }
   }
 }
