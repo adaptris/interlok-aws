@@ -485,6 +485,18 @@ public class S3RetryStoreTest {
     }
   }
 
+  @Test
+  public void testGetNameDelegatesToRemoteBlob() {
+    String expectedName = "MyPrefix/1234/payload.blob";
+    RemoteBlob mockBlob = Mockito.mock(RemoteBlob.class);
+    Mockito.when(mockBlob.getName()).thenReturn(expectedName);
+
+    S3RetryStore.RemoteBlowWithError blowWithError =
+        new S3RetryStore.RemoteBlowWithError(mockBlob, "error message");
+
+    assertEquals(expectedName, blowWithError.getName());
+  }
+
   private AmazonS3Connection buildConnection(ClientWrapper wrapper) {
     AmazonS3Connection connection = Mockito.mock(AmazonS3Connection.class);
     Mockito.when(connection.retrieveConnection(ClientWrapper.class)).thenReturn(wrapper);
