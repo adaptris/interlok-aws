@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -117,8 +116,8 @@ public class S3RetryStoreTest {
       Iterable<RemoteBlob> blobs = store.report(true);
       List<String> errorMessages = new ArrayList<>();
       for (RemoteBlob blob : blobs) {
-        if (blob instanceof S3RetryStore.RemoteBlowWithError) {
-          errorMessages.add(((S3RetryStore.RemoteBlowWithError) blob).getErrorMessage());
+        if (blob instanceof S3RetryStore.RemoteBlobWithError) {
+          errorMessages.add(((S3RetryStore.RemoteBlobWithError) blob).getErrorMessage());
         }
       }
       assertTrue(errorMessages.contains(errorMsg));
@@ -155,8 +154,8 @@ public class S3RetryStoreTest {
       BaseCase.start(store);
       Iterable<RemoteBlob> blobs = store.report(true);
       for (RemoteBlob blob : blobs) {
-        if (blob instanceof S3RetryStore.RemoteBlowWithError) {
-            assertNull(((S3RetryStore.RemoteBlowWithError) blob).getErrorMessage());
+        if (blob instanceof S3RetryStore.RemoteBlobWithError) {
+            assertNull(((S3RetryStore.RemoteBlobWithError) blob).getErrorMessage());
         }
       }
     } finally {
@@ -491,8 +490,8 @@ public class S3RetryStoreTest {
     RemoteBlob mockBlob = Mockito.mock(RemoteBlob.class);
     Mockito.when(mockBlob.getName()).thenReturn(expectedName);
 
-    S3RetryStore.RemoteBlowWithError blowWithError =
-        new S3RetryStore.RemoteBlowWithError(mockBlob, "error message");
+    S3RetryStore.RemoteBlobWithError blowWithError =
+        new S3RetryStore.RemoteBlobWithError(mockBlob, "error message");
 
     assertEquals(expectedName, blowWithError.getName());
   }

@@ -160,7 +160,7 @@ public class S3RetryStore implements RetryStore {
         }
       }
       if (includeErrorMessage) {
-        result.add(new RemoteBlowWithError(blob, errorMessage));
+        result.add(new RemoteBlobWithError(blob, errorMessage));
       } else {
         result.add(blob);
       }
@@ -356,12 +356,12 @@ public class S3RetryStore implements RetryStore {
    // null implementation
   }
 
-  public static class RemoteBlowWithError extends RemoteBlob {
+  public static class RemoteBlobWithError extends RemoteBlob {
     private final RemoteBlob remoteBlob;
     @Getter
     private final String errorMessage;
 
-    public RemoteBlowWithError(RemoteBlob delegate, String errorMessage) {
+    public RemoteBlobWithError(RemoteBlob delegate, String errorMessage) {
       super();
       this.remoteBlob = delegate;
       this.errorMessage = errorMessage;

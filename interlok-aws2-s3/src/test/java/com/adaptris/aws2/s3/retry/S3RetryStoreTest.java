@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.junit.jupiter.api.Assertions;
@@ -111,8 +110,8 @@ public class S3RetryStoreTest extends BaseCase {
         start(store);
         Iterable<RemoteBlob> blobs = store.report(true);
         for (RemoteBlob blob : blobs) {
-          assertInstanceOf(S3RetryStore.RemoteBlowWithError.class, blob);
-          assertEquals(stacktraceContent, ((S3RetryStore.RemoteBlowWithError) blob).getErrorMessage());
+          assertInstanceOf(S3RetryStore.RemoteBlobWithError.class, blob);
+          assertEquals(stacktraceContent, ((S3RetryStore.RemoteBlobWithError) blob).getErrorMessage());
         }
       } finally {
         stop(store);
@@ -142,8 +141,8 @@ public class S3RetryStoreTest extends BaseCase {
         start(store);
         Iterable<RemoteBlob> blobs = store.report(true);
         for (RemoteBlob blob : blobs) {
-          assertInstanceOf(S3RetryStore.RemoteBlowWithError.class, blob);
-          assertNull(((S3RetryStore.RemoteBlowWithError) blob).getErrorMessage());
+          assertInstanceOf(S3RetryStore.RemoteBlobWithError.class, blob);
+          assertNull(((S3RetryStore.RemoteBlobWithError) blob).getErrorMessage());
         }
       } finally {
         stop(store);
