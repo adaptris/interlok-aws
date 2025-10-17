@@ -61,7 +61,7 @@ public class LocalstackRetryStoreTest {
         .withPrefix(getConfig(S3_RETRY_PREFIX)).withConnection(createConnection());
     try {
       BaseCase.start(store);
-      Iterable<RemoteBlob> blobs = store.report();
+      Iterable<RemoteBlob> blobs = store.report(false);
       Iterator<RemoteBlob> itr = blobs.iterator();
       assertNotNull(itr);
       assertTrue(itr.hasNext());
@@ -76,7 +76,7 @@ public class LocalstackRetryStoreTest {
         .withPrefix(getConfig(S3_RETRY_PREFIX)).withConnection(createConnection());
     try {
       BaseCase.start(store);
-      Iterable<RemoteBlob> blobs = store.report();
+      Iterable<RemoteBlob> blobs = store.report(false);
       Iterator<RemoteBlob> itr = blobs.iterator();
       assertNotNull(itr);
       assertTrue(itr.hasNext());
@@ -107,11 +107,11 @@ public class LocalstackRetryStoreTest {
         .withPrefix(getConfig(S3_RETRY_PREFIX)).withConnection(createConnection());
     try {
       BaseCase.start(store);
-      Iterable<RemoteBlob> blobs = store.report();
+      Iterable<RemoteBlob> blobs = store.report(false);
       for (RemoteBlob blob : blobs) {
         store.delete(blob.getName());
       }
-      Iterable<RemoteBlob> leftOvers = store.report();
+      Iterable<RemoteBlob> leftOvers = store.report(false);
       assertFalse(leftOvers.iterator().hasNext());
     } finally {
       BaseCase.stop(store);

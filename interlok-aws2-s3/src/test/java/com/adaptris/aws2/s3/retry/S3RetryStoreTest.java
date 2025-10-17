@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import org.junit.jupiter.api.Assertions;
@@ -73,15 +72,82 @@ public class S3RetryStoreTest extends BaseCase {
 
     try {
       start(store);
-      Iterable<RemoteBlob> blobs = store.report();
+      Iterable<RemoteBlob> blobs = store.report(false);
       List<String> blobNames = StreamSupport.stream(blobs.spliterator(), false)
-          .map((blob) -> blob.getName()).collect(Collectors.toList());
-      assertTrue(blobNames.contains(msgId1));
-      assertTrue(blobNames.contains(msgId2));
+          .map(RemoteBlob::getName).toList();
+      assertTrue(blobNames.stream().anyMatch(name -> name.contains(msgId1)));
+      assertTrue(blobNames.stream().anyMatch(name -> name.contains(msgId2)));
     } finally {
       stop(store);
     }
   }
+
+    @Test
+    public void testReportWithErrorMessage_Success() throws Exception {
+      S3Client client = Mockito.mock(S3Client.class);
+      ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
+      Mockito.when(wrapper.amazonClient()).thenReturn(client);
+
+      AmazonS3Connection conn = buildConnection(wrapper);
+
+      String msgId = UUID.randomUUID().toString();
+      List<S3Object> list = Arrays.asList(
+          createSummary("bucket", "MyPrefix/" + msgId + "/payload.blob"),
+          createSummary("bucket", "MyPrefix/" + msgId + "/metadata.properties")
+      );
+      ListObjectsV2Response result = Mockito.mock(ListObjectsV2Response.class);
+      Mockito.when(result.contents()).thenReturn(list);
+      Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
+
+      // Mock stacktrace.txt content
+      String stacktraceContent = "Simulated error message";
+      ByteArrayInputStream stacktraceStream = new ByteArrayInputStream(stacktraceContent.getBytes(StandardCharsets.UTF_8));
+      ResponseInputStream responseStream = new ResponseInputStream(Mockito.mock(S3Object.class), AbortableInputStream.create(stacktraceStream));
+      Mockito.when(client.getObject(any(GetObjectRequest.class))).thenReturn(responseStream);
+
+      S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+      try {
+        start(store);
+        Iterable<RemoteBlob> blobs = store.report(true);
+        for (RemoteBlob blob : blobs) {
+          assertInstanceOf(S3RetryStore.RemoteBlobWithError.class, blob);
+          assertEquals(stacktraceContent, ((S3RetryStore.RemoteBlobWithError) blob).getErrorMessage());
+        }
+      } finally {
+        stop(store);
+      }
+    }
+
+    @Test
+    public void testReportWithErrorMessage_Exception() throws Exception {
+      S3Client client = Mockito.mock(S3Client.class);
+      ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
+      Mockito.when(wrapper.amazonClient()).thenReturn(client);
+
+      AmazonS3Connection conn = buildConnection(wrapper);
+
+      String msgId = UUID.randomUUID().toString();
+      List<S3Object> list = Arrays.asList(
+          createSummary("bucket", "MyPrefix/" + msgId + "/payload.blob"),
+          createSummary("bucket", "MyPrefix/" + msgId + "/metadata.properties")
+      );
+      ListObjectsV2Response result = Mockito.mock(ListObjectsV2Response.class);
+      Mockito.when(result.contents()).thenReturn(list);
+      Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
+      Mockito.when(client.getObject(any(GetObjectRequest.class))).thenThrow(new RuntimeException("Simulated error"));
+
+      S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+      try {
+        start(store);
+        Iterable<RemoteBlob> blobs = store.report(true);
+        for (RemoteBlob blob : blobs) {
+          assertInstanceOf(S3RetryStore.RemoteBlobWithError.class, blob);
+          assertNull(((S3RetryStore.RemoteBlobWithError) blob).getErrorMessage());
+        }
+      } finally {
+        stop(store);
+      }
+    }
 
 
   // Designed to check to toMessageId method and other things that are predicated on getPrefix
