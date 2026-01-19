@@ -10,7 +10,7 @@ ext {
   wireVersion = "5.3.0"
   okioVersion = "3.9.1"
   awsSDKVersion = "1.12.777"
-  jacksonVersion = "2.19.2"
+  jacksonVersion = "2.21.0"
   jsonOrgVersion = "20250107"
 }
 dependencies {
