@@ -37,6 +37,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -100,9 +101,11 @@ public class S3RetryStoreTest extends BaseCase {
       Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
 
       // Mock stacktrace.txt content
-      String stacktraceContent = "Simulated error message";
-      ByteArrayInputStream stacktraceStream = new ByteArrayInputStream(stacktraceContent.getBytes(StandardCharsets.UTF_8));
-      ResponseInputStream responseStream = new ResponseInputStream(Mockito.mock(S3Object.class), AbortableInputStream.create(stacktraceStream));
+      String stacktraceContent = "Simulated error message\nSecond line of stacktrace";
+      GetObjectResponse mockResponse = Mockito.mock(GetObjectResponse.class);
+      ResponseInputStream<GetObjectResponse> responseStream = new ResponseInputStream<>(
+          mockResponse,
+          AbortableInputStream.create(new ByteArrayInputStream(stacktraceContent.getBytes(StandardCharsets.UTF_8))));
       Mockito.when(client.getObject(any(GetObjectRequest.class))).thenReturn(responseStream);
 
       S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
@@ -110,8 +113,9 @@ public class S3RetryStoreTest extends BaseCase {
         start(store);
         Iterable<RemoteBlob> blobs = store.report(true);
         for (RemoteBlob blob : blobs) {
-          assertInstanceOf(S3RetryStore.RemoteBlobWithError.class, blob);
-          assertEquals(stacktraceContent, ((S3RetryStore.RemoteBlobWithError) blob).getErrorMessage());
+          // The blob name should now contain the error message appended to the msgId
+          String expectedName = msgId + " - Simulated error message";
+          assertEquals(expectedName, blob.getName());
         }
       } finally {
         stop(store);
@@ -141,8 +145,8 @@ public class S3RetryStoreTest extends BaseCase {
         start(store);
         Iterable<RemoteBlob> blobs = store.report(true);
         for (RemoteBlob blob : blobs) {
-          assertInstanceOf(S3RetryStore.RemoteBlobWithError.class, blob);
-          assertNull(((S3RetryStore.RemoteBlobWithError) blob).getErrorMessage());
+          // When stacktrace retrieval fails, the blob name should just be the msgId
+          assertEquals(msgId, blob.getName());
         }
       } finally {
         stop(store);
@@ -406,10 +410,9 @@ public class S3RetryStoreTest extends BaseCase {
     AmazonS3Connection conn = buildConnection(wrapper);
 
     // Mock the response object
-    software.amazon.awssdk.services.s3.model.GetObjectResponse mockResponse =
-      Mockito.mock(software.amazon.awssdk.services.s3.model.GetObjectResponse.class);
+    GetObjectResponse mockResponse = Mockito.mock(GetObjectResponse.class);
 
-    ResponseInputStream<software.amazon.awssdk.services.s3.model.GetObjectResponse> responseStream =
+    ResponseInputStream<GetObjectResponse> responseStream =
       new ResponseInputStream<>(mockResponse, AbortableInputStream.create(
         new ByteArrayInputStream(STACKTRACE_CONTENT.getBytes(StandardCharsets.UTF_8))));
 
