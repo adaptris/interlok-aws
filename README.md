@@ -100,3 +100,21 @@ Caused by: java.io.IOException: Cannot run program "/tmp/amazon-kinesis-producer
         ... 5 common frames omitted
 Caused by: java.io.IOException: error=2, No such file or directory
 ```
+
+## AWS S3
+
+### S3 Retry Store with Podman
+
+To run the S3 retry store locally with test data:
+
+**Prerequisites:**
+- Podman (or Docker)
+- AWS CLI (`pip install awscli`)
+
+**Start LocalStack:**
+```bash
+cd interlok-aws2-s3
+podman-compose -f podman-compose.yml up
+```
+
+This starts a LocalStack S3 instance on `http://localhost:4566` with the `init-s3-retry-store.sh` script automatically creating a test bucket and example failed messages.

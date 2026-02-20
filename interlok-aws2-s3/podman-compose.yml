@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  localstack:
+    container_name: localstack-s3
+    image: localstack/localstack:3.2.0
+    ports:
+      - "4566:4566"
+    environment:
+      SERVICES: s3
+      DEFAULT_REGION: eu-west-2
+      AWS_DEFAULT_REGION: eu-west-2
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      LS_LOG: debug
+      PERSISTENCE: "1"
+    volumes:
+      - ./localstack-data:/var/lib/localstack
+      - ./init-s3-retry-store.sh:/etc/localstack/init/ready.d/init-s3-retry-store.sh
