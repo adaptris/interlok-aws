@@ -1,8 +1,6 @@
 package com.adaptris.aws.s3.retry;
 
-import java.io.BufferedReader;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -137,24 +135,20 @@ public class S3RetryStore implements RetryStore {
     RemoteBlobIterable baseIterable =
         new RemoteBlobIterable(s3, request, (blob) -> blob.getName().endsWith(PAYLOAD_FILE_NAME));
 
-    List<RemoteBlob> result = new ArrayList<>();
-    for (RemoteBlob blob : baseIterable) {
-      String msgId = toMessageID(blob.getName());
-      String errorMessage = null;
-      if (includeErrorMessage) {
-        String stacktraceObject = buildObjectName(msgId, STACKTRACE_FILENAME);
-        if (s3.doesObjectExist(getBucket(), stacktraceObject)) {
-          try (InputStream in = getInputStream(stacktraceObject)) {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
-            errorMessage = reader.readLine();
-          } catch (Exception e) {
-            errorMessage = null;
-          }
+    if (includeErrorMessage) {
+      return new RetryableBlobIterable(baseIterable, (name) -> {
+        String msgId = toMessageID(name);
+        String errorMessage = null;
+        try {
+          errorMessage = getStacktraceFirstLine(msgId);
+        } catch (InterlokException e) {
+          // If we can't get the stacktrace, just return the msgId without error message
         }
-      }
-      result.add(includeErrorMessage ? new RemoteBlobWithError(blob, errorMessage) : blob);
+        return errorMessage != null ? msgId + " - " + errorMessage : msgId;
+      });
+    } else {
+      return new RetryableBlobIterable(baseIterable, this::toMessageID);
     }
-    return result;
   }
 
   @Override
@@ -339,22 +333,5 @@ public class S3RetryStore implements RetryStore {
   @Override
   public void makeConnection(AdaptrisConnection connection) {
    // null implementation
-  }
-
-  public static class RemoteBlobWithError extends RemoteBlob {
-    private final RemoteBlob remoteBlob;
-    @Getter
-    private final String errorMessage;
-
-    public RemoteBlobWithError(RemoteBlob delegate, String errorMessage) {
-      super();
-      this.remoteBlob = delegate;
-      this.errorMessage = errorMessage;
-    }
-
-    @Override
-    public String getName() {
-      return remoteBlob.getName();
-    }
   }
 }

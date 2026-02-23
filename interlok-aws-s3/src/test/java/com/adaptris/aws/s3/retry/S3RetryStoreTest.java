@@ -114,13 +114,15 @@ public class S3RetryStoreTest {
     try {
       BaseCase.start(store);
       Iterable<RemoteBlob> blobs = store.report(true);
-      List<String> errorMessages = new ArrayList<>();
+      boolean foundErrorMessage = false;
       for (RemoteBlob blob : blobs) {
-        if (blob instanceof S3RetryStore.RemoteBlobWithError) {
-          errorMessages.add(((S3RetryStore.RemoteBlobWithError) blob).getErrorMessage());
+        String name = blob.getName();
+        if (name.contains(msgId) && name.contains(errorMsg)) {
+          foundErrorMessage = true;
+          break;
         }
       }
-      assertTrue(errorMessages.contains(errorMsg));
+      assertTrue(foundErrorMessage, "Expected to find error message in blob name");
     } finally {
       BaseCase.stop(store);
     }
@@ -154,9 +156,10 @@ public class S3RetryStoreTest {
       BaseCase.start(store);
       Iterable<RemoteBlob> blobs = store.report(true);
       for (RemoteBlob blob : blobs) {
-        if (blob instanceof S3RetryStore.RemoteBlobWithError) {
-            assertNull(((S3RetryStore.RemoteBlobWithError) blob).getErrorMessage());
-        }
+        // When there's an exception getting the stacktrace, the blob name should just be the msgId
+        String name = blob.getName();
+        assertTrue(name.contains(msgId), "Blob name should contain msgId");
+        assertFalse(name.contains(" - "), "Blob name should not contain error message separator when stacktrace fails to load");
       }
     } finally {
       BaseCase.stop(store);
@@ -482,18 +485,6 @@ public class S3RetryStoreTest {
     } finally {
       BaseCase.stop(store);
     }
-  }
-
-  @Test
-  public void testGetNameDelegatesToRemoteBlob() {
-    String expectedName = "MyPrefix/1234/payload.blob";
-    RemoteBlob mockBlob = Mockito.mock(RemoteBlob.class);
-    Mockito.when(mockBlob.getName()).thenReturn(expectedName);
-
-    S3RetryStore.RemoteBlobWithError blowWithError =
-        new S3RetryStore.RemoteBlobWithError(mockBlob, "error message");
-
-    assertEquals(expectedName, blowWithError.getName());
   }
 
   private AmazonS3Connection buildConnection(ClientWrapper wrapper) {
