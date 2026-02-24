@@ -1,6 +1,8 @@
 package com.adaptris.aws2.s3.retry;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -31,6 +33,54 @@ public class RetryableBlobIterableTest {
       itr.iterator();
       itr.iterator();
     });
+  }
+
+  @Test
+  public void testIterator_WithErrorSummary() throws Exception {
+    RetryableBlobIterable itr = new RetryableBlobIterable(build(1), (s) -> nameMapper(s),
+        (s) -> "Error: " + s);
+    Iterator<RemoteBlob> i = itr.iterator();
+    assertTrue(i.hasNext());
+    RemoteBlob blob = i.next();
+    assertFalse(blob.getName().startsWith("my-prefix/"));
+    assertEquals("Error: " + blob.getName(), blob.getErrorSummary());
+  }
+
+  @Test
+  public void testIterator_WithErrorSummaryReturningNull() throws Exception {
+    RetryableBlobIterable itr = new RetryableBlobIterable(build(1), (s) -> nameMapper(s),
+        (s) -> null);
+    Iterator<RemoteBlob> i = itr.iterator();
+    assertTrue(i.hasNext());
+    RemoteBlob blob = i.next();
+    assertFalse(blob.getName().startsWith("my-prefix/"));
+    assertNull(blob.getErrorSummary());
+  }
+
+  @Test
+  public void testIterator_WithNullErrorSummaryFunction() throws Exception {
+    RetryableBlobIterable itr = new RetryableBlobIterable(build(1), (s) -> nameMapper(s), null);
+    Iterator<RemoteBlob> i = itr.iterator();
+    assertTrue(i.hasNext());
+    RemoteBlob blob = i.next();
+    assertFalse(blob.getName().startsWith("my-prefix/"));
+    assertNull(blob.getErrorSummary());
+  }
+
+  @Test
+  public void testIterator_MultipleBlobs_WithErrorSummary() throws Exception {
+    RetryableBlobIterable itr = new RetryableBlobIterable(build(3), (s) -> nameMapper(s),
+        (s) -> "Error summary for blob");
+    Iterator<RemoteBlob> i = itr.iterator();
+
+    int count = 0;
+    while (i.hasNext()) {
+      RemoteBlob blob = i.next();
+      assertFalse(blob.getName().startsWith("my-prefix/"));
+      assertEquals("Error summary for blob", blob.getErrorSummary());
+      count++;
+    }
+    assertEquals(3, count);
   }
 
   private Iterable<RemoteBlob> build(int count) {

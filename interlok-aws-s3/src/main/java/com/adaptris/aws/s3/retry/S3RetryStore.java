@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.validation.Valid;
@@ -135,20 +136,19 @@ public class S3RetryStore implements RetryStore {
     RemoteBlobIterable baseIterable =
         new RemoteBlobIterable(s3, request, (blob) -> blob.getName().endsWith(PAYLOAD_FILE_NAME));
 
+    Function<String, String> errorSummaryFunction = null;
     if (includeErrorMessage) {
-      return new RetryableBlobIterable(baseIterable, (name) -> {
-        String msgId = toMessageID(name);
-        String errorMessage = null;
+      errorSummaryFunction = (msgId) -> {
         try {
-          errorMessage = getStacktraceFirstLine(msgId);
+          return getStacktraceFirstLine(msgId);
         } catch (InterlokException e) {
-          // If we can't get the stacktrace, just return the msgId without error message
+          log.debug("Unable to retrieve stacktrace for [{}]: {}", msgId, e.getMessage());
+          return null;
         }
-        return errorMessage != null ? msgId + " - " + errorMessage : msgId;
-      });
-    } else {
-      return new RetryableBlobIterable(baseIterable, this::toMessageID);
+      };
     }
+
+    return new RetryableBlobIterable(baseIterable, this::toMessageID, errorSummaryFunction);
   }
 
   @Override
