@@ -117,12 +117,12 @@ public class S3RetryStoreTest {
       boolean foundErrorMessage = false;
       for (RemoteBlob blob : blobs) {
         String name = blob.getName();
-        if (name.contains(msgId) && name.contains(errorMsg)) {
+        if (name.contains(msgId) && blob.getErrorSummary() != null && blob.getErrorSummary().equals(errorMsg)) {
           foundErrorMessage = true;
           break;
         }
       }
-      assertTrue(foundErrorMessage, "Expected to find error message in blob name");
+      assertTrue(foundErrorMessage, "Expected to find error message in blob error summary");
     } finally {
       BaseCase.stop(store);
     }
@@ -159,7 +159,8 @@ public class S3RetryStoreTest {
         // When there's an exception getting the stacktrace, the blob name should just be the msgId
         String name = blob.getName();
         assertTrue(name.contains(msgId), "Blob name should contain msgId");
-        assertFalse(name.contains(" - "), "Blob name should not contain error message separator when stacktrace fails to load");
+        // Error summary should be null when stacktrace fails to load
+        assertNull(blob.getErrorSummary(), "Error summary should be null when stacktrace fails to load");
       }
     } finally {
       BaseCase.stop(store);
