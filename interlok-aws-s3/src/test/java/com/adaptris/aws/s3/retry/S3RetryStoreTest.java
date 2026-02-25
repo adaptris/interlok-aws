@@ -288,9 +288,7 @@ public class S3RetryStoreTest {
         new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
     try {
       BaseCase.start(store);
-      assertThrows(InterlokException.class, ()->{
-        store.write(msg);
-      }, "Failed to write");
+      assertThrows(InterlokException.class, () -> store.write(msg), "Failed to write");
     } finally {
       BaseCase.stop(store);
     }
@@ -370,10 +368,7 @@ public class S3RetryStoreTest {
         new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
     try {
       BaseCase.start(store);
-      assertThrows(InterlokException.class, ()->{
-        Map<String, String> map = store.getMetadata("XXXX");
-        assertTrue(map.containsKey(CLASS_UNDER_TEST_KEY));
-      }, "Get metadata exception thrown");
+      assertThrows(InterlokException.class, () -> store.getMetadata("XXXX"), "Get metadata exception thrown");
     } finally {
       BaseCase.stop(store);
     }
@@ -434,9 +429,7 @@ public class S3RetryStoreTest {
     try {
       BaseCase.start(store);
       Map<String, String> metadata = new HashMap<>();
-      assertThrows(InterlokException.class, ()->{
-        AdaptrisMessage msg = store.buildForRetry("XXX", metadata, null);
-      }, "Build for retry failed");
+      assertThrows(InterlokException.class, () -> store.buildForRetry("XXX", metadata, null), "Build for retry failed");
     } finally {
       BaseCase.stop(store);
     }
@@ -480,9 +473,8 @@ public class S3RetryStoreTest {
     S3RetryStore store = new S3RetryStore().withBucket("bucket").withConnection(conn);
     try {
       BaseCase.start(store);
-        assertThrows(InterlokException.class, () -> {
-          store.getStackTrace("messageId");
-        }, "Exception should be wrapped in InterlokException");
+      assertThrows(InterlokException.class, () -> store.getStackTrace("messageId"),
+          "Exception should be wrapped in InterlokException");
     } finally {
       BaseCase.stop(store);
     }
