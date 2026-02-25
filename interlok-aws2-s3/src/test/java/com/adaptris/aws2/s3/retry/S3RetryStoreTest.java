@@ -185,29 +185,25 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testWrite_Exception() throws Exception {
+    S3Client client = Mockito.mock(S3Client.class);
+    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
+    Mockito.when(wrapper.amazonClient()).thenReturn(client);
 
-    Assertions.assertThrows(InterlokException.class, () -> {
-      S3Client client = Mockito.mock(S3Client.class);
-      ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-      Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    AmazonS3Connection conn = buildConnection(wrapper);
 
-      AmazonS3Connection conn = buildConnection(wrapper);
+    Mockito.when(client.putObject((PutObjectRequest)any(), (RequestBody)any())).thenThrow(new RuntimeException());
 
-      Mockito.when(client.putObject((PutObjectRequest)any(), (RequestBody)any())).thenThrow(new RuntimeException());
+    AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
+    msg.addMessageHeader("hello", "world");
 
-      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
-      msg.addMessageHeader("hello", "world");
-
-      S3RetryStore store =
-          new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
-      try {
-        start(store);
-        store.write(msg);
-      } finally {
-        stop(store);
-      }
-    });
-    
+    S3RetryStore store =
+        new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+    try {
+      start(store);
+      Assertions.assertThrows(InterlokException.class, () -> store.write(msg));
+    } finally {
+      stop(store);
+    }
   }
 
   @Test
@@ -258,26 +254,23 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testGetMetadata_Exception() throws Exception {
-    Assertions.assertThrows(InterlokException.class, () -> {
-      S3Client client = Mockito.mock(S3Client.class);
-      ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-      Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = Mockito.mock(S3Client.class);
+    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
+    Mockito.when(wrapper.amazonClient()).thenReturn(client);
 
-      Mockito.when(client.getObject((GetObjectRequest) any()))
-          .thenThrow(new RuntimeException());
+    Mockito.when(client.getObject((GetObjectRequest) any()))
+        .thenThrow(new RuntimeException());
 
-      AmazonS3Connection conn = buildConnection(wrapper);
+    AmazonS3Connection conn = buildConnection(wrapper);
 
-      S3RetryStore store =
-          new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
-      try {
-        start(store);
-        Map<String, String> map = store.getMetadata("XXXX");
-        assertTrue(map.containsKey(CLASS_UNDER_TEST_KEY));
-      } finally {
-        stop(store);
-      }
-    });
+    S3RetryStore store =
+        new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+    try {
+      start(store);
+      Assertions.assertThrows(InterlokException.class, () -> store.getMetadata("XXXX"));
+    } finally {
+      stop(store);
+    }
   }
 
   @Test
@@ -316,25 +309,23 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testBuildForRetry_Failure() throws Exception {
-    Assertions.assertThrows(InterlokException.class, () -> {
-      S3Client client = Mockito.mock(S3Client.class);
-      ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-      Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = Mockito.mock(S3Client.class);
+    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
+    Mockito.when(wrapper.amazonClient()).thenReturn(client);
 
-      Mockito.when(client.getObject((GetObjectRequest) any())).thenThrow(new RuntimeException());
+    Mockito.when(client.getObject((GetObjectRequest) any())).thenThrow(new RuntimeException());
 
-      AmazonS3Connection conn = buildConnection(wrapper);
+    AmazonS3Connection conn = buildConnection(wrapper);
 
-      S3RetryStore store =
-          new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
-      try {
-        start(store);
-        Map<String, String> metadata = new HashMap<>();
-        AdaptrisMessage msg = store.buildForRetry("XXX", metadata, null);
-      } finally {
-        stop(store);
-      }
-    });
+    S3RetryStore store =
+        new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+    try {
+      start(store);
+      Map<String, String> metadata = new HashMap<>();
+      Assertions.assertThrows(InterlokException.class, () -> store.buildForRetry("XXX", metadata, null));
+    } finally {
+      stop(store);
+    }
   }
 
   @Test
@@ -378,9 +369,8 @@ public class S3RetryStoreTest extends BaseCase {
     S3RetryStore store = new S3RetryStore().withBucket("bucket").withConnection(conn);
     try {
       start(store);
-      assertThrows(InterlokException.class, () -> {
-          store.getStackTrace("messageId");
-      }, "Exception should be wrapped in InterlokException");
+      assertThrows(InterlokException.class, () -> store.getStackTrace("messageId"),
+          "Exception should be wrapped in InterlokException");
     } finally {
       stop(store);
     }
@@ -457,33 +447,31 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testUploadMetadata_Exception() throws Exception {
-    Assertions.assertThrows(Exception.class, () -> {
-      S3Client client = Mockito.mock(S3Client.class);
-      ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-      Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = Mockito.mock(S3Client.class);
+    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
+    Mockito.when(wrapper.amazonClient()).thenReturn(client);
 
-      AmazonS3Connection conn = buildConnection(wrapper);
+    AmazonS3Connection conn = buildConnection(wrapper);
 
-      // Mock upload failure
-      Mockito.when(client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
-          .thenThrow(new RuntimeException("Upload failed"));
+    // Mock upload failure
+    Mockito.when(client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+        .thenThrow(new RuntimeException("Upload failed"));
 
-      S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
-      try {
-        start(store);
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+    try {
+      start(store);
 
-        AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("test");
-        msg.setUniqueId("test-message-id");
-        msg.addMessageHeader("testKey", "testValue");
+      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("test");
+      msg.setUniqueId("test-message-id");
+      msg.addMessageHeader("testKey", "testValue");
 
-        // Use reflection to call private uploadMetadata method
-        java.lang.reflect.Method method = S3RetryStore.class.getDeclaredMethod("uploadMetadata", AdaptrisMessage.class);
-        method.setAccessible(true);
-        method.invoke(store, msg);
-      } finally {
-        stop(store);
-      }
-    });
+      // Use reflection to call private uploadMetadata method
+      java.lang.reflect.Method method = S3RetryStore.class.getDeclaredMethod("uploadMetadata", AdaptrisMessage.class);
+      method.setAccessible(true);
+      Assertions.assertThrows(Exception.class, () -> method.invoke(store, msg));
+    } finally {
+      stop(store);
+    }
   }
 
   @Test
@@ -551,36 +539,34 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testUploadStacktrace_Exception() throws Exception {
-    Assertions.assertThrows(Exception.class, () -> {
-      S3Client client = Mockito.mock(S3Client.class);
-      ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-      Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = Mockito.mock(S3Client.class);
+    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
+    Mockito.when(wrapper.amazonClient()).thenReturn(client);
 
-      AmazonS3Connection conn = buildConnection(wrapper);
+    AmazonS3Connection conn = buildConnection(wrapper);
 
-      // Mock upload failure
-      Mockito.when(client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
-          .thenThrow(new RuntimeException("Upload failed"));
+    // Mock upload failure
+    Mockito.when(client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+        .thenThrow(new RuntimeException("Upload failed"));
 
-      S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
-      try {
-        start(store);
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+    try {
+      start(store);
 
-        AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("test");
-        msg.setUniqueId("test-message-id");
+      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("test");
+      msg.setUniqueId("test-message-id");
 
-        // Add an exception to the message
-        Exception testException = new Exception("Test exception");
-        msg.addObjectHeader(com.adaptris.core.CoreConstants.OBJ_METADATA_EXCEPTION, testException);
+      // Add an exception to the message
+      Exception testException = new Exception("Test exception");
+      msg.addObjectHeader(com.adaptris.core.CoreConstants.OBJ_METADATA_EXCEPTION, testException);
 
-        // Use reflection to call private uploadStacktrace method
-        java.lang.reflect.Method method = S3RetryStore.class.getDeclaredMethod("uploadStacktrace", AdaptrisMessage.class);
-        method.setAccessible(true);
-        method.invoke(store, msg);
-      } finally {
-        stop(store);
-      }
-    });
+      // Use reflection to call private uploadStacktrace method
+      java.lang.reflect.Method method = S3RetryStore.class.getDeclaredMethod("uploadStacktrace", AdaptrisMessage.class);
+      method.setAccessible(true);
+      Assertions.assertThrows(Exception.class, () -> method.invoke(store, msg));
+    } finally {
+      stop(store);
+    }
   }
 
   private AmazonS3Connection buildConnection(ClientWrapper wrapper) {
