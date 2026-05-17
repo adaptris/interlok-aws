@@ -338,8 +338,10 @@ subprojects {
     analyzers {
       assemblyEnabled=false
         ossIndex {
+          enabled = System.getenv("OSS_INDEX_USERNAME") != null && System.getenv("OSS_INDEX_PASSWORD") != null
           username = System.getenv("OSS_INDEX_USERNAME")
           password = System.getenv("OSS_INDEX_PASSWORD")
+		  warnOnlyOnRemoteErrors = true
         }
     }
   }
