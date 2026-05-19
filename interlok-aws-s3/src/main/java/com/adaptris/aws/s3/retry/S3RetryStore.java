@@ -2,10 +2,9 @@ package com.adaptris.aws.s3.retry;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Properties;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.validation.Valid;
@@ -130,13 +129,26 @@ public class S3RetryStore implements RetryStore {
   // If the corresponding msg-id/metadata.properties doesn't exist, then it'll fail when we
   // attempt to retry it.
   @Override
-  public Iterable<RemoteBlob> report() throws InterlokException {
+  public Iterable<RemoteBlob> report(boolean includeErrorMessage) throws InterlokException {
     AmazonS3Client s3 = clientWrapper().amazonClient();
     ListObjectsV2Request request =
         new ListObjectsV2Request().withBucketName(getBucket()).withPrefix(getPrefix());
-    return new RetryableBlobIterable(
-        new RemoteBlobIterable(s3, request, (blob) -> blob.getName().endsWith(PAYLOAD_FILE_NAME)),
-        (name) -> toMessageID(name));
+    RemoteBlobIterable baseIterable =
+        new RemoteBlobIterable(s3, request, (blob) -> blob.getName().endsWith(PAYLOAD_FILE_NAME));
+
+    Function<String, String> errorSummaryFunction = null;
+    if (includeErrorMessage) {
+      errorSummaryFunction = (msgId) -> {
+        try {
+          return getStacktraceFirstLine(msgId);
+        } catch (InterlokException e) {
+          log.debug("Unable to retrieve stacktrace for [{}]: {}", msgId, e.getMessage());
+          return null;
+        }
+      };
+    }
+
+    return new RetryableBlobIterable(baseIterable, this::toMessageID, errorSummaryFunction);
   }
 
   @Override
@@ -229,6 +241,18 @@ public class S3RetryStore implements RetryStore {
     }
   }
 
+  @Override
+  public String getStackTrace(String msgId) throws InterlokException {
+    try {
+      String stacktraceName = buildObjectName(msgId, STACKTRACE_FILENAME);
+      try (InputStream in = getInputStream(stacktraceName)) {
+        return IOUtils.toString(in, StandardCharsets.UTF_8);
+      }
+    } catch (Exception e) {
+      throw ExceptionHelper.wrapInterlokException(e);
+    }
+  }
+
   private InputStream getInputStream(String objectName) throws Exception {
     AmazonS3Client s3 = clientWrapper().amazonClient();
     GetObjectRequest request = new GetObjectRequest(getBucket(), objectName);
@@ -310,5 +334,4 @@ public class S3RetryStore implements RetryStore {
   public void makeConnection(AdaptrisConnection connection) {
    // null implementation
   }
-
 }

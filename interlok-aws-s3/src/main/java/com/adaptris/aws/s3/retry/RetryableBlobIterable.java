@@ -9,10 +9,19 @@ class RetryableBlobIterable implements Iterable<RemoteBlob>, Iterator<RemoteBlob
   private transient Iterator<RemoteBlob> wrappedIterator;
   private transient Iterable<RemoteBlob> wrappedIterable;
   private transient Function<String, String> nameMapper;
+  private transient Function<String, String> errorSummaryFunction;
 
   public RetryableBlobIterable(Iterable<RemoteBlob> itr, Function<String, String> msgIdFunction) {
     wrappedIterable = itr;
     nameMapper = msgIdFunction;
+    errorSummaryFunction = null;
+  }
+
+  public RetryableBlobIterable(Iterable<RemoteBlob> itr, Function<String, String> msgIdFunction,
+      Function<String, String> errorSummaryFunc) {
+    wrappedIterable = itr;
+    nameMapper = msgIdFunction;
+    errorSummaryFunction = errorSummaryFunc;
   }
 
   @Override
@@ -33,9 +42,20 @@ class RetryableBlobIterable implements Iterable<RemoteBlob>, Iterator<RemoteBlob
   public RemoteBlob next() {
     RemoteBlob blob = wrappedIterator.next();
     // Leave the bucket as null so that it is not rendered (or rendered as null.
-    return new RemoteBlob.Builder()
-        .setLastModified(blob.getLastModified()).setName(nameMapper.apply(blob.getName()))
-        .setSize(blob.getSize()).build();
+    String msgId = nameMapper.apply(blob.getName());
+    RemoteBlob.Builder builder = new RemoteBlob.Builder()
+        .setLastModified(blob.getLastModified())
+        .setName(msgId)
+        .setSize(blob.getSize());
+
+    if (errorSummaryFunction != null) {
+      String errorSummary = errorSummaryFunction.apply(msgId);
+      if (errorSummary != null) {
+        builder.setErrorSummary(errorSummary);
+      }
+    }
+
+    return builder.build();
   }
 
 }

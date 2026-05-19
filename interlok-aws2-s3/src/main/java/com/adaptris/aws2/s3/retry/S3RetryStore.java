@@ -35,10 +35,12 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -132,11 +134,26 @@ public class S3RetryStore implements RetryStore {
   // If the corresponding msg-id/metadata.properties doesn't exist, then it'll fail when we
   // attempt to retry it.
   @Override
-  public Iterable<RemoteBlob> report() throws InterlokException {
+  public Iterable<RemoteBlob> report(boolean includeErrorMessage) throws InterlokException {
     S3Client s3 = clientWrapper().amazonClient();
     ListObjectsV2Request.Builder requestBuilder = ListObjectsV2Request.builder();
     requestBuilder.bucket(getBucket()).prefix(getPrefix());
-    return new RetryableBlobIterable(new RemoteBlobIterable(s3, requestBuilder.build(), (blob) -> blob.getName().endsWith(PAYLOAD_FILE_NAME)), (name) -> toMessageID(name));
+    RemoteBlobIterable baseIterable =
+        new RemoteBlobIterable(s3, requestBuilder.build(), (blob) -> blob.getName().endsWith(PAYLOAD_FILE_NAME));
+
+    Function<String, String> errorSummaryFunction = null;
+    if (includeErrorMessage) {
+      errorSummaryFunction = (msgId) -> {
+        try {
+          return getStacktraceFirstLine(msgId);
+        } catch (InterlokException e) {
+          log.debug("Unable to retrieve stacktrace for [{}]: {}", msgId, e.getMessage());
+          return null;
+        }
+      };
+    }
+
+    return new RetryableBlobIterable(baseIterable, this::toMessageID, errorSummaryFunction);
   }
 
   @Override
@@ -205,6 +222,8 @@ public class S3RetryStore implements RetryStore {
       try (InputStream in = getInputStream(payloadName); OutputStream out = msg.getOutputStream()) {
         IOUtils.copy(in, out);
       }
+      //Delete the message to remove from the bucket
+      delete(msgId);
       log.trace("Payload for [{}] loaded", msgId);
       msg.setMessageHeaders(metadata);
       msg.setUniqueId(msgId);
@@ -225,6 +244,18 @@ public class S3RetryStore implements RetryStore {
       log.trace("metadata for [{}] loaded", msgId);
       // The compiler works in mysterious ways.
       return (Map) meta;
+    } catch (Exception e) {
+      throw ExceptionHelper.wrapInterlokException(e);
+    }
+  }
+
+  @Override
+  public String getStackTrace(String msgId) throws InterlokException {
+    try {
+      String stacktraceName = buildObjectName(msgId, STACKTRACE_FILENAME);
+      try (InputStream in = getInputStream(stacktraceName)) {
+        return IOUtils.toString(in, StandardCharsets.UTF_8);
+      }
     } catch (Exception e) {
       throw ExceptionHelper.wrapInterlokException(e);
     }
@@ -282,7 +313,7 @@ public class S3RetryStore implements RetryStore {
     }
     return String.format("%s/(.*)/%s", getPrefix(), PAYLOAD_FILE_NAME);
   }
-  
+
   @Override
   public void acknowledge(String acknowledgeId) throws InterlokException {
    // null implementation

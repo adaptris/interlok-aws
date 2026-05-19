@@ -80,4 +80,44 @@
     <cve>CVE-2022-31122</cve>
     <cve>CVE-2021-41119</cve>
   </suppress>
+  <suppress>
+    <notes><![CDATA[
+      com.amazonaws:amazon-kinesis-producer:0.15.12 is the latest release published to Maven Central.
+      Its remaining Netty 4.1.126.Final dependencies cannot be upgraded in-line from this repo.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-(buffer|codec|codec-http|codec-http2|common|handler|resolver|transport|transport-classes-epoll|transport-native-unix-common)@4\.1\.126\.Final$</packageUrl>
+    <cve>CVE-2026-33870</cve>
+    <cve>CVE-2026-33871</cve>
+    <cve>CVE-2025-67735</cve>
+    <cve>CVE-2026-41417</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      com.amazonaws:amazon-kinesis-producer:0.15.12 is the latest release published to Maven Central.
+      The remaining Kotlin findings are inherited from that dependency chain and cannot be upgraded in-line here.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.jetbrains\.kotlin/(kotlin\-(reflect|script-runtime|scripting-common|scripting-compiler-embeddable|scripting-compiler-impl-embeddable|scripting-jvm|stdlib-jdk7|stdlib-jdk8))@(1\.7\.10|1\.8\.0|2\.0\.10)$</packageUrl>
+    <cve>CVE-2020-29582</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      file name: spring-boot-loader-2.7.18.jar
+      We are pinned to Spring Boot 2.7.x on Java 17. There is no newer 2.7.x release in Maven Central,
+      so these CVEs cannot be remediated by an in-line version bump at the moment.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.springframework\.boot/spring-boot-loader@2\.7\.18$</packageUrl>
+    <cve>CVE-2026-40972</cve>
+    <cve>CVE-2026-40973</cve>
+    <cve>CVE-2026-40974</cve>
+    <cve>CVE-2026-40975</cve>
+    <cve>CVE-2026-40977</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Jetty 10.0.26 is the newest Jetty 10 release available in Maven Central. Remediation for this CVE
+      requires moving off the Jetty 10 line, which is outside the current Java 17 / Jetty 10 constraints.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.eclipse\.jetty(\.http2|\.websocket)?/.+@10\.0\.26$</packageUrl>
+    <cve>CVE-2026-2332</cve>
+  </suppress>
 </suppressions>
