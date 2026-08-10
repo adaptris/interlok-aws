@@ -120,4 +120,15 @@
     <packageUrl regex="true">^pkg:maven/org\.eclipse\.jetty(\.http2|\.websocket)?/.+@10\.0\.26$</packageUrl>
     <cve>CVE-2026-2332</cve>
   </suppress>
+  <suppress>
+    <notes><![CDATA[
+      interlok-aws-common is pinned to jackson-databind 2.19.2 on this release line.
+      No in-line upgrade has been applied yet; suppress until coordinated Jackson uplift is scheduled.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.fasterxml\.jackson\.core/jackson-databind@2\.19\.2$</packageUrl>
+    <cve>CVE-2026-54512</cve>
+    <cve>CVE-2026-54513</cve>
+    <cve>CVE-2026-54514</cve>
+    <cve>CVE-2026-54515</cve>
+  </suppress>
 </suppressions>
