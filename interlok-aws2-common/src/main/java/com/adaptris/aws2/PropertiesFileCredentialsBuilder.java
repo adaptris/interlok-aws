@@ -11,7 +11,7 @@ import org.apache.commons.lang3.BooleanUtils;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;

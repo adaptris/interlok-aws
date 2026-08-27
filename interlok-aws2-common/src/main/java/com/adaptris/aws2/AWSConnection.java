@@ -26,7 +26,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 public abstract class AWSConnection extends AdaptrisConnectionImp
     implements AWSCredentialsProviderBuilder.BuilderConfig {

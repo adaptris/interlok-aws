@@ -26,8 +26,8 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Abstract implemention of {@link S3Service}

@@ -16,10 +16,9 @@
 
 package com.adaptris.aws.sqs.jms;
 
-import static com.adaptris.core.jms.JmsUtils.wrapJMSException;
-import javax.jms.JMSException;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.jms.JMSException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.AutoPopulated;
 import com.adaptris.annotation.DisplayOrder;
@@ -45,6 +44,8 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+
+import static com.adaptris.core.jms.JmsUtils.wrapJMSException;
 
 /**
  * JMS VendorImplementation for Amazon SQS.

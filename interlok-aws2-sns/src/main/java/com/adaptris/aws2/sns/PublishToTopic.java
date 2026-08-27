@@ -40,8 +40,8 @@ import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
 import software.amazon.awssdk.services.sns.model.PublishResponse;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 
 import static com.adaptris.core.util.DestinationHelper.resolveProduceDestination;
 

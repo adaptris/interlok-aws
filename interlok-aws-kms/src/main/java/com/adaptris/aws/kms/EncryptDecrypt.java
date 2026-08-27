@@ -3,7 +3,7 @@ package com.adaptris.aws.kms;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Map;
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import com.adaptris.annotation.AdvancedConfig;

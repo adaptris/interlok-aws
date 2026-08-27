@@ -12,8 +12,8 @@ import org.apache.commons.lang3.StringUtils;
 import software.amazon.awssdk.services.kms.model.MessageType;
 import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 
 @NoArgsConstructor
 public abstract class SignatureService extends AWSKMSServiceImpl {

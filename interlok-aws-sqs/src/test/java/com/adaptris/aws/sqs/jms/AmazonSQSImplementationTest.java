@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
-import javax.jms.JMSException;
+import jakarta.jms.JMSException;
 import org.junit.jupiter.api.Test;
 import com.adaptris.aws.AWSKeysAuthentication;
 import com.adaptris.aws.DefaultAWSAuthentication;

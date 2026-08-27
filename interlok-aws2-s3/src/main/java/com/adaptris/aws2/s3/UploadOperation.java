@@ -32,7 +32,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -16,7 +16,7 @@
 
 package com.adaptris.aws.s3.meta;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 import com.adaptris.annotation.InputFieldHint;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.ServiceException;
