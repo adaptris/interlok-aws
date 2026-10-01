@@ -1,9 +1,9 @@
 package com.adaptris.aws2.s3.retry;
 
+import com.adaptris.annotation.AdvancedConfig;
 import com.adaptris.annotation.ComponentProfile;
 import com.adaptris.aws2.s3.AmazonS3Connection;
 import com.adaptris.aws2.s3.ClientWrapper;
-import com.adaptris.aws2.s3.RemoteBlobIterable;
 import com.adaptris.aws2.s3.UploadOperation;
 import com.adaptris.core.AdaptrisConnection;
 import com.adaptris.core.AdaptrisMessage;
@@ -29,6 +29,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
@@ -36,6 +37,7 @@ import javax.validation.constraints.NotNull;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -78,6 +80,10 @@ public class S3RetryStore implements RetryStore {
   @Getter
   @Setter
   private String prefix;
+  @AdvancedConfig
+  @Getter
+  @Setter
+  private Integer reportMaxMessages = 1000;
 
   private transient Pattern nameMapper = null;
 
@@ -130,16 +136,12 @@ public class S3RetryStore implements RetryStore {
 
   // Listing files is a little trickier since a ListObjectsRequest based on the configured
   // prefix gives us everything (not just the msg-id directories).
-  // Filter on things that end with the required name 'payload.blob'
-  // If the corresponding msg-id/metadata.properties doesn't exist, then it'll fail when we
-  // attempt to retry it.
+  // Each failed message consists of 3 S3 objects: payload.blob, metadata.properties, and stacktrace.txt.
+  // This method paginates through S3 results, filtering by payload.blob, to retrieve the requested
+  // number of complete failed messages.
   @Override
   public Iterable<RemoteBlob> report(boolean includeErrorMessage) throws InterlokException {
-    S3Client s3 = clientWrapper().amazonClient();
-    ListObjectsV2Request.Builder requestBuilder = ListObjectsV2Request.builder();
-    requestBuilder.bucket(getBucket()).prefix(getPrefix());
-    RemoteBlobIterable baseIterable =
-        new RemoteBlobIterable(s3, requestBuilder.build(), (blob) -> blob.getName().endsWith(PAYLOAD_FILE_NAME));
+    Iterable<RemoteBlob> baseIterable = fetchFailedMessagesFromS3(getReportMaxMessages());
 
     Function<String, String> errorSummaryFunction = null;
     if (includeErrorMessage) {
@@ -154,6 +156,54 @@ public class S3RetryStore implements RetryStore {
     }
 
     return new RetryableBlobIterable(baseIterable, this::toMessageID, errorSummaryFunction);
+  }
+
+  /**
+   * Fetches failed messages from S3 by paginating through results and filtering by payload.blob files.
+   * This ensures we retrieve the requested number of complete messages.
+   *
+   * @param maxMessages Maximum number of complete failed messages to retrieve
+   * @return List of RemoteBlobs representing payload files for failed messages
+   * @throws InterlokException if S3 retrieval fails
+   */
+  private List<RemoteBlob> fetchFailedMessagesFromS3(int maxMessages) throws InterlokException {
+    try {
+      S3Client s3 = clientWrapper().amazonClient();
+      List<RemoteBlob> failedMessages = new ArrayList<>();
+      ListObjectsV2Request.Builder requestBuilder = ListObjectsV2Request.builder();
+      requestBuilder.bucket(getBucket()).prefix(getPrefix());
+
+      String continuationToken = null;
+
+      do {
+        if (continuationToken != null) {
+          requestBuilder.continuationToken(continuationToken);
+        }
+
+        ListObjectsV2Request request = requestBuilder.build();
+        ListObjectsV2Response response = s3.listObjectsV2(request);
+
+        List<RemoteBlob> payloadBlobs = response.contents().stream()
+            .filter(obj -> obj.key().endsWith(PAYLOAD_FILE_NAME))
+            .map(obj -> new RemoteBlob.Builder()
+                .setBucket(getBucket())
+                .setLastModified(obj.lastModified().getEpochSecond())
+                .setName(obj.key())
+                .setSize(obj.size())
+                .build())
+            .toList();
+
+        failedMessages.addAll(payloadBlobs);
+        continuationToken = response.nextContinuationToken();
+
+      } while (failedMessages.size() < maxMessages && continuationToken != null);
+
+      return failedMessages.stream()
+          .limit(maxMessages)
+          .toList();
+    } catch (Exception e) {
+      throw ExceptionHelper.wrapInterlokException(e);
+    }
   }
 
   @Override

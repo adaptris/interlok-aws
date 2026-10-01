@@ -1,11 +1,26 @@
 package com.adaptris.aws2.s3.retry;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static com.adaptris.core.util.LifecycleHelper.start;
+import static com.adaptris.core.util.LifecycleHelper.stop;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -18,7 +33,6 @@ import java.util.Properties;
 import java.util.UUID;
 import java.util.stream.StreamSupport;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
@@ -26,6 +40,7 @@ import com.adaptris.aws2.s3.AmazonS3Connection;
 import com.adaptris.aws2.s3.ClientWrapper;
 import com.adaptris.core.AdaptrisMessage;
 import com.adaptris.core.AdaptrisMessageFactory;
+import com.adaptris.core.CoreException;
 import com.adaptris.interlok.InterlokException;
 import com.adaptris.interlok.cloud.RemoteBlob;
 import com.adaptris.interlok.junit.scaffolding.BaseCase;
@@ -49,25 +64,144 @@ public class S3RetryStoreTest extends BaseCase {
   private static final String CLASS_UNDER_TEST_KEY = "ClassUnderTest";
 
   @Test
+  public void testWrite_PersistsWorkflowIdInMetadataProperties() throws Exception {
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
+    AmazonS3Connection conn = buildConnection(wrapper);
+
+    List<PutObjectRequest> capturedRequests = new ArrayList<>();
+    List<RequestBody> capturedBodies = new ArrayList<>();
+    doAnswer(invocation -> {
+      capturedRequests.add(invocation.getArgument(0));
+      capturedBodies.add(invocation.getArgument(1));
+      return null;
+    }).when(client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+    try {
+      start(store);
+      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("payload");
+      msg.setUniqueId("workflow-positive");
+      msg.addMessageHeader("workflowId", "wf-123");
+      msg.addMessageHeader("otherKey", "otherValue");
+
+      store.write(msg);
+
+      Properties persisted = metadataPropertiesFromWrite(capturedRequests, capturedBodies,
+          store.buildObjectName(msg.getUniqueId(), "metadata.properties"));
+      assertEquals("wf-123", persisted.getProperty("workflowId"));
+      assertEquals("otherValue", persisted.getProperty("otherKey"));
+    } finally {
+      stop(store);
+    }
+  }
+
+  @Test
+  public void testWrite_AllowsMissingWorkflowIdAndDoesNotPersistKey() throws Exception {
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
+    AmazonS3Connection conn = buildConnection(wrapper);
+
+    List<PutObjectRequest> capturedRequests = new ArrayList<>();
+    List<RequestBody> capturedBodies = new ArrayList<>();
+    doAnswer(invocation -> {
+      capturedRequests.add(invocation.getArgument(0));
+      capturedBodies.add(invocation.getArgument(1));
+      return null;
+    }).when(client).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+    try {
+      start(store);
+      AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("payload");
+      msg.setUniqueId("workflow-negative");
+      msg.addMessageHeader("onlyKey", "onlyValue");
+
+      assertDoesNotThrow(() -> store.write(msg));
+
+      Properties persisted = metadataPropertiesFromWrite(capturedRequests, capturedBodies,
+          store.buildObjectName(msg.getUniqueId(), "metadata.properties"));
+      assertNull(persisted.getProperty("workflowId"));
+      assertEquals("onlyValue", persisted.getProperty("onlyKey"));
+    } finally {
+      stop(store);
+    }
+  }
+
+  @Test
+  public void testGetMetadata_MissingWorkflowId_LeadsToWorkflowResolutionFailure() throws Exception {
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
+
+    Properties stored = new Properties();
+    stored.setProperty(CLASS_UNDER_TEST_KEY, S3RetryStore.class.getCanonicalName());
+    stored.setProperty("someKey", "someValue");
+    ResponseInputStream resultStream = new ResponseInputStream(mock(S3Object.class),
+        AbortableInputStream.create(createInputStream(stored)));
+    when(client.getObject((GetObjectRequest) any())).thenReturn(resultStream);
+
+    AmazonS3Connection conn = buildConnection(wrapper);
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+    try {
+      start(store);
+      Map<String, String> metadata = store.getMetadata("missing-workflow");
+      assertNull(metadata.get("workflowId"));
+      CoreException ex = assertThrows(CoreException.class, () -> requireWorkflowId(metadata));
+      assertEquals("No Workflow [null] found", ex.getMessage());
+    } finally {
+      stop(store);
+    }
+  }
+
+  @Test
+  public void testGetMetadata_LegacyWorkflowidOnly_NoFallbackToWorkflowId() throws Exception {
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
+
+    Properties stored = new Properties();
+    stored.setProperty("workflowid", "legacy-value");
+    stored.setProperty("someKey", "someValue");
+    ResponseInputStream resultStream = new ResponseInputStream(mock(S3Object.class),
+        AbortableInputStream.create(createInputStream(stored)));
+    when(client.getObject((GetObjectRequest) any())).thenReturn(resultStream);
+
+    AmazonS3Connection conn = buildConnection(wrapper);
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+    try {
+      start(store);
+      Map<String, String> metadata = store.getMetadata("legacy-workflowid");
+      assertEquals("legacy-value", metadata.get("workflowid"));
+      assertNull(metadata.get("workflowId"));
+      assertThrows(CoreException.class, () -> requireWorkflowId(metadata));
+    } finally {
+      stop(store);
+    }
+  }
+
+  @Test
   public void testReport() throws Exception {
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
-    ListObjectsV2Response result = Mockito.mock(ListObjectsV2Response.class);
+    ListObjectsV2Response result = mock(ListObjectsV2Response.class);
     String msgId1 = UUID.randomUUID().toString();
     String msgId2 = UUID.randomUUID().toString();
 
     List<S3Object> list = new ArrayList<>(
-        Arrays.asList(createSummary("bucket", "MyPrefix/" + msgId1 + "/payload.blob"),
-            createSummary("bucket", "MyPrefix/" + msgId1 + "/metadata.properties"),
-            createSummary("bucket", "MyPrefix/" + msgId2 + "/payload.blob"),
-            createSummary("bucket", "MyPrefix/" + msgId2 + "/metadata.properties")));
+        Arrays.asList(createSummary("MyPrefix/" + msgId1 + "/payload.blob"),
+            createSummary("MyPrefix/" + msgId1 + "/metadata.properties"),
+            createSummary("MyPrefix/" + msgId2 + "/payload.blob"),
+            createSummary("MyPrefix/" + msgId2 + "/metadata.properties")));
 
-    Mockito.when(result.contents()).thenReturn(list);
-    Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
+    when(result.contents()).thenReturn(list);
+    when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
 
     S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
 
@@ -83,30 +217,163 @@ public class S3RetryStoreTest extends BaseCase {
     }
   }
 
+  @Test
+  public void testReportMaxKeys_DefaultsTo1000() throws Exception {
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
+
+    AmazonS3Connection conn = buildConnection(wrapper);
+
+    ListObjectsV2Response result = mock(ListObjectsV2Response.class);
+    // Create 1000 payload.blob files with interleaved metadata.properties files (3000 keys total)
+    List<S3Object> allObjects = new ArrayList<>();
+    for (int i = 0; i < 1000; i++) {
+      String msgId = "msg-" + i;
+      allObjects.add(createSummary("MyPrefix/" + msgId + "/payload.blob"));
+      allObjects.add(createSummary("MyPrefix/" + msgId + "/metadata.properties"));
+      allObjects.add(createSummary("MyPrefix/" + msgId + "/stacktrace.txt"));
+    }
+
+    when(result.contents()).thenReturn(allObjects);
+    when(result.isTruncated()).thenReturn(false);
+    when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
+
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+    try {
+      start(store);
+
+      assertEquals(1000, store.getReportMaxMessages());
+      List<String> blobNames = StreamSupport.stream(store.report(false).spliterator(), false)
+          .map(RemoteBlob::getName).toList();
+
+      // Should retrieve exactly 1000 message IDs (not 3000 keys)
+      assertEquals(1000, blobNames.size());
+    } finally {
+      stop(store);
+    }
+  }
+
+  @Test
+  public void testReportMaxKeys_UsesConfiguredValue() throws Exception {
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
+
+    AmazonS3Connection conn = buildConnection(wrapper);
+
+    ListObjectsV2Response result = mock(ListObjectsV2Response.class);
+    // Create 17 payload.blob files with interleaved metadata.properties files (51 keys total)
+    List<S3Object> allObjects = new ArrayList<>();
+    for (int i = 0; i < 17; i++) {
+      String msgId = "msg-" + i;
+      allObjects.add(createSummary("MyPrefix/" + msgId + "/payload.blob"));
+      allObjects.add(createSummary("MyPrefix/" + msgId + "/metadata.properties"));
+      allObjects.add(createSummary("MyPrefix/" + msgId + "/stacktrace.txt"));
+    }
+
+    when(result.contents()).thenReturn(allObjects);
+    when(result.isTruncated()).thenReturn(false);
+    when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
+
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+    store.setReportMaxMessages(17);
+
+    try {
+      start(store);
+
+      assertEquals(17, store.getReportMaxMessages());
+      List<String> blobNames = StreamSupport.stream(store.report(false).spliterator(), false)
+          .map(RemoteBlob::getName).toList();
+
+      // Should retrieve exactly 17 message IDs (not 51 keys)
+      assertEquals(17, blobNames.size());
+    } finally {
+      stop(store);
+    }
+  }
+
+  @Test
+  public void testReportMaxKeys_HandlesMultiplePaginatedResponses() throws Exception {
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
+
+    AmazonS3Connection conn = buildConnection(wrapper);
+
+    // First page: 500 messages (1500 keys total)
+    List<S3Object> firstPageObjects = new ArrayList<>();
+    for (int i = 0; i < 500; i++) {
+      String msgId = "msg-first-" + i;
+      firstPageObjects.add(createSummary("MyPrefix/" + msgId + "/payload.blob"));
+      firstPageObjects.add(createSummary("MyPrefix/" + msgId + "/metadata.properties"));
+      firstPageObjects.add(createSummary("MyPrefix/" + msgId + "/stacktrace.txt"));
+    }
+
+    // Second page: 600 messages (1800 keys total, but we only need 500 more for total of 1000)
+    List<S3Object> secondPageObjects = new ArrayList<>();
+    for (int i = 0; i < 600; i++) {
+      String msgId = "msg-second-" + i;
+      secondPageObjects.add(createSummary("MyPrefix/" + msgId + "/payload.blob"));
+      secondPageObjects.add(createSummary("MyPrefix/" + msgId + "/metadata.properties"));
+      secondPageObjects.add(createSummary("MyPrefix/" + msgId + "/stacktrace.txt"));
+    }
+
+    ListObjectsV2Response firstPage = mock(ListObjectsV2Response.class);
+    when(firstPage.contents()).thenReturn(firstPageObjects);
+    when(firstPage.isTruncated()).thenReturn(true);
+    when(firstPage.nextContinuationToken()).thenReturn("continuation-token-1");
+
+    ListObjectsV2Response secondPage = mock(ListObjectsV2Response.class);
+    when(secondPage.contents()).thenReturn(secondPageObjects);
+    when(secondPage.isTruncated()).thenReturn(false);
+
+    when(client.listObjectsV2(any(ListObjectsV2Request.class)))
+        .thenReturn(firstPage)
+        .thenReturn(secondPage);
+
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+
+    try {
+      start(store);
+
+      List<String> blobNames = StreamSupport.stream(store.report(false).spliterator(), false)
+          .map(RemoteBlob::getName).toList();
+
+      // Should retrieve exactly 1000 message IDs across paginated responses
+      assertEquals(1000, blobNames.size());
+
+      // Verify pagination occurred (multiple S3 calls)
+      verify(client, times(2)).listObjectsV2(any(ListObjectsV2Request.class));
+    } finally {
+      stop(store);
+    }
+  }
+
     @Test
     public void testReportWithErrorMessage_Success() throws Exception {
-      S3Client client = Mockito.mock(S3Client.class);
-      ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-      Mockito.when(wrapper.amazonClient()).thenReturn(client);
+      S3Client client = mock(S3Client.class);
+      ClientWrapper wrapper = mock(ClientWrapper.class);
+      when(wrapper.amazonClient()).thenReturn(client);
 
       AmazonS3Connection conn = buildConnection(wrapper);
 
       String msgId = UUID.randomUUID().toString();
       List<S3Object> list = Arrays.asList(
-          createSummary("bucket", "MyPrefix/" + msgId + "/payload.blob"),
-          createSummary("bucket", "MyPrefix/" + msgId + "/metadata.properties")
+          createSummary("MyPrefix/" + msgId + "/payload.blob"),
+          createSummary("MyPrefix/" + msgId + "/metadata.properties")
       );
-      ListObjectsV2Response result = Mockito.mock(ListObjectsV2Response.class);
-      Mockito.when(result.contents()).thenReturn(list);
-      Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
+      ListObjectsV2Response result = mock(ListObjectsV2Response.class);
+      when(result.contents()).thenReturn(list);
+      when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
 
       // Mock stacktrace.txt content
       String stacktraceContent = "Simulated error message\nSecond line of stacktrace";
-      GetObjectResponse mockResponse = Mockito.mock(GetObjectResponse.class);
+      GetObjectResponse mockResponse = mock(GetObjectResponse.class);
       ResponseInputStream<GetObjectResponse> responseStream = new ResponseInputStream<>(
           mockResponse,
           AbortableInputStream.create(new ByteArrayInputStream(stacktraceContent.getBytes(StandardCharsets.UTF_8))));
-      Mockito.when(client.getObject(any(GetObjectRequest.class))).thenReturn(responseStream);
+      when(client.getObject(any(GetObjectRequest.class))).thenReturn(responseStream);
 
       S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
       try {
@@ -125,21 +392,21 @@ public class S3RetryStoreTest extends BaseCase {
 
     @Test
     public void testReportWithErrorMessage_Exception() throws Exception {
-      S3Client client = Mockito.mock(S3Client.class);
-      ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-      Mockito.when(wrapper.amazonClient()).thenReturn(client);
+      S3Client client = mock(S3Client.class);
+      ClientWrapper wrapper = mock(ClientWrapper.class);
+      when(wrapper.amazonClient()).thenReturn(client);
 
       AmazonS3Connection conn = buildConnection(wrapper);
 
       String msgId = UUID.randomUUID().toString();
       List<S3Object> list = Arrays.asList(
-          createSummary("bucket", "MyPrefix/" + msgId + "/payload.blob"),
-          createSummary("bucket", "MyPrefix/" + msgId + "/metadata.properties")
+          createSummary("MyPrefix/" + msgId + "/payload.blob"),
+          createSummary("MyPrefix/" + msgId + "/metadata.properties")
       );
-      ListObjectsV2Response result = Mockito.mock(ListObjectsV2Response.class);
-      Mockito.when(result.contents()).thenReturn(list);
-      Mockito.when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
-      Mockito.when(client.getObject(any(GetObjectRequest.class))).thenThrow(new RuntimeException("Simulated error"));
+      ListObjectsV2Response result = mock(ListObjectsV2Response.class);
+      when(result.contents()).thenReturn(list);
+      when(client.listObjectsV2(any(ListObjectsV2Request.class))).thenReturn(result);
+      when(client.getObject(any(GetObjectRequest.class))).thenThrow(new RuntimeException("Simulated error"));
 
       S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
       try {
@@ -161,37 +428,37 @@ public class S3RetryStoreTest extends BaseCase {
   // it's all about the coverage...
   @Test
   public void testPrefix() throws Exception {
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
-    S3RetryStore store_no_prefix = new S3RetryStore().withBucket("bucket").withConnection(conn);
-    S3RetryStore store_with_prefix =
+    S3RetryStore storeNoPrefix = new S3RetryStore().withBucket("bucket").withConnection(conn);
+    S3RetryStore storeWithPrefix =
         new S3RetryStore().withBucket("bucket").withPrefix("prefix").withConnection(conn);
     try {
-      start(store_no_prefix, store_with_prefix);
-      assertEquals("prefix/msgId", store_no_prefix.toMessageID("prefix/msgId/payload.blob"));
-      assertEquals("msgId", store_with_prefix.toMessageID("prefix/msgId/payload.blob"));
+      start(storeNoPrefix, storeWithPrefix);
+      assertEquals("prefix/msgId", storeNoPrefix.toMessageID("prefix/msgId/payload.blob"));
+      assertEquals("msgId", storeWithPrefix.toMessageID("prefix/msgId/payload.blob"));
 
-      assertEquals("msgId/payload.blob", store_no_prefix.buildObjectName("msgId", "payload.blob"));
+      assertEquals("msgId/payload.blob", storeNoPrefix.buildObjectName("msgId", "payload.blob"));
       assertEquals("prefix/msgId/payload.blob",
-          store_with_prefix.buildObjectName("msgId", "payload.blob"));
+          storeWithPrefix.buildObjectName("msgId", "payload.blob"));
     } finally {
-      stop(store_no_prefix, store_with_prefix);
+      stop(storeNoPrefix, storeWithPrefix);
     }
   }
 
   @Test
   public void testWrite_Exception() throws Exception {
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
-    Mockito.when(client.putObject((PutObjectRequest)any(), (RequestBody)any())).thenThrow(new RuntimeException());
+    when(client.putObject((PutObjectRequest)any(), (RequestBody)any())).thenThrow(new RuntimeException());
 
     AdaptrisMessage msg = AdaptrisMessageFactory.getDefaultInstance().newMessage("hello", "UTF-8");
     msg.addMessageHeader("hello", "world");
@@ -200,7 +467,7 @@ public class S3RetryStoreTest extends BaseCase {
         new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
     try {
       start(store);
-      Assertions.assertThrows(InterlokException.class, () -> store.write(msg));
+      assertThrows(InterlokException.class, () -> store.write(msg));
     } finally {
       stop(store);
     }
@@ -208,11 +475,11 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testDelete() throws Exception {
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
-    Mockito.when(client.deleteObject((DeleteObjectRequest)any())).thenReturn(DeleteObjectResponse.builder().build());
+    when(client.deleteObject((DeleteObjectRequest)any())).thenReturn(DeleteObjectResponse.builder().build());
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
@@ -228,17 +495,17 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testGetMetadata() throws Exception {
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
-    S3Object mS3Object = Mockito.mock(S3Object.class);
+    S3Object mS3Object = mock(S3Object.class);
     ByteArrayInputStream mStream = createMetadataStream();
     ResponseInputStream resultStream = new ResponseInputStream(mS3Object, AbortableInputStream.create(mStream));
 
     long size = mStream.available();
-    Mockito.when(mS3Object.size()).thenReturn(size);
-    Mockito.when(client.getObject((GetObjectRequest) any())).thenReturn(resultStream);
+    when(mS3Object.size()).thenReturn(size);
+    when(client.getObject((GetObjectRequest) any())).thenReturn(resultStream);
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
@@ -254,11 +521,11 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testGetMetadata_Exception() throws Exception {
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
-    Mockito.when(client.getObject((GetObjectRequest) any()))
+    when(client.getObject((GetObjectRequest) any()))
         .thenThrow(new RuntimeException());
 
     AmazonS3Connection conn = buildConnection(wrapper);
@@ -267,7 +534,7 @@ public class S3RetryStoreTest extends BaseCase {
         new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
     try {
       start(store);
-      Assertions.assertThrows(InterlokException.class, () -> store.getMetadata("XXXX"));
+      assertThrows(InterlokException.class, () -> store.getMetadata("XXXX"));
     } finally {
       stop(store);
     }
@@ -275,17 +542,17 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testBuildForRetry() throws Exception {
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
-    S3Object pS3Object = Mockito.mock(S3Object.class);
+    S3Object pS3Object = mock(S3Object.class);
     ByteArrayInputStream pStream = new ByteArrayInputStream("hello world".getBytes(StandardCharsets.UTF_8));
     ResponseInputStream resultStream = new ResponseInputStream(pS3Object, AbortableInputStream.create(pStream));
 
     long size = pStream.available();
-    Mockito.when(pS3Object.size()).thenReturn(size);
-    Mockito.when(client.getObject((GetObjectRequest) any())).thenReturn(resultStream);
+    when(pS3Object.size()).thenReturn(size);
+    when(client.getObject((GetObjectRequest) any())).thenReturn(resultStream);
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
@@ -297,11 +564,11 @@ public class S3RetryStoreTest extends BaseCase {
       metadata.put(CLASS_UNDER_TEST_KEY, S3RetryStore.class.getCanonicalName());
       String expectedGuid = UUID.randomUUID().toString();
       AdaptrisMessage msg = store.buildForRetry(expectedGuid, metadata, null);
-      assertEquals(expectedGuid, msg.getUniqueId());
-      assertTrue(msg.headersContainsKey(CLASS_UNDER_TEST_KEY));
-      assertEquals(S3RetryStore.class.getCanonicalName(),
-          msg.getMetadataValue(CLASS_UNDER_TEST_KEY));
-      Mockito.verify(client, Mockito.times(3)).deleteObject((DeleteObjectRequest) any());
+       assertEquals(expectedGuid, msg.getUniqueId());
+       assertTrue(msg.headersContainsKey(CLASS_UNDER_TEST_KEY));
+       assertEquals(S3RetryStore.class.getCanonicalName(),
+           msg.getMetadataValue(CLASS_UNDER_TEST_KEY));
+       verify(client, times(3)).deleteObject((DeleteObjectRequest) any());
     } finally {
       stop(store);
     }
@@ -309,11 +576,11 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testBuildForRetry_Failure() throws Exception {
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
-    Mockito.when(client.getObject((GetObjectRequest) any())).thenThrow(new RuntimeException());
+    when(client.getObject((GetObjectRequest) any())).thenThrow(new RuntimeException());
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
@@ -322,7 +589,7 @@ public class S3RetryStoreTest extends BaseCase {
     try {
       start(store);
       Map<String, String> metadata = new HashMap<>();
-      Assertions.assertThrows(InterlokException.class, () -> store.buildForRetry("XXX", metadata, null));
+      assertThrows(InterlokException.class, () -> store.buildForRetry("XXX", metadata, null));
     } finally {
       stop(store);
     }
@@ -331,20 +598,20 @@ public class S3RetryStoreTest extends BaseCase {
   @Test
   public void testGetStackTrace_Success() throws Exception {
     final String STACKTRACE_CONTENT = "stacktrace content";
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
     // Mock the response object
-    GetObjectResponse mockResponse = Mockito.mock(GetObjectResponse.class);
+    GetObjectResponse mockResponse = mock(GetObjectResponse.class);
 
     ResponseInputStream<GetObjectResponse> responseStream =
       new ResponseInputStream<>(mockResponse, AbortableInputStream.create(
         new ByteArrayInputStream(STACKTRACE_CONTENT.getBytes(StandardCharsets.UTF_8))));
 
-    Mockito.when(client.getObject(any(GetObjectRequest.class))).thenReturn(responseStream);
+    when(client.getObject(any(GetObjectRequest.class))).thenReturn(responseStream);
 
     S3RetryStore store = new S3RetryStore().withBucket("bucket").withConnection(conn);
     try {
@@ -358,13 +625,13 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testGetStackTrace_Exception() throws Exception {
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
-    Mockito.when(client.getObject(any(GetObjectRequest.class))).thenThrow(new RuntimeException());
+    when(client.getObject(any(GetObjectRequest.class))).thenThrow(new RuntimeException());
 
     S3RetryStore store = new S3RetryStore().withBucket("bucket").withConnection(conn);
     try {
@@ -378,9 +645,9 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testMetadataAsMessage() throws Exception {
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
@@ -415,14 +682,14 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testUploadMetadata() throws Exception {
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
     // Mock successful upload
-    Mockito.when(client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+    when(client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
         .thenReturn(null);
 
     S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
@@ -439,7 +706,7 @@ public class S3RetryStoreTest extends BaseCase {
       method.invoke(store, msg);
 
       // Verify putObject was called
-      Mockito.verify(client, Mockito.atLeastOnce()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+      verify(client, Mockito.atLeastOnce()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
     } finally {
       stop(store);
     }
@@ -447,14 +714,14 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testUploadMetadata_Exception() throws Exception {
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
     // Mock upload failure
-    Mockito.when(client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+    when(client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
         .thenThrow(new RuntimeException("Upload failed"));
 
     S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
@@ -468,7 +735,7 @@ public class S3RetryStoreTest extends BaseCase {
       // Use reflection to call private uploadMetadata method
       java.lang.reflect.Method method = S3RetryStore.class.getDeclaredMethod("uploadMetadata", AdaptrisMessage.class);
       method.setAccessible(true);
-      Assertions.assertThrows(Exception.class, () -> method.invoke(store, msg));
+      assertThrows(Exception.class, () -> method.invoke(store, msg));
     } finally {
       stop(store);
     }
@@ -476,14 +743,14 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testUploadStacktrace_WithStacktrace() throws Exception {
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
     // Mock successful upload
-    Mockito.when(client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+    when(client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
         .thenReturn(null);
 
     S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
@@ -503,7 +770,7 @@ public class S3RetryStoreTest extends BaseCase {
       method.invoke(store, msg);
 
       // Verify putObject was called (stacktrace was uploaded)
-      Mockito.verify(client, Mockito.atLeastOnce()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+      verify(client, Mockito.atLeastOnce()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
     } finally {
       stop(store);
     }
@@ -511,9 +778,9 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testUploadStacktrace_NoStacktrace() throws Exception {
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
@@ -531,7 +798,7 @@ public class S3RetryStoreTest extends BaseCase {
       method.invoke(store, msg);
 
       // Verify putObject was NOT called (no stacktrace to upload)
-      Mockito.verify(client, Mockito.never()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
+      verify(client, never()).putObject(any(PutObjectRequest.class), any(RequestBody.class));
     } finally {
       stop(store);
     }
@@ -539,14 +806,14 @@ public class S3RetryStoreTest extends BaseCase {
 
   @Test
   public void testUploadStacktrace_Exception() throws Exception {
-    S3Client client = Mockito.mock(S3Client.class);
-    ClientWrapper wrapper = Mockito.mock(ClientWrapper.class);
-    Mockito.when(wrapper.amazonClient()).thenReturn(client);
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
     // Mock upload failure
-    Mockito.when(client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
+    when(client.putObject(any(PutObjectRequest.class), any(RequestBody.class)))
         .thenThrow(new RuntimeException("Upload failed"));
 
     S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
@@ -563,25 +830,23 @@ public class S3RetryStoreTest extends BaseCase {
       // Use reflection to call private uploadStacktrace method
       java.lang.reflect.Method method = S3RetryStore.class.getDeclaredMethod("uploadStacktrace", AdaptrisMessage.class);
       method.setAccessible(true);
-      Assertions.assertThrows(Exception.class, () -> method.invoke(store, msg));
+      assertThrows(Exception.class, () -> method.invoke(store, msg));
     } finally {
       stop(store);
     }
   }
 
   private AmazonS3Connection buildConnection(ClientWrapper wrapper) {
-    AmazonS3Connection connection = Mockito.mock(AmazonS3Connection.class);
-    Mockito.when(connection.retrieveConnection(ClientWrapper.class)).thenReturn(wrapper);
+    AmazonS3Connection connection = mock(AmazonS3Connection.class);
+    when(connection.retrieveConnection(ClientWrapper.class)).thenReturn(wrapper);
     return connection;
   }
 
-  public static S3Object createSummary(String bucket, String key) {
+  public static S3Object createSummary(String key) {
     S3Object.Builder builder = S3Object.builder();
     builder.key(key);
     builder.size(0L);
     builder.lastModified(Instant.now());
-//    S3ObjectSummary sbase = new S3ObjectSummary();
-//    sbase.setBucketName(bucket);
     return builder.build();
   }
 
@@ -603,5 +868,33 @@ public class S3RetryStoreTest extends BaseCase {
       p.store(out, "");
     }
     return new ByteArrayInputStream(out.toByteArray());
+  }
+
+  private Properties metadataPropertiesFromWrite(List<PutObjectRequest> requests, List<RequestBody> requestBodies,
+      String metadataObjectName) throws Exception {
+    for (int i = 0; i < requests.size(); i++) {
+      PutObjectRequest req = requests.get(i);
+      if (metadataObjectName.equals(req.key())) {
+        return asProperties(requestBodies.get(i));
+      }
+    }
+    fail("metadata.properties was not uploaded");
+    return new Properties();
+  }
+
+  private Properties asProperties(RequestBody body) throws Exception {
+    Properties properties = new Properties();
+    try (InputStream in = body.contentStreamProvider().newStream()) {
+      properties.load(in);
+    }
+    return properties;
+  }
+
+  private String requireWorkflowId(Map<String, String> metadata) throws CoreException {
+    String workflowId = metadata.get("workflowId");
+    if (workflowId == null) {
+      throw new CoreException("No Workflow [null] found");
+    }
+    return workflowId;
   }
 }
