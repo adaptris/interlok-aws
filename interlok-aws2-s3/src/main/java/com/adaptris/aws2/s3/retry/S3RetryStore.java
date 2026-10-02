@@ -32,6 +32,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.io.InputStream;
@@ -83,6 +84,7 @@ public class S3RetryStore implements RetryStore {
   @AdvancedConfig
   @Getter
   @Setter
+  @Min(1)
   private Integer reportMaxMessages = 1000;
 
   private transient Pattern nameMapper = null;

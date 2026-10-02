@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -301,23 +302,20 @@ public class S3RetryStoreTest extends BaseCase {
 
     AmazonS3Connection conn = buildConnection(wrapper);
 
-    // First page: 500 messages (1500 keys total)
-    List<S3Object> firstPageObjects = new ArrayList<>();
-    for (int i = 0; i < 500; i++) {
-      String msgId = "msg-first-" + i;
-      firstPageObjects.add(createSummary("MyPrefix/" + msgId + "/payload.blob"));
-      firstPageObjects.add(createSummary("MyPrefix/" + msgId + "/metadata.properties"));
-      firstPageObjects.add(createSummary("MyPrefix/" + msgId + "/stacktrace.txt"));
+    // S3 ListObjectsV2 returns at most 1000 keys per page. Build 1000 failed messages (3000 keys)
+    // and split them into realistic 1000-key pages. This naturally exercises page boundaries where
+    // a message's 3 keys may span multiple responses.
+    List<S3Object> allObjects = new ArrayList<>();
+    for (int i = 0; i < 1000; i++) {
+      String msgId = "msg-" + i;
+      allObjects.add(createSummary("MyPrefix/" + msgId + "/payload.blob"));
+      allObjects.add(createSummary("MyPrefix/" + msgId + "/metadata.properties"));
+      allObjects.add(createSummary("MyPrefix/" + msgId + "/stacktrace.txt"));
     }
 
-    // Second page: 600 messages (1800 keys total, but we only need 500 more for total of 1000)
-    List<S3Object> secondPageObjects = new ArrayList<>();
-    for (int i = 0; i < 600; i++) {
-      String msgId = "msg-second-" + i;
-      secondPageObjects.add(createSummary("MyPrefix/" + msgId + "/payload.blob"));
-      secondPageObjects.add(createSummary("MyPrefix/" + msgId + "/metadata.properties"));
-      secondPageObjects.add(createSummary("MyPrefix/" + msgId + "/stacktrace.txt"));
-    }
+    List<S3Object> firstPageObjects = new ArrayList<>(allObjects.subList(0, 1000));
+    List<S3Object> secondPageObjects = new ArrayList<>(allObjects.subList(1000, 2000));
+    List<S3Object> thirdPageObjects = new ArrayList<>(allObjects.subList(2000, 3000));
 
     ListObjectsV2Response firstPage = mock(ListObjectsV2Response.class);
     when(firstPage.contents()).thenReturn(firstPageObjects);
@@ -326,11 +324,17 @@ public class S3RetryStoreTest extends BaseCase {
 
     ListObjectsV2Response secondPage = mock(ListObjectsV2Response.class);
     when(secondPage.contents()).thenReturn(secondPageObjects);
-    when(secondPage.isTruncated()).thenReturn(false);
+    when(secondPage.isTruncated()).thenReturn(true);
+    when(secondPage.nextContinuationToken()).thenReturn("continuation-token-2");
+
+    ListObjectsV2Response thirdPage = mock(ListObjectsV2Response.class);
+    when(thirdPage.contents()).thenReturn(thirdPageObjects);
+    when(thirdPage.isTruncated()).thenReturn(false);
 
     when(client.listObjectsV2(any(ListObjectsV2Request.class)))
         .thenReturn(firstPage)
-        .thenReturn(secondPage);
+        .thenReturn(secondPage)
+        .thenReturn(thirdPage);
 
     S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
 
@@ -343,8 +347,8 @@ public class S3RetryStoreTest extends BaseCase {
       // Should retrieve exactly 1000 message IDs across paginated responses
       assertEquals(1000, blobNames.size());
 
-      // Verify pagination occurred (multiple S3 calls)
-      verify(client, times(2)).listObjectsV2(any(ListObjectsV2Request.class));
+      // Verify pagination occurred across realistic 1000-key pages.
+      verify(client, times(3)).listObjectsV2(any(ListObjectsV2Request.class));
     } finally {
       stop(store);
     }
@@ -831,6 +835,51 @@ public class S3RetryStoreTest extends BaseCase {
       java.lang.reflect.Method method = S3RetryStore.class.getDeclaredMethod("uploadStacktrace", AdaptrisMessage.class);
       method.setAccessible(true);
       assertThrows(Exception.class, () -> method.invoke(store, msg));
+    } finally {
+      stop(store);
+    }
+  }
+
+  @Test
+  public void testReport_ExceptionDuringListObjects() throws Exception {
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
+    when(client.listObjectsV2(any(ListObjectsV2Request.class)))
+        .thenThrow(new RuntimeException("Simulated error"));
+
+    AmazonS3Connection conn = buildConnection(wrapper);
+
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withPrefix("MyPrefix").withConnection(conn);
+    try {
+      start(store);
+      assertThrows(InterlokException.class, () -> store.report(false));
+    } finally {
+      stop(store);
+    }
+  }
+
+  @Test
+  public void testRetryContractNoOpMethods() throws Exception {
+    S3Client client = mock(S3Client.class);
+    ClientWrapper wrapper = mock(ClientWrapper.class);
+    when(wrapper.amazonClient()).thenReturn(client);
+
+    AmazonS3Connection conn = buildConnection(wrapper);
+    AmazonS3Connection replacementConn = mock(AmazonS3Connection.class);
+
+    S3RetryStore store = new S3RetryStore().withBucket("bucket").withConnection(conn);
+    try {
+      start(store);
+
+      assertDoesNotThrow(() -> store.acknowledge("ack-id"));
+      assertDoesNotThrow(store::deleteAcknowledged);
+      assertNull(store.obtainExpiredMessages());
+      assertDoesNotThrow(() -> store.updateRetryCount("message-id"));
+      assertNull(store.obtainMessagesToRetry());
+
+      store.makeConnection(replacementConn);
+      assertSame(store.getConnection(), conn);
     } finally {
       stop(store);
     }
