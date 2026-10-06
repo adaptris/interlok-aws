@@ -4,6 +4,7 @@ ext {
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
   awsSDKVersion = "2.29.9"
   jacksonVersion = "2.22.3"
+  jacksonAnnotationsVersion = "2.22"
 }
 
 dependencies {
@@ -21,7 +22,7 @@ dependencies {
   }
   api ("com.fasterxml.jackson.core:jackson-databind:$jacksonVersion")
   api ("com.fasterxml.jackson.core:jackson-core:$jacksonVersion")
-  api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion")
+  api ("com.fasterxml.jackson.core:jackson-annotations:$jacksonAnnotationsVersion")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
   api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.19.2")
