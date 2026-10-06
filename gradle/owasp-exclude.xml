@@ -142,6 +142,7 @@
     <cve>CVE-2026-59902</cve>
     <cve>CVE-2026-59903</cve>
     <cve>CVE-2026-59921</cve>
+    <cve>CVE-2026-62380</cve>
     <cve>CVE-2026-73507</cve>
     <cve>CVE-2026-73508</cve>
     <cve>CVE-2026-75595</cve>
@@ -156,6 +157,19 @@
     <cve>CVE-2026-93573</cve>
     <cve>CVE-2026-93574</cve>
     <cve>CVE-2026-100666</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      com.amazonaws:amazon-kinesis-producer:0.15.12 is the latest release published to Maven Central.
+      netty-codec-http2 4.1.126.Final is pulled in transitively from that dependency chain and cannot
+      be upgraded in-line from this repo.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/io\.netty/netty\-codec\-http2@4\.1\.126\.Final$</packageUrl>
+    <cve>CVE-2026-93492</cve>
+    <cve>CVE-2026-93567</cve>
+    <cve>CVE-2026-93568</cve>
+    <cve>CVE-2026-93569</cve>
+    <cve>CVE-2026-93579</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
