@@ -79,6 +79,7 @@
     <cve>CVE-2023-22737</cve>
     <cve>CVE-2022-31122</cve>
     <cve>CVE-2021-41119</cve>
+    <cve>CVE-2026-45799</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
@@ -102,6 +103,7 @@
     <cve>CVE-2026-44248</cve>
     <cve>CVE-2026-44249</cve>
     <cve>CVE-2026-44250</cve>
+    <cve>CVE-2026-42587</cve>
     <cve>CVE-2026-44890</cve>
     <cve>CVE-2026-44891</cve>
     <cve>CVE-2026-44893</cve>
@@ -124,10 +126,12 @@
     <cve>CVE-2026-55851</cve>
     <cve>CVE-2026-56745</cve>
     <cve>CVE-2026-56746</cve>
+    <cve>CVE-2026-56818</cve>
     <cve>CVE-2026-56817</cve>
     <cve>CVE-2026-56819</cve>
     <cve>CVE-2026-56820</cve>
     <cve>CVE-2026-56821</cve>
+    <cve>CVE-2026-62243</cve>
     <cve>CVE-2026-56822</cve>
     <cve>CVE-2026-59898</cve>
     <cve>CVE-2026-59899</cve>
@@ -135,7 +139,23 @@
     <cve>CVE-2026-59901</cve>
     <cve>CVE-2026-59919</cve>
     <cve>CVE-2026-59920</cve>
+    <cve>CVE-2026-59902</cve>
+    <cve>CVE-2026-59903</cve>
     <cve>CVE-2026-59921</cve>
+    <cve>CVE-2026-73507</cve>
+    <cve>CVE-2026-73508</cve>
+    <cve>CVE-2026-75595</cve>
+    <cve>CVE-2026-75596</cve>
+    <cve>CVE-2026-89044</cve>
+    <cve>CVE-2026-93488</cve>
+    <cve>CVE-2026-93491</cve>
+    <cve>CVE-2026-93558</cve>
+    <cve>CVE-2026-93562</cve>
+    <cve>CVE-2026-93565</cve>
+    <cve>CVE-2026-93566</cve>
+    <cve>CVE-2026-93573</cve>
+    <cve>CVE-2026-93574</cve>
+    <cve>CVE-2026-100666</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
@@ -167,6 +187,37 @@
     <cve>CVE-2026-2332</cve>
     <cve>CVE-2026-6790</cve>
     <cve>CVE-2026-10050</cve>
+    <cve>CVE-2026-12611</cve>
+    <cve>CVE-2026-19203</cve>
+    <cve>CVE-2026-19204</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      com.amazonaws:amazon-kinesis-producer:0.15.12 is the latest release published to Maven Central.
+      snappy-java is pulled in transitively from that dependency chain and cannot be upgraded in-line here.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.xerial\.snappy/snappy-java@1\.1\.10\.5$</packageUrl>
+    <cve>CVE-2026-90559</cve>
+    <cve>CVE-2026-93451</cve>
+    <cve>CVE-2026-93452</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      com.amazonaws:amazon-kinesis-producer:0.15.12 is the latest release published to Maven Central.
+      zstd-jni is pulled in transitively from that dependency chain and cannot be upgraded in-line here.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.github\.luben/zstd-jni@1\.5\.6\-4$</packageUrl>
+    <cve>CVE-2026-87795</cve>
+    <cve>CVE-2026-87823</cve>
+    <cve>CVE-2026-89045</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      com.amazonaws:amazon-kinesis-producer:0.15.12 is the latest release published to Maven Central.
+      lz4-java is pulled in transitively from that dependency chain and cannot be upgraded in-line here.
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/at\.yawk\.lz4/lz4-java@1\.10\.1$</packageUrl>
+    <cve>CVE-2026-59949</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[
@@ -223,10 +274,13 @@
     <cve>CVE-2026-56746</cve>
     <cve>CVE-2026-56816</cve>
     <cve>CVE-2026-56817</cve>
+    <cve>CVE-2026-56818</cve>
     <cve>CVE-2026-56819</cve>
     <cve>CVE-2026-56820</cve>
     <cve>CVE-2026-56821</cve>
     <cve>CVE-2026-56822</cve>
+    <cve>CVE-2026-59902</cve>
+    <cve>CVE-2026-59903</cve>
     <cve>CVE-2026-59898</cve>
     <cve>CVE-2026-59899</cve>
     <cve>CVE-2026-59900</cve>
@@ -234,5 +288,20 @@
     <cve>CVE-2026-59919</cve>
     <cve>CVE-2026-59920</cve>
     <cve>CVE-2026-59921</cve>
+    <cve>CVE-2026-62380</cve>
+    <cve>CVE-2026-73507</cve>
+    <cve>CVE-2026-73508</cve>
+    <cve>CVE-2026-75595</cve>
+    <cve>CVE-2026-75596</cve>
+    <cve>CVE-2026-89044</cve>
+    <cve>CVE-2026-93488</cve>
+    <cve>CVE-2026-93491</cve>
+    <cve>CVE-2026-93558</cve>
+    <cve>CVE-2026-93562</cve>
+    <cve>CVE-2026-93565</cve>
+    <cve>CVE-2026-93566</cve>
+    <cve>CVE-2026-93573</cve>
+    <cve>CVE-2026-93574</cve>
+    <cve>CVE-2026-100666</cve>
   </suppress>
 </suppressions>
