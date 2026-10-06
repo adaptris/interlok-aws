@@ -5,12 +5,12 @@ ext {
   componentName = 'Interlok AWS/Kinesis'
   componentDesc = "Components that interact AWS Kinesis data streams"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  nettyVersion = "4.2.14.Final"
+  nettyVersion = "4.2.18.Final"
   kotlinVersion = "2.1.0"
-  wireVersion = "5.3.0"
+  wireVersion = "5.5.1"
   okioVersion = "3.9.1"
-  awsSDKVersion = "1.12.777"
-  jacksonVersion = "2.19.2"
+  awsSDKVersion = "1.12.797"
+  jacksonVersion = "2.22.3"
   jsonOrgVersion = "20250107"
 }
 dependencies {
@@ -39,7 +39,7 @@ dependencies {
     exclude group: "org.apache.avro"
     exclude group: "org.apache.kafka", module: "kafka-client"
   }
-  implementation ("org.apache.avro:avro:1.12.0") {
+  implementation ("org.apache.avro:avro:1.12.2") {
     exclude group: "org.apache.commons", module: "commons-compress"
   }
   implementation ("org.apache.kafka:kafka-clients:3.9.2")
