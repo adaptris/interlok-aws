@@ -5,49 +5,43 @@ ext {
   componentName = 'Interlok AWS/Kinesis'
   componentDesc = "Components that interact AWS Kinesis data streams"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  nettyVersion = "4.2.18.Final"
-  kotlinVersion = "2.1.0"
-  wireVersion = "5.5.1"
-  okioVersion = "3.9.1"
-  awsSDKVersion = "1.12.797"
-  jacksonVersion = "2.22.3"
-  jsonOrgVersion = "20250107"
 }
 dependencies {
-  api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
-  api (platform("com.amazonaws:aws-java-sdk-bom:$awsSDKVersion"))
-  implementation ("org.jetbrains.kotlin:kotlin-bom:$kotlinVersion")
+  api platform(interlokCatalogPlatform)
+  api (platform("com.fasterxml.jackson:jackson-bom"))
+  api (platform("com.amazonaws:aws-java-sdk-bom"))
+  implementation ("org.jetbrains.kotlin:kotlin-bom")
 
   api ("com.amazonaws:aws-java-sdk-kinesis")
   // The BOM from the parent overrides the 1.12.130 dependency on sdk-s3
-  api ("com.amazonaws:amazon-kinesis-client:1.15.2") {
+  api ("com.amazonaws:amazon-kinesis-client") {
     exclude group: "com.google.protobuf", module: "protobuf-java"
   }
 
   api ("com.amazonaws:aws-java-sdk-core") {
     exclude group: "org.apache.avro"
   }
-  api ("commons-codec:commons-codec:1.22.0")
-  implementation ("org.json:json:$jsonOrgVersion")
+  api ("commons-codec:commons-codec")
+  implementation ("org.json:json")
   // 0.13.0 doesn't contain the windows execuatble (bad?) so use the older version for now.
   // 0.13.1 does containthe windows binaries
   // 0.14 does not contain the windows binary.
-  api ("com.amazonaws:amazon-kinesis-producer:0.15.12") {
+  api ("com.amazonaws:amazon-kinesis-producer") {
     exclude group: "com.google.protobuf", module: "protobuf-java"
     // Exclude netty so we can pin the version.
     exclude group: "io.netty"
     exclude group: "org.apache.avro"
     exclude group: "org.apache.kafka", module: "kafka-client"
   }
-  implementation ("org.apache.avro:avro:1.12.2") {
+  implementation ("org.apache.avro:avro") {
     exclude group: "org.apache.commons", module: "commons-compress"
   }
-  implementation ("org.apache.kafka:kafka-clients:3.9.2")
+  implementation ("org.apache.kafka:kafka-clients")
   
-  implementation ("org.apache.commons:commons-compress:1.28.0")
+  implementation ("org.apache.commons:commons-compress")
 
-  api ("com.google.guava:guava:33.6.0-jre")
-  implementation (platform("io.netty:netty-bom:$nettyVersion"))
+  api ("com.google.guava:guava")
+  implementation (platform("io.netty:netty-bom"))
 
   implementation ("io.netty:netty-buffer")
   implementation ("io.netty:netty-common")
@@ -59,17 +53,17 @@ dependencies {
   implementation ("io.netty:netty-codec")
   implementation ("io.netty:netty-codec-http")
 
-  implementation ("com.charleskorn.kaml:kaml:0.77.1")
+  implementation ("com.charleskorn.kaml:kaml")
   
-  implementation ("com.squareup.wire:wire-schema:$wireVersion")
-  implementation ("com.squareup.wire:wire-compiler:$wireVersion") {
+  implementation ("com.squareup.wire:wire-schema")
+  implementation ("com.squareup.wire:wire-compiler") {
     exclude group: "com.charleskorn.kaml", module: "kaml"
   }
 
-  implementation ("com.squareup.okio:okio:$okioVersion")
-  implementation ("com.squareup.okio:okio-fakefilesystem:$okioVersion")
+  implementation ("com.squareup.okio:okio")
+  implementation ("com.squareup.okio:okio-fakefilesystem")
 
-  api ("com.google.protobuf:protobuf-java:4.35.0")
+  api ("com.google.protobuf:protobuf-java")
   // Dependency to platform/BOM
   api ("com.fasterxml.jackson.core:jackson-databind")
   api ("com.fasterxml.jackson.core:jackson-core")

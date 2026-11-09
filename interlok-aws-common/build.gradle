@@ -2,20 +2,19 @@ ext {
   componentName = 'Interlok AWS/Common'
   componentDesc = "Common components for accessing AWS"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.12.797'
-  jacksonVersion = '2.22.3'
 }
 
 dependencies {
-  api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
-  api (platform("com.amazonaws:aws-java-sdk-bom:$awsSDKVersion"))
+  api platform(interlokCatalogPlatform)
+  api (platform("com.fasterxml.jackson:jackson-bom"))
+  api (platform("com.amazonaws:aws-java-sdk-bom"))
   api ("com.amazonaws:aws-java-sdk-core")
   api ("com.amazonaws:aws-java-sdk-sts")
   api ("com.fasterxml.jackson.core:jackson-databind")
   api ("com.fasterxml.jackson.core:jackson-core")
   api ("com.fasterxml.jackson.core:jackson-annotations")
   api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor")
-  api ("com.adaptris:interlok-apache-http:$interlokCoreVersion") { changing = true}
+  api ("com.adaptris:interlok-apache-http") { changing = true}
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {

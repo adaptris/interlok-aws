@@ -2,29 +2,28 @@ ext {
   componentName = 'Interlok AWS/SQS'
   componentDesc = "Publishing & Consuming from AWS SQS natively or via their JMS provider"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.12.797'
-  jacksonVersion = '2.22.3'
 }
 
 dependencies {
-  api ("com.amazonaws:aws-java-sdk-sqs:$awsSDKVersion")
-  api ("com.amazonaws:aws-java-sdk-core:$awsSDKVersion") {
+  api platform(interlokCatalogPlatform)
+  api ("com.amazonaws:aws-java-sdk-sqs")
+  api ("com.amazonaws:aws-java-sdk-core") {
     exclude group: "com.fasterxml.jackson.core", module: "jackson-databind"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-core"
     exclude group: "com.fasterxml.jackson.core", module: "jackson-annotations"
     exclude group: "com.fasterxml.jackson.dataformat", module: "jackson-dataformat-cbor"
   }
-  api ("com.amazonaws:amazon-sqs-java-messaging-lib:1.1.0")
+  api ("com.amazonaws:amazon-sqs-java-messaging-lib")
   // Dependency to platform/BOM
-  api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
+  api (platform("com.fasterxml.jackson:jackson-bom"))
   api ("com.fasterxml.jackson.core:jackson-databind")
   api ("com.fasterxml.jackson.core:jackson-core")
   api ("com.fasterxml.jackson.core:jackson-annotations")
   // It will probably march in lockstep, but since it's a different
   // group I will make it separate.
   api ("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor")
-  api ("org.apache.httpcomponents:httpclient:4.5.14")
-  api ("commons-codec:commons-codec:1.22.0")
+  api ("org.apache.httpcomponents:httpclient")
+  api ("commons-codec:commons-codec")
   api project(':interlok-aws-common')
 }
 

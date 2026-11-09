@@ -2,13 +2,12 @@ ext {
   componentName = 'Interlok AWS/SNS'
   componentDesc = "Publishing to AWS SNS topics"
   delombokTargetDir = new File("${project.projectDir}/src/main/generated")
-  awsSDKVersion = '1.12.797'
-  jacksonVersion = '2.22.3'
 }
 
 dependencies {
-  api (platform("com.fasterxml.jackson:jackson-bom:$jacksonVersion"))
-  api (platform("com.amazonaws:aws-java-sdk-bom:$awsSDKVersion"))
+  api platform(interlokCatalogPlatform)
+  api (platform("com.fasterxml.jackson:jackson-bom"))
+  api (platform("com.amazonaws:aws-java-sdk-bom"))
   api ("com.amazonaws:aws-java-sdk-sns")
   api ("com.amazonaws:aws-java-sdk-core")
   // Dependency to platform/BOM
