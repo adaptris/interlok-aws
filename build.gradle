@@ -12,22 +12,21 @@ plugins {
 }
 
 ext {
-  interlokCoreVersion = project.findProperty('interlokCoreVersion') ?: '5.0-SNAPSHOT'
-  releaseVersion = project.findProperty('releaseVersion') ?: '5.0-SNAPSHOT'
+  interlokCatalogVersion = project.findProperty('interlokCatalogVersion') ?: '5.0-SNAPSHOT'
+  interlokCoreVersion = project.findProperty('interlokCoreVersion') ?: interlokCatalogVersion
+  releaseVersion = project.findProperty('releaseVersion') ?: interlokCatalogVersion
   nexusBaseUrl = project.findProperty('nexusBaseUrl') ?: 'https://nexus.adaptris.net/nexus'
   mavenPublishUrl = project.findProperty('mavenPublishUrl') ?: nexusBaseUrl + '/content/repositories/snapshots'
   javadocsBaseUrl = nexusBaseUrl + "/content/sites/javadocs/com/adaptris"
   repoUsername = project.findProperty('repoUsername') ?: 'please set as gradle property'
   repoPassword = project.findProperty('repoPassword') ?: 'please set as gradle property'
   defaultNexusRepo = project.findProperty('defaultNexusRepo') ?: 'unknown'
+  interlokCatalogPlatform = "com.adaptris:interlok-version-catalog:${interlokCatalogVersion}"
   offlineJavadocPackageDir = new File(project.buildDir, "offline-javadoc-packages")
 
   interlokJavadocs= project.findProperty('interlokJavadocs') ?: javadocsBaseUrl + "/interlok-core/" + interlokCoreVersion
   interlokCommonJavadocs= project.findProperty('interlokJavadocs') ?: javadocsBaseUrl + "/interlok-common/" + interlokCoreVersion
   organizationName = "Adaptris Ltd"
-
-  slf4jVersion = '2.0.17'
-  mockitoVersion = '4.9.0'
 }
 
 ext.buildDetails = [
@@ -166,34 +165,53 @@ subprojects {
 
   // In this section you declare the dependencies for your production and test code
   dependencies {
-    api ("com.adaptris:interlok-core:$interlokCoreVersion") { changing= true}
-    api ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
-    implementation ("org.slf4j:slf4j-api:$slf4jVersion")
-    implementation ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
+    api platform(interlokCatalogPlatform)
+    implementation platform(interlokCatalogPlatform)
+    compileOnly platform(interlokCatalogPlatform)
+    annotationProcessor platform(interlokCatalogPlatform)
+    testImplementation platform(interlokCatalogPlatform)
+    testCompileOnly platform(interlokCatalogPlatform)
+    testRuntimeOnly platform(interlokCatalogPlatform)
 
-    annotationProcessor ("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
-    testImplementation ("org.junit.jupiter:junit-jupiter-api:5.11.3")
-    testImplementation ("org.junit.jupiter:junit-jupiter-engine:5.13.4")
-    testImplementation ("org.junit.platform:junit-platform-launcher:1.13.3")
-    testImplementation "org.slf4j:slf4j-simple:$slf4jVersion"
-    testImplementation ("com.adaptris:interlok-stubs:$interlokCoreVersion") { changing= true }
-    testImplementation ("org.slf4j:jcl-over-slf4j:$slf4jVersion")
-    testImplementation ("org.mockito:mockito-core:$mockitoVersion")
-    testImplementation ("org.mockito:mockito-inline:$mockitoVersion")
-    javadoc("com.adaptris:interlok-core-apt:$interlokCoreVersion") { changing= true}
+    api ("com.adaptris:interlok-core") { changing= true}
+    api ("com.adaptris:interlok-core-apt") { changing= true}
+    implementation ("org.slf4j:slf4j-api")
+    implementation ("org.slf4j:jcl-over-slf4j")
+
+    annotationProcessor ("com.adaptris:interlok-core-apt") { changing= true}
+    testImplementation ("org.junit.jupiter:junit-jupiter-api")
+    testImplementation ("org.junit.jupiter:junit-jupiter-engine")
+    testImplementation ("org.junit.platform:junit-platform-launcher")
+    testImplementation "org.slf4j:slf4j-simple"
+    testImplementation ("com.adaptris:interlok-stubs") { changing= true }
+    testImplementation ("org.slf4j:jcl-over-slf4j")
+    testImplementation ("org.mockito:mockito-core")
+    testImplementation ("org.mockito:mockito-inline")
+
+    javadoc platform(interlokCatalogPlatform)
+    javadoc("com.adaptris:interlok-core-apt") { changing= true}
     umlDoclet("nl.talsmasoftware:umldoclet:2.1.0")
 
-    offlineJavadocPackages ("com.adaptris:interlok-core:$interlokCoreVersion:javadoc@jar") { changing= true}
-    offlineJavadocPackages ("com.adaptris:interlok-common:$interlokCoreVersion:javadoc@jar") { changing= true}
+    offlineJavadocPackages platform(interlokCatalogPlatform)
+    offlineJavadocPackages ("com.adaptris:interlok-core:javadoc@jar") { changing= true}
+    offlineJavadocPackages ("com.adaptris:interlok-common:javadoc@jar") { changing= true}
   }
 
   javadoc {
+    dependsOn "offlinePackageList"
     onlyIf {
       !buildDetails.hasGraphViz()
     }
     configure(options) {
-      options.linksOffline(interlokJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-core-$interlokCoreVersion-javadoc.jar")
-      options.linksOffline(interlokCommonJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-common-$interlokCoreVersion-javadoc.jar")
+      def coreJavadocDir = new File(offlineJavadocPackageDir, "interlok-core-${interlokCoreVersion}-javadoc.jar")
+      def commonJavadocDir = new File(offlineJavadocPackageDir, "interlok-common-${interlokCoreVersion}-javadoc.jar")
+      if (new File(coreJavadocDir, 'element-list').exists()) {
+          options.linksOffline(interlokJavadocs, coreJavadocDir.getCanonicalPath())
+      }
+      if (new File(commonJavadocDir, 'element-list').exists()) {
+          options.linksOffline(interlokCommonJavadocs, commonJavadocDir.getCanonicalPath())
+      }
+
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
       options.addStringOption "Xdoclint:none", "-quiet"
@@ -201,6 +219,7 @@ subprojects {
   }
 
   task umlJavadoc(type: Javadoc) {
+    dependsOn "offlinePackageList"
     group 'Documentation'
     description 'Build javadocs using plantuml + graphviz + umldoclet, if dot is available'
 
@@ -213,8 +232,14 @@ subprojects {
     source = sourceSets.main.extensions.delombokTask
     classpath = project.sourceSets.main.compileClasspath
     configure(options) {
-      options.linksOffline(interlokJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-core-$interlokCoreVersion-javadoc.jar")
-      options.linksOffline(interlokCommonJavadocs, offlineJavadocPackageDir.getCanonicalPath() + "/interlok-common-$interlokCoreVersion-javadoc.jar")
+      def coreJavadocDir = new File(offlineJavadocPackageDir, "interlok-core-${interlokCoreVersion}-javadoc.jar")
+      def commonJavadocDir = new File(offlineJavadocPackageDir, "interlok-common-${interlokCoreVersion}-javadoc.jar")
+      if (new File(coreJavadocDir, 'element-list').exists()) {
+          options.linksOffline(interlokJavadocs, coreJavadocDir.getCanonicalPath())
+      }
+      if (new File(commonJavadocDir, 'element-list').exists()) {
+          options.linksOffline(interlokCommonJavadocs, commonJavadocDir.getCanonicalPath())
+      }
       taglets = ["com.adaptris.taglet.ConfigTaglet", "com.adaptris.taglet.LicenseTaglet"]
       options.addStringOption "tagletpath", configurations.javadoc.asPath
       options.addStringOption "Xdoclint:none", "-quiet"
