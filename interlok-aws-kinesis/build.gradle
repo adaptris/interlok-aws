@@ -37,12 +37,10 @@ dependencies {
     exclude group: "org.apache.commons", module: "commons-compress"
   }
   implementation ("org.apache.kafka:kafka-clients")
-  
   implementation ("org.apache.commons:commons-compress")
 
   api ("com.google.guava:guava")
   implementation (platform("io.netty:netty-bom"))
-
   implementation ("io.netty:netty-buffer")
   implementation ("io.netty:netty-common")
   implementation ("io.netty:netty-handler")
@@ -52,17 +50,13 @@ dependencies {
   implementation ("io.netty:netty-transport-native-kqueue")
   implementation ("io.netty:netty-codec")
   implementation ("io.netty:netty-codec-http")
-
   implementation ("com.charleskorn.kaml:kaml")
-  
   implementation ("com.squareup.wire:wire-schema")
   implementation ("com.squareup.wire:wire-compiler") {
     exclude group: "com.charleskorn.kaml", module: "kaml"
   }
-
   implementation ("com.squareup.okio:okio")
   implementation ("com.squareup.okio:okio-fakefilesystem")
-
   api ("com.google.protobuf:protobuf-java")
   // Dependency to platform/BOM
   api ("com.fasterxml.jackson.core:jackson-databind")
