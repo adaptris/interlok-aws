@@ -63,7 +63,7 @@ public class PluggableRetryPolicyFactory implements RetryPolicyFactory {
   @Setter
   private Integer maxErrorRetry;
   /**
-   * Passed through as {@link RetryPolicy##isMaxErrorRetryInClientConfigHonored()}.
+   * Whether the client configuration's maximum retry setting is honored.
    */
   @InputFieldDefault(value = "true")
   @Getter
