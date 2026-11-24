@@ -1,6 +1,6 @@
 language: java
 sudo: required
-dist: jammy
+dist: trusty
 
 before_install:
   - sudo service haveged start
