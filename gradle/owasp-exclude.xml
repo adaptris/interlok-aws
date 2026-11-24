@@ -182,8 +182,10 @@
   <suppress>
     <notes><![CDATA[
       file name: spring-boot-loader-2.7.18.jar
-      We are pinned to Spring Boot 2.7.x on Java 17. There is no newer 2.7.x release in Maven Central,
-      so these CVEs cannot be remediated by an in-line version bump at the moment.
+      2.7.18 is the last public Spring Boot 2.7.x release; there is no patched 2.7.x version for these CVEs.
+      Remediation requires a major Spring Boot 3 migration, including the javax-to-jakarta transition, and is
+      deferred to the dependency-modernization effort. Java 21 is the runtime baseline; Java 17 is not the reason
+      for this suppression.
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/org\.springframework\.boot/spring-boot-loader@2\.7\.18$</packageUrl>
     <cve>CVE-2026-40972</cve>
@@ -194,8 +196,10 @@
   </suppress>
   <suppress>
     <notes><![CDATA[
-      Jetty 10.0.26 is the newest Jetty 10 release available in Maven Central. Remediation for this CVE
-      requires moving off the Jetty 10 line, which is outside the current Java 17 / Jetty 10 constraints.
+      Jetty 10.0.26 is the final public Jetty 10 release in Maven Central, and no patched 10.x release is available.
+      Remediation requires a major migration to Jetty 12.x and its compatibility changes; this is deferred to the
+      dependency-modernization effort. Java 21 is the runtime baseline and is not the reason for this suppression.
+      Jetty advisories: https://github.com/jetty/jetty.project/security/advisories
     ]]></notes>
     <packageUrl regex="true">^pkg:maven/org\.eclipse\.jetty(\.http2|\.websocket)?/.+@10\.0\.26$</packageUrl>
     <cve>CVE-2026-2332</cve>
@@ -224,6 +228,60 @@
     <cve>CVE-2026-87795</cve>
     <cve>CVE-2026-87823</cve>
     <cve>CVE-2026-89045</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      CVE-2026-119117 is confirmed for KPL 0.x. AWS's fix is KPL 1.0.8+, under the
+      software.amazon.kinesis coordinates; migration also changes AWS SDK and credential-provider APIs.
+      This major library migration is deferred to the dependency-modernization effort.
+      https://aws.amazon.com/security/security-bulletins/2026-159-aws/
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.amazonaws/amazon-kinesis-producer@0\.15\.12$</packageUrl>
+    <cve>CVE-2026-119117</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Dependency-Check maps these Apache Kafka server findings to kafka-clients 3.9.2.
+      CVE-2026-116593 concerns Kafka Connect's configuration-validation REST endpoint, and
+      CVE-2026-111115 concerns broker request parsing; this project resolves only kafka-clients,
+      not Kafka Connect or the broker. These are component-identification false positives.
+      https://kafka.apache.org/community/cve-list/#CVE-2026-116593
+      https://kafka.apache.org/community/cve-list/#CVE-2026-111115
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/org\.apache\.kafka/kafka-clients@3\.9\.2$</packageUrl>
+    <cve>CVE-2026-116593</cve>
+    <cve>CVE-2026-111115</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      The advisory lists OkHttp versions through 5.5.1 as affected, and 5.5.1 is the latest version published
+      in Maven Central at this review. No patched release is available yet. Once one is published, updating from
+      4.x will be a major dependency upgrade deferred to the dependency-modernization effort. This is a risk
+      deferral, not remediation.
+      https://github.com/advisories/GHSA-p22c-cv6w-qc6x
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.squareup\.okhttp3/okhttp@4\.12\.0$</packageUrl>
+    <cve>CVE-2026-129482</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Wire 4.3.0 is selected through amazon-kinesis-producer 0.15.12; CVE-2024-58103 is fixed in Wire 5.2.0+.
+      That major-version update requires coordinated compatibility testing with KPL and is deferred to the
+      dependency-modernization effort. The vulnerability affects nested-group parsing in the Wire runtime.
+      https://osv.dev/vulnerability/CVE-2024-58103
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.squareup\.wire/wire-compiler@4\.3\.0$</packageUrl>
+    <cve>CVE-2024-58103</cve>
+  </suppress>
+  <suppress>
+    <notes><![CDATA[
+      Wire runtime 4.3.0 is selected through amazon-kinesis-producer 0.15.12; CVE-2024-58103 is fixed in Wire 5.2.0+.
+      That major-version update requires coordinated compatibility testing with KPL and is deferred to the
+      dependency-modernization effort. The vulnerability affects nested-group parsing in the Wire runtime.
+      https://osv.dev/vulnerability/CVE-2024-58103
+    ]]></notes>
+    <packageUrl regex="true">^pkg:maven/com\.squareup\.wire/wire-runtime-jvm@4\.3\.0$</packageUrl>
+    <cve>CVE-2024-58103</cve>
   </suppress>
   <suppress>
     <notes><![CDATA[

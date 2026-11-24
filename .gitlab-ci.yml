@@ -19,7 +19,7 @@ publish:
     - ./gradlew -PverboseTests=true clean check dependencyCheckAnalyze publish
 
 .base-gradle-ci:
-  image: azul/zulu-openjdk:8
+  image: azul-zulu:21
   before_script:
     - apt-get -qq -y update
     - apt-get -qq -y install git graphviz
