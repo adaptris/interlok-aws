@@ -190,7 +190,7 @@ subprojects {
 
     javadoc platform(interlokCatalogPlatform)
     javadoc("com.adaptris:interlok-core-apt") { changing= true}
-    umlDoclet("nl.talsmasoftware:umldoclet:2.1.0")
+    umlDoclet("nl.talsmasoftware:umldoclet:2.3.2")
 
     offlineJavadocPackages platform(interlokCatalogPlatform)
     offlineJavadocPackages ("com.adaptris:interlok-core:javadoc@jar") { changing= true}
